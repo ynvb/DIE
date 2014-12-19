@@ -17,10 +17,12 @@ The resault is a dynamic databse that holds parsed runtime arguments, which are 
 
 Installation
 ------------
+Install Prerequists:
 1. aa
 2. 22
 3. 
-Install Prerequists:
+4.
+
 1. Python 2.7
 2. Pyside  - install using 'pip insatll pyside' or your favorite package manager
 3. yapsy   - install using 'pip install yapsy' or your favorite package manager
