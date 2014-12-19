@@ -26,7 +26,7 @@ Install Prerequists:
 
 Install ida-python patch:
 
-1. Extract the content of the `aaaa.zip` file into your IDA directory.
+1. Extract the content of the `ida-python-patch.zip` file into your IDA directory.
 
 Install Plugin:
 
