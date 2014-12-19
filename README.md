@@ -24,7 +24,11 @@ Install Prerequists:
 3. Yapsy   - install using 'pip install yapsy' or your favorite package manager
 4. Pywin32   - install via http://sourceforge.net/projects/pywin32/files/pywin32/
 
-Install Plugin
+Install ida-python patch:
+
+1. Extract the content of the `aaaa.zip` file into your IDA directory.
+
+Install Plugin:
 
 1. Copy 'DIE.py' and the 'DIE' dir into your IDA plugin directory.
 
