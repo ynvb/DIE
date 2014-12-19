@@ -19,10 +19,10 @@ Installation
 ------------
 
 1. Install Prerequists:
-    Python 2.7
-    Pyside  - install using 'pip insatll pyside' or your favorite package manager
-    yapsy   - install using 'pip install yapsy' or your favorite package manager
-    pywin   - install via http://sourceforge.net/projects/pywin32/files/pywin32/
+    a. Python 2.7
+    b. Pyside  - install using 'pip insatll pyside' or your favorite package manager
+    c. yapsy   - install using 'pip install yapsy' or your favorite package manager
+    d. pywin   - install via http://sourceforge.net/projects/pywin32/files/pywin32/
 
 2. 
 3. Copy `die.py` and `DIE` directory into your IDA plugin directory 
