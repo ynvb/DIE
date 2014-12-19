@@ -1,0 +1,7 @@
+[Core]
+Name = BoolParser
+Module = BoolParser
+
+[Documentation]
+Author = Yaniv Balmas
+Description = Boolean value parser

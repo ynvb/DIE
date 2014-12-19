@@ -1,0 +1,7 @@
+[Core]
+Name = HandleParser
+Module = HandleParser
+
+[Documentation]
+Author = Lior Oppenheim
+Description = An amazing plugin for parsing handles (that is still not currently working ;)

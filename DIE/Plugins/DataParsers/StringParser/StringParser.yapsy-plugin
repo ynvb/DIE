@@ -1,0 +1,7 @@
+[Core]
+Name = StringParser
+Module = StringParser
+
+[Documentation]
+Author = Yaniv Balmas
+Description = Generic string parser (based on IDA string detection engine)
