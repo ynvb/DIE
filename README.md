@@ -19,7 +19,8 @@ Installation
 ------------
 Install Prerequists:
 
-1. Python 2.7
+1. IDA 6.6
+2. Python 2.7
 2. PySide  - install using 'pip insatll pyside' or your favorite package manager
 3. Yapsy   - install using 'pip install yapsy' or your favorite package manager
 4. Pywin32   - install via http://sourceforge.net/projects/pywin32/files/pywin32/
