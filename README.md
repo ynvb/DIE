@@ -13,6 +13,7 @@ In order to take this one step further, once context has been saved, DIE attempt
 So for example, if the current context has a function argumnent with type 'CHAR *' DIE will dereference its address and show a human readable ASCII string as value.
 
 If the current context holds a argument with unknown value, DIE will not give up and attempt to guess the value using all relevant parsers.
+
 This parser framework is the real power behind DIE, parser plugins can parse anything from BOOL values to image files to injected code.
 
 The resault is a dynamic databse that holds parsed runtime arguments, which are avilable to the user during static analysis.
