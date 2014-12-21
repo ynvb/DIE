@@ -1,7 +1,6 @@
-Dynamic IDA Enrichment Framework 
+Dynamic IDA Enrichment Framework (aka. DIE)
 ====
-(aka. DIE)
-=====
+
 
 DIE is an IDA python plugin designed to enrich IDA`s static analysis with dynamic data.
 This is done using the IDA Debugger API, by placing breakpoints in key locations and saving the current system context once those breakpoints are hit.
