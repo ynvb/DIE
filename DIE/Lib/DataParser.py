@@ -1,5 +1,5 @@
 __author__ = 'yanivb'
-from Plugins.DataPluginBase import DataPluginBase
+from DIE.Plugins.DataPluginBase import DataPluginBase
 import logging
 import idaapi
 import idc
