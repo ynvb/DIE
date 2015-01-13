@@ -27,7 +27,6 @@ import DIE.Lib.DIEDb
 ##########################
 WAS_USER_BREAKPOINT = 0x1
 
-
 class DebugHooker(DBG_Hooks):
     """
     IDA Debug hooking functionality

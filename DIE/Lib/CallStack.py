@@ -30,26 +30,26 @@ class CallStack():
         @param library_name: Name of containing library (for library functions)
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
-        #TODO: Debug. Uncomment
-        #try:
-        is_new_func = self.check_if_new_func(ea, iatEA)
-        funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)
 
-        self.count_function(funcContext.function.funcName)
+        try:
+            is_new_func = self.check_if_new_func(ea, iatEA)
+            funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)
 
-        funcContext.get_arg_values_call()
+            self.count_function(funcContext.function.funcName)
 
-        callTree_Indx = len(self.callTree)
+            funcContext.get_arg_values_call()
 
-        # Each callstack element is a tuple containing the index into the calltree, and the function context object.
-        callStackTup = (callTree_Indx, funcContext)
-        self.callStack.append(callStackTup)
+            callTree_Indx = len(self.callTree)
 
-        return self.function_counter[funcContext.function.funcName]
+            # Each callstack element is a tuple containing the index into the calltree, and the function context object.
+            callStackTup = (callTree_Indx, funcContext)
+            self.callStack.append(callStackTup)
 
-        #except Exception as ex:
-        #    self.logger.error("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
-        #    return -1
+            return self.function_counter[funcContext.function.funcName]
+
+        except Exception as ex:
+            self.logger.error("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
+            return -1
 
     def pop(self):
         """
@@ -124,42 +124,6 @@ class CallStack():
         except Exception as ex:
             self.logger.error("Error while retrieving function data for top-of-call-stack item:", ex)
             return None
-
-    def get_func_context_tree(self):
-        """
-        Get function context runtime dictionary
-        @return: A dictionary of runtime function context and their values.
-
-        [1] Function tree is a dictionary with the function name as key and a nested dictionary [2] as a value.
-        [2] Calling-EA is a dictionary with the location of the function call as key and value lists tuple [3] as value.
-        [3] Debug_Value_Lists is a tuple containing 3 lists, each containing DebugValue objects corresponding
-             to the function argument used.
-
-            [1]FUNC_TREE         [2]Calling-EA     [3]Debug_Value_Lists
-            /------------\       /-----------\      /----------------------------------\
-            | function1  | ----> | 0x123456  |      |(CallValues, ReturnValues, retVal)|
-            | function2  |       | 0x654321  |      |(CallValues, ReturnValues, retVal)|
-            | function3  |       | 0x615343  | ---> |(CallValues, ReturnValues, retVal)|
-            |     .      |       |     .     |      |                 .                |
-            |     .      |       |     .     |      |                 .                |
-            \------------/       \-----------/      \----------------------------------/
-        """
-        func_tree = {}
-
-        for func_context in self.callTree:
-            callingEA = func_context.callingEA
-            funcName = func_context.function.funcName
-
-            if not funcName in func_tree:
-                func_tree[funcName] = {}
-
-            if not callingEA in func_tree[funcName]:
-                func_tree[funcName][callingEA] = []
-
-            func_context_vals = func_context.get_context()
-            func_tree[funcName][callingEA].append(func_context_vals)
-
-        return func_tree
 
 
 

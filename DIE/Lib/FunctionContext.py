@@ -47,8 +47,8 @@ class FunctionContext():
             self.callingEA = self.instParser.get_ret_adr()                  # The ea of the CALL instruction
             self.calling_function_name = DIE.Lib.IDAConnector.get_function_name(self.callingEA)  # Calling function name
 
-         ###############################################################################
-         ###     Flags
+        ###############################################################################
+        ### Flags
 
             self.empty = True  # empty flag is dropped when first call context is retrieved.
             self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
