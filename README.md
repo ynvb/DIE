@@ -23,16 +23,21 @@ Installation
 ------------
 **Installation Prerequists:**
 
-1. IDA 6.6
+1. IDA >6.6
 2. Python 2.7
-2. PySide    - install using 'pip insatll pyside' or your favorite package manager
 3. Yapsy     - install using 'pip install yapsy' or your favorite package manager
 4. Pywin32   - install via http://sourceforge.net/projects/pywin32/files/pywin32/
 
 
 **Install ida-python patch:**
 
-1. Extract the content of the `ida-python-patch.zip` file into your IDA directory.
+1. If running under IDA 6.6:
+   Extract the content of the `ida-python-patch.zip` file into your IDA directory.
+
+2. If running under IDA 6.7:
+   Replace the binaries found in ida67_patch.zip file with the original IDA binaries
+
+Note that both of this patches are official patches compiled by hex-rays, and were created due to a bug in the relevant version.
 
 **Install Plugin:**
 
