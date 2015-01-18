@@ -4,7 +4,8 @@ import time
 
 from idc import *
 from idaapi import *
-from DIE.Lib.Function import *
+#from DIE.Lib.Function import *
+from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
 from DIE.Lib.InstParserUtil import *
 import DIE.Lib.IDAConnector

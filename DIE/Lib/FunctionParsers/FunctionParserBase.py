@@ -1,8 +1,10 @@
 __author__ = 'yanivb'
 
 import logging
-from DIE.Lib.Function import Function
-from DIE.Lib.FuncArg import FuncArg
+#from DIE.Lib.Function import Function
+#from DIE.Lib.FuncArg import FuncArg
+
+from DIE.Lib.IDATypeWrapers import Function, FuncArg
 from DIE.Lib.DebugValue import *
 import DIE.Lib.DataParser
 

@@ -6,8 +6,10 @@ from DIE.Lib.InstParserUtil import *
 import idaapi
 from idc import *
 
-from DIE.Lib.Struct import *
-from DIE.Lib.Array import *
+#from DIE.Lib.Struct import *
+#from DIE.Lib.Array import *
+
+from DIE.Lib.IDATypeWrapers import Array, Struct
 
 MEM_VAL = 0x01       # Memory based value
 REG_VAL = 0x02       # Register based value
