@@ -15,7 +15,7 @@ class FuncArg():
 
         self.isGussed = isGuessed   # Is this argument known\guessed
         self.argtype = argType      # Argument type (type_info_t object)
-        self.argloc = argLoc        # arglog object
+        self.argloc = argLoc        # argloc object
         self.argNum = argNum        # Argument number (-1 for return argument)
         self.argname = argName      # Argument name
 

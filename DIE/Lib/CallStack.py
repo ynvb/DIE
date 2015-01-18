@@ -35,8 +35,11 @@ class CallStack():
             is_new_func = self.check_if_new_func(ea, iatEA)
             funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)
 
-            self.count_function(funcContext.function.funcName)
+            if funcContext is None:
+                self.logger.error("Could not generate function context for ea: %s", hex(ea))
+                return -1
 
+            self.count_function(funcContext.function.funcName)
             funcContext.get_arg_values_call()
 
             callTree_Indx = len(self.callTree)
@@ -62,9 +65,14 @@ class CallStack():
                 return
 
             (callTree_Indx, funcContext) = self.callStack.pop()
+
+            if funcContext is None:
+                self.logger.error("Error while poping function from callstack, "
+                                  "no function context available for this function")
+                return False
+
             funcContext.get_arg_values_ret()  # Update the call-tree context
             self.callTree.append(funcContext)
-
             return True
 
         except Exception as ex:

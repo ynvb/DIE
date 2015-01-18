@@ -387,15 +387,18 @@ class DIE_DB():
         @param call_stack: a dictionary where Key = ThreadID , Value = call_tree
         @return:
         """
+        try:
+            self.run_info = dbRun_Info(start_time, end_time, debugged_file, md5)
 
-        self.run_info = dbRun_Info(start_time, end_time, debugged_file, md5)
+            for thread_id in call_stack:
+                thread_id = self.add_thread_data(thread_id, call_stack[thread_id].callTree)
+                self.run_info.threads.append(thread_id)
 
-        for thread_id in call_stack:
-            thread_id = self.add_thread_data(thread_id, call_stack[thread_id].callTree)
-            self.run_info.threads.append(thread_id)
+            self.is_saved = False  # Un-check the saved flag
+            return True
 
-        self.is_saved = False  # Un-check the saved flag
-        return True
+        except Exception as ex:
+            self.logger.error("Error while loading RunInfo data into DieDB: %s", ex)
 
     def add_thread_data(self, thread_num, call_tree):
         """
@@ -405,17 +408,21 @@ class DIE_DB():
         @return:
         """
 
-        cur_thread = dbThread(thread_num)
-        thread_id = id(cur_thread)
+        try:
+            cur_thread = dbThread(thread_num)
+            thread_id = id(cur_thread)
 
-        for function_context in call_tree:
-            func_context_id = self.add_function_context(function_context, cur_thread.thread_num)
-            cur_thread.cfg.append(func_context_id)
+            for function_context in call_tree:
+                func_context_id = self.add_function_context(function_context, cur_thread.thread_num)
+                cur_thread.cfg.append(func_context_id)
 
-        self.threads[thread_id] = cur_thread
+            self.threads[thread_id] = cur_thread
 
-        self.is_saved = False  # Un-check the saved flag
-        return thread_id
+            self.is_saved = False  # Un-check the saved flag
+            return thread_id
+
+        except Exception as ex:
+            self.logger.error("Error while loading thread-%d to DieDB: %s", thread_num, ex)
 
     def add_function_context(self, function_context, thread_id):
         """
@@ -423,37 +430,40 @@ class DIE_DB():
         @param function_context: object of type FunctionContext
         @return:
         """
+        try:
+            cur_func_context = dbFunction_Context(function_context.callRegState,
+                                                  function_context.retRegState,
+                                                  function_context.callingEA,
+                                                  function_context.is_indirect,
+                                                  function_context.is_new_func,
+                                                  function_context.calling_function_name,
+                                                  function_context.total_proc_time,
+                                                  thread_id)
 
-        cur_func_context = dbFunction_Context(function_context.callRegState,
-                                              function_context.retRegState,
-                                              function_context.callingEA,
-                                              function_context.is_indirect,
-                                              function_context.is_new_func,
-                                              function_context.calling_function_name,
-                                              function_context.total_proc_time,
-                                              thread_id)
+            func_context_id = id(cur_func_context)
 
-        func_context_id = id(cur_func_context)
+            cur_func_context.function = self.add_function(function_context.function, func_context_id)
 
-        cur_func_context.function = self.add_function(function_context.function, func_context_id)
+            for call_value in function_context.callValues:
+                dbg_val_id = self.add_debug_value(call_value, func_context_id)
+                cur_func_context.call_values.append(dbg_val_id)
 
-        for call_value in function_context.callValues:
-            dbg_val_id = self.add_debug_value(call_value, func_context_id)
-            cur_func_context.call_values.append(dbg_val_id)
+            for ret_value in function_context.retValues:
+                dbg_val_id = self.add_debug_value(ret_value, func_context_id)
+                cur_func_context.ret_values.append(dbg_val_id)
 
-        for ret_value in function_context.retValues:
-            dbg_val_id = self.add_debug_value(ret_value, func_context_id)
-            cur_func_context.ret_values.append(dbg_val_id)
+            # If return argument exist, add its value to DB.
+            if function_context.retArgValue is not None:
+                dbg_val_id = self.add_debug_value(function_context.retArgValue, func_context_id)
+                cur_func_context.ret_arg_value = dbg_val_id
 
-        # If return argument exist, add its value to DB.
-        if function_context.retArgValue is not None:
-            dbg_val_id = self.add_debug_value(function_context.retArgValue, func_context_id)
-            cur_func_context.ret_arg_value = dbg_val_id
+            self.function_contexts[func_context_id] = cur_func_context
 
-        self.function_contexts[func_context_id] = cur_func_context
+            self.is_saved = False  # Un-check the saved flag
+            return func_context_id
 
-        self.is_saved = False  # Un-check the saved flag
-        return func_context_id
+        except Exception as ex:
+            self.logger.error("Error while adding function %s to DieDB: %s", function_context.function.funcName, ex)
 
     def add_function(self, function, func_context_id):
         """
@@ -463,28 +473,32 @@ class DIE_DB():
         @return:
         """
 
-        cur_function = dbFunction(function.funcName, function.func_start, function.func_end, function.proto_ea, function.argNum, function.isLibFunc, function.library_name)
-        func_id = cur_function.__hash__()
+        try:
+            cur_function = dbFunction(function.funcName, function.func_start, function.func_end, function.proto_ea, function.argNum, function.isLibFunc, function.library_name)
+            func_id = cur_function.__hash__()
 
-        if func_id in self.functions:
-            self.functions[func_id].function_contexts.append(func_context_id)
+            if func_id in self.functions:
+                self.functions[func_id].function_contexts.append(func_context_id)
+                return func_id
+
+            cur_function.function_contexts.append(func_context_id)
+
+            for func_arg in function.args:
+                arg_id = self.add_func_arg(func_arg)
+                cur_function.args.append(arg_id)
+
+            # If return argument exist, add it to db.
+            if function.retArg is not None:
+                ret_arg_id = self.add_func_arg(function.retArg)
+                cur_function.ret_arg = ret_arg_id
+
+            self.functions[func_id] = cur_function
+
+            self.is_saved = False  # Un-check the saved flag
             return func_id
 
-        cur_function.function_contexts.append(func_context_id)
-
-        for func_arg in function.args:
-            arg_id = self.add_func_arg(func_arg)
-            cur_function.args.append(arg_id)
-
-        # If return argument exist, add it to db.
-        if function.retArg is not None:
-            ret_arg_id = self.add_func_arg(function.retArg)
-            cur_function.ret_arg = ret_arg_id
-
-        self.functions[func_id] = cur_function
-
-        self.is_saved = False  # Un-check the saved flag
-        return func_id
+        except Exception as ex:
+            self.logger.error("Error while loading function %s into DieDB: %s", function.funcName ,ex)
 
     def add_func_arg(self, func_arg):
         """
@@ -493,12 +507,16 @@ class DIE_DB():
         @return:
         """
 
-        cur_arg = dbFuncArg(func_arg.argname, func_arg.type_str(), func_arg.argNum, func_arg.isStack())
-        arg_id = id(cur_arg)
-        self.function_args[arg_id] = cur_arg
+        try:
+            cur_arg = dbFuncArg(func_arg.argname, func_arg.type_str(), func_arg.argNum, func_arg.isStack())
+            arg_id = id(cur_arg)
+            self.function_args[arg_id] = cur_arg
 
-        self.is_saved = False  # Un-check the saved flag
-        return arg_id
+            self.is_saved = False  # Un-check the saved flag
+            return arg_id
+
+        except Exception as ex:
+            self.logger.error("Error while loading function argument %s into DieDB: %s", func_arg.argname, ex)
 
     def add_debug_value(self, debug_value, func_context_id, ref_blink_id=None):
         """
@@ -508,45 +526,49 @@ class DIE_DB():
         @param ref_blink_id: id of the referring dbDebugValue object
         @return:
         """
-        cur_dbg_value = dbDebug_Values(debug_value.rawValue,
-                                       debug_value.typeName(),
-                                       debug_value.name,
-                                       debug_value.is_definitely_parsed(),
-                                       debug_value.derefrence_depth)
-        dbg_val_id = id(cur_dbg_value)
+        try:
+            cur_dbg_value = dbDebug_Values(debug_value.rawValue,
+                                           debug_value.typeName(),
+                                           debug_value.name,
+                                           debug_value.is_definitely_parsed(),
+                                           debug_value.derefrence_depth)
+            dbg_val_id = id(cur_dbg_value)
 
-        cur_dbg_value.function_context = func_context_id
+            cur_dbg_value.function_context = func_context_id
 
-        #TODO: Check aginst None type was added as a quick fix, Check why is this needed here.
-        if debug_value.parsedValues is not None:
-            for parsed_val in debug_value.parsedValues:
-                parsed_val_id = self.add_parsed_val(parsed_val)
-                cur_dbg_value.parsed_values.append(parsed_val_id)
-                self.parsed_values[parsed_val_id].dbgValues.append(dbg_val_id)
+            #TODO: Check aginst None type was added as a quick fix, Check why is this needed here.
+            if debug_value.parsedValues is not None:
+                for parsed_val in debug_value.parsedValues:
+                    parsed_val_id = self.add_parsed_val(parsed_val)
+                    cur_dbg_value.parsed_values.append(parsed_val_id)
+                    self.parsed_values[parsed_val_id].dbgValues.append(dbg_val_id)
 
-        for nested_val in debug_value.nestedValues:
-            nested_dbg_val_id = self.add_debug_value(nested_val, func_context_id)
-            cur_dbg_value.nested_values.append(nested_dbg_val_id)
+            for nested_val in debug_value.nestedValues:
+                nested_dbg_val_id = self.add_debug_value(nested_val, func_context_id)
+                cur_dbg_value.nested_values.append(nested_dbg_val_id)
 
-        if ref_blink_id is not None:
-            cur_dbg_value.reference_blink = ref_blink_id
+            if ref_blink_id is not None:
+                cur_dbg_value.reference_blink = ref_blink_id
 
-        if debug_value.reference_flink is not None:
-            ref_flink_id = self.add_debug_value(debug_value.reference_flink, func_context_id=func_context_id, ref_blink_id=dbg_val_id)
-            cur_dbg_value.reference_flink = ref_flink_id
+            if debug_value.reference_flink is not None:
+                ref_flink_id = self.add_debug_value(debug_value.reference_flink, func_context_id=func_context_id, ref_blink_id=dbg_val_id)
+                cur_dbg_value.reference_flink = ref_flink_id
 
-        # Get the best parsed value (lowest score)
-        best_score = 10
-        for parsed_val_id in cur_dbg_value.parsed_values:
-            cur_parsed_val = self.parsed_values[parsed_val_id]
-            if cur_parsed_val.score <= best_score:
-                cur_dbg_value.best_val_id = parsed_val_id
-                best_score = cur_parsed_val.score
+            # Get the best parsed value (lowest score)
+            best_score = 10
+            for parsed_val_id in cur_dbg_value.parsed_values:
+                cur_parsed_val = self.parsed_values[parsed_val_id]
+                if cur_parsed_val.score <= best_score:
+                    cur_dbg_value.best_val_id = parsed_val_id
+                    best_score = cur_parsed_val.score
 
-        self.dbg_values[dbg_val_id] = cur_dbg_value
+            self.dbg_values[dbg_val_id] = cur_dbg_value
 
-        self.is_saved = False  # Un-check the saved flag
-        return dbg_val_id
+            self.is_saved = False  # Un-check the saved flag
+            return dbg_val_id
+
+        except Exception as ex:
+            self.logger.error("Error while loading DebugValue to DieDB: %s", ex)
 
     def add_parsed_val(self, parsed_val):
         """
@@ -554,16 +576,20 @@ class DIE_DB():
         @param parsed_val: object of type ParsedValue
         @return:
         """
-        cur_parsed_val = dbParsed_Value(parsed_val.data, parsed_val.description, parsed_val.raw, parsed_val.score, parsed_val.type)
-        parsed_val_id = cur_parsed_val.__hash__()
+        try:
+            cur_parsed_val = dbParsed_Value(parsed_val.data, parsed_val.description, parsed_val.raw, parsed_val.score, parsed_val.type)
+            parsed_val_id = cur_parsed_val.__hash__()
 
-        if not parsed_val_id in self.parsed_values:
-            self.parsed_values[parsed_val_id] = cur_parsed_val
+            if not parsed_val_id in self.parsed_values:
+                self.parsed_values[parsed_val_id] = cur_parsed_val
 
-        self.is_saved = False
+            self.is_saved = False
 
-        self.is_saved = False  # Un-check the saved flag
-        return parsed_val_id
+            self.is_saved = False  # Un-check the saved flag
+            return parsed_val_id
+
+        except Exception as ex:
+            self.logger.error("Error while loading parsed data into DieDB: %s", ex)
 
 
 ####################################################################################

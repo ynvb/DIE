@@ -52,6 +52,7 @@ class InstructionParserX86():
             self.logger.error("Could not retrieve processor type: %s", ex)
             return None
 
+    # TODO: Change this to be architecture independent
     def is_call(self, ea):
         """
         Check if the current instruction a CALL instruction
@@ -60,6 +61,7 @@ class InstructionParserX86():
         if re.match('call\s+far prt', mnem):  return None
         return re.match('call', mnem)
 
+    # TODO: Change this to be architecture independent
     def is_ret(self, ea):
         """
         Check if the current instruction a RET instruction
@@ -67,6 +69,7 @@ class InstructionParserX86():
         mnem = GetMnem(ea)
         return re.match('ret', mnem)
 
+    # TODO: Change this to be architecture independent
     def get_cur_ea(self):
         """
         Return the current effective address
@@ -82,7 +85,7 @@ class InstructionParserX86():
         if nativeSize is 64:
             return GetRegValue('RIP')
 
-
+    # TODO: Change this to be architecture independent
     def get_ret_adr(self):
         """
         Get the return address for the current function
@@ -102,6 +105,7 @@ class InstructionParserX86():
 
         return prev_addr
 
+    # TODO: Change this to be architecture independent
     def get_sp(self):
         """
         Get the current stack pointer address
@@ -128,6 +132,7 @@ class InstructionParserX86():
         if nativeSize is 64:
             return DbgQword(ea)
 
+    # Ask hex-rays how can this be done a bit more gracefully..
     def regOffsetToName(self, offset):
         """
         Get register name from an offset to ph.regnames
@@ -147,6 +152,13 @@ class InstructionParserX86():
             return "R" + regName.upper()
 
         return ValueError("Failed to retrieve register name.")
+
+    def get_stack_element_size(self):
+        """
+        Get size of a stack element
+        @return: size of a stack element (in bytes)
+        """
+        return self.get_native_size()/8
 
 
 

@@ -16,7 +16,17 @@ REG_VAL = 0x02       # Register based value
 
 class DebugValue():
     """
-    Run-Time Argument Value
+    DebugValue class is responsible for reading the argument value.
+    argument value is collected according to its type. e.g - Pointers will be dereferenced and the dereferenced value
+    will be collected, struct will be enumerated and all their members will be collected, and arrays will be walked
+    trough to collect their element value.
+
+    DebugValue also collects 2 types of values for each collected element. The first is a raw native size value at the
+    address (which is the default value used), And the second is a parsed value according to the argument type.
+    (This is done by using the data parser plugins).
+
+    Each argument may have only 1 raw value, but several possible parsed_values.
+    Also each argument may have nested values (for supporting structs, unions, etc.)
     """
 
     def __init__(self,
@@ -40,22 +50,24 @@ class DebugValue():
         self.name = name                    # Value name
         self.loc = loc                      # Value location (if REG_VAL - register name, if MEM_VAL - memory address)
         self.rawValue = None                # Raw value at address
-        self.parsedValues = []             # Possible value data list
-        self.custom_parser = custom_parser  # Custom parser plugin for this value
 
+        self.parsedValues = []              # Possible value data list
         self.nestedValues = []              # Nested DebugValue(s) (if struct/union etc.)
 
+        # Custom parser plugin for this value - if this value is set, no other parser will be attempted to parse
+        # this value.
+        self.custom_parser = custom_parser
 
-        # TODO: Implement both of this values.
         self.reference_flink = None             # For reference values, a pointer to the referred value.
         self.reference_blink = referringValue   # For reference values, a pointer to the referring value.
 
+        # Set current maximal dereference depth for this argument.
         if deref_depth is None:
             self.derefrence_depth = self.config.max_deref_depth
         else:
             self.derefrence_depth = deref_depth     # de-reference depth
 
-        # Get runtime values
+        # Collect runtime values!
         self.dataParser = DataParser.getParser()
         self.getRunetimeValues()
 

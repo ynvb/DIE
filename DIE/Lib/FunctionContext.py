@@ -10,10 +10,21 @@ from DIE.Lib.InstParserUtil import *
 import DIE.Lib.IDAConnector
 import DIE.Lib.FunctionParsers
 
+from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
+
 
 class FunctionContext():
     """
-    Function context stores the runtime context of a given function.
+    Function context stores all runtime context of a given function call.
+    A single function may be assigned to multiple FunctionContext objects, because a unique function context will
+    be created every time this function is called.
+    The information stored is the value of the function arguments and registers at function call
+    and function return.
+    It also holds various other useful information regarding this specific function call such as:
+     1. "was this function called indirectly"
+     2. "did this function exist in the original analysis"
+     3. "who called this function"
+     4. "how much time did it take to process this function"
     """
 
     def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None):
@@ -33,36 +44,35 @@ class FunctionContext():
         ### Context Stuff
 
         # Arguments
-        self.callValues = []                            # Argument values at function call
-        self.retValues = []                             # Argument values at function return
-        self.retArgValue = None                         # Return argument value
+        self.callValues = []        # Argument values at function call
+        self.retValues = []         # Argument values at function return
+        self.retArgValue = None     # Return argument value
 
         # Registers
-        self.callRegState = None                        # Register state at function call
-        self.retRegState = None                         # Register state at function return
-        self.total_proc_time = 0                        # Total processing time in seconds.
+        self.callRegState = None    # Register state at function call
+        self.retRegState = None     # Register state at function return
+        self.total_proc_time = 0    # Total processing time in seconds.
 
         try:
+            ### Function Data
             self.function = Function(ea, iatEA, library_name=library_name)  # This (The Callee) function
             self.callingEA = self.instParser.get_ret_adr()                  # The ea of the CALL instruction
             self.calling_function_name = DIE.Lib.IDAConnector.get_function_name(self.callingEA)  # Calling function name
 
-        ###############################################################################
-        ### Flags
-
+            ### Flags
             self.empty = True  # empty flag is dropped when first call context is retrieved.
             self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
             self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
 
             # TODO: if this is a new function, try to define it.
 
-            # Get an argument parser for this function.
-            function_parsers = DIE.Lib.FunctionParsers.get_function_parsers()
-            self.argument_parser = function_parsers.get_arg_parser(self.function.funcName, self.callingEA)
+            # Get a function parser for this function
+            # (currently only GenericFunctionParser exist, and this is used to enable future extensions)
+            self.function_parser = GenericFunctionParser(self.function)
 
         except Exception as ex:
             logging.critical("Error while initializing function context: %s", ex)
-            return False
+            return None
 
     def check_if_indirect(self):
         """
@@ -75,70 +85,33 @@ class FunctionContext():
 
         op_type = idc.GetOpType(self.callingEA, 0)
 
-        # If the CALL instruction first operand is either a Register, or of [Base + Index] type.
-        if op_type == 1 or op_type == 3 or op_type == 4:
+        # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
+        if op_type == 3 or op_type == 4:
             self.logger.debug("Indirect call found. function - %s, ea - %s", self.function.funcName, hex(self.callingEA))
             return True
 
         return False
 
-    def get_arg_value(self, argument):
-        """
-        Get an argument runtime value
-        @param argument: The argument which runtime value to retrieve
-        @return: DebugValue object containing the current argument value. Returns None on failure
-        """
-        try:
-            storeType = None
-            argtype = None
-            loc = None
-
-            # If register based argument
-            if argument.isReg():
-                storeType = REG_VAL
-                loc = argument.registerName()
-
-            # If stack based argument
-            if argument.isStack():
-                storeType = MEM_VAL
-                retAdrSize = self.instParser.get_native_size()/8  # Size of stack return address
-                loc = self.instParser.get_sp() + retAdrSize + argument.offset()  # Absolute arg stack address
-
-            if not argument.isGussed:
-                argtype = argument.argtype
-
-            argValue = self.argument_parser.get_arg_value(argument.argNum,  # Argument Index
-                                                          storeType,        # Register \ Stack
-                                                          loc,              # Value location
-                                                          argtype,          # Argument type
-                                                          argument.name(),  # Argument name
-                                                          1)                # return=0\call=1
-
-            return argValue
-
-        except Exception as ex:
-           self.logger.error("Error: Could not retrieve argument call value: %s", ex)
-           return None
-
     def get_arg_values_call(self):
         """
-        Get the call values at the current location.
+        Get the function argument values upon function call
+        @return: True if function argument values were successfully retrieved, otherwise false.
         """
-        start_time = time.time()  # Start timer
 
+        start_time = time.time()  # Start timer
         self.empty = False  # drop the empty flag
 
         # If no function arg retrieval is disabled in configuration - quit:
         if not self.config.get_func_args:
             return True
 
-        self.callRegState = self.getRegisters()  # Get register state
+        self.callRegState = self.getRegisters()  # Get registers state
+        self.callValues = self.function_parser.parse_function_args_call()  # Get function Arguments
 
-        argIndex = 0
-        for arg in self.function.args:
-            arg_value = self.get_arg_value(arg)
-            self.callValues.append(arg_value)
-            argIndex += 1
+        if self.callValues is None:
+            self.logger("Failed parsing function arguments")
+            self.empty = True
+            return False
 
         elapsed_time = time.time() - start_time  # Get elapsed time
         self.total_proc_time += elapsed_time  # Add to total elapsed time
@@ -147,10 +120,9 @@ class FunctionContext():
 
     def get_arg_values_ret(self):
         """
-        Get the argument values at the current location
-        (This function is meant to be called when current position is at the function return instruction)
+        Get the function argument values upon function return
+        @return: True if function argument values were successfully retrieved, otherwise false.
         """
-        start_time = time.time()  # Start timer
 
         if self.empty:
             self.logger.error("Call values must be retrieved prior to return values.")
@@ -160,25 +132,11 @@ class FunctionContext():
         if not self.config.get_func_args:
             return True
 
+        start_time = time.time()  # Start timer
+
         self.retRegState = self.getRegisters()  # Get register state
-
-        # Iterate trough call values, and update current values.
-        argIndex = 0
-        for call_value in self.callValues:
-            retValue = self.argument_parser.get_arg_value(argIndex,              # Argument Index
-                                                          call_value.storetype,  # Register \ Stack
-                                                          call_value.loc,        # Value location
-                                                          call_value.type,       # Argument type
-                                                          call_value.name,       # Argument name
-                                                          0)                     # return=0\call=1
-
-            #retValue = DebugValue(call_value.storetype, call_value.loc, call_value.type, call_value.name)
-            self.retValues.append(retValue)
-            argIndex += 1
-
-        # Get return argument value
-        if self.function.retArg:
-            self.retArgValue = self.get_arg_value(self.function.retArg)
+        # Get function arguments
+        (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
 
         elapsed_time = time.time() - start_time  # Get elapsed time
         self.total_proc_time += elapsed_time  # Add to total elapsed time
@@ -190,19 +148,6 @@ class FunctionContext():
         Get a list of registers\value tuples.
         """
         return idaapi.dbg_get_registers()
-
-    def get_context(self):
-        """
-        Get the stored function context.
-        @return: a tuple containing 3 list of DebugValue objects.
-        (CallArgValues, RetArgValues, RetArgument)
-
-            CallArgValues - Argument values at function call
-            RetArgValues  - Argument values at function return
-            RetArgument    - Return argument(s) value
-        """
-
-        return (self.callValues, self.retValues, self.retArgValue)
 
 
 
