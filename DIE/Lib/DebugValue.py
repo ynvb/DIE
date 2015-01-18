@@ -5,16 +5,10 @@ __author__ = 'yanivb'
 from DIE.Lib.InstParserUtil import *
 import idaapi
 from idc import *
-
-#from DIE.Lib.Struct import *
-#from DIE.Lib.Array import *
-
 from DIE.Lib.IDATypeWrapers import Array, Struct
 
 MEM_VAL = 0x01       # Memory based value
 REG_VAL = 0x02       # Register based value
-
-#MAX_DEREF_DEPTH = 3  # Maximal dereferencing depth.  $TODO: read from configuration
 
 class DebugValue():
     """
@@ -73,6 +67,207 @@ class DebugValue():
         self.dataParser = DataParser.getParser()
         self.getRunetimeValues()
 
+
+
+    def getRunetimeValues(self):
+        """
+        Main value retrieval function. this function is orchestrating the entire argument value retrieval operation.
+        The main idea here is to try and get the runtime values according to the specific object location and store type.
+        """
+        try:
+            if self.config.is_deref:
+                self.dereference()
+
+            # If value is a container (Struct\Union, etc.)
+            if self.config.is_container:
+                if self.is_container():
+                    self.__get_container_values()
+                    # if self.derefrence_depth > 0:
+                    #     struct = Struct(self.type)
+                    #     struct_base_adrs = self.loc
+                    #
+                    #     if self.loc is not None:
+                    #         new_ref_depth = (self.derefrence_depth - 1)
+                    #         for element in struct.elements:  # Add nested DebugValue elements
+                    #             element_val = DebugValue(MEM_VAL,
+                    #                                      struct_base_adrs + element.offset,
+                    #                                      element.type,
+                    #                                      element.get_name(),
+                    #                                      deref_depth=new_ref_depth)
+                    #             self.nestedValues.append(element_val)
+
+            # If value is an array
+            if self.config.is_array:
+                if self.is_array():
+                    self.__get_array_values()
+                    # array = Array(self.type)
+                    # array_base_adrs = self.loc
+                    #
+                    # if self.loc is not None:
+                    #
+                    #     prev_element = self
+                    #     for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
+                    #         element_val = DebugValue(MEM_VAL,
+                    #                                  array_base_adrs + (element_index*array.element_size),
+                    #                                  array.element_type,
+                    #                                  "[%d]" % element_index)
+                    #
+                    #         prev_element.reference_flink = element_val
+                    #         prev_element = element_val
+
+
+            if self.loc and self.storetype:
+                if self.config.is_raw:
+                    self.rawValue = self.getRawValue()
+
+                if self.config.is_parse:
+                    self.parsedValues = self.parseValue()
+
+                return True
+
+            else:
+                #TODO: This is noisy. why? maybe this happens when value is NULL?
+                #self.logger.error("Could not get runtime values for %s. no location\storetype information found", self.typeName())
+                return False
+
+
+        except Exception as ex:
+            self.logger.error("Could not get runtime values for %s: %s", self.typeName(), ex)
+            return False
+
+    def dereference(self):
+        """
+        Get referenced value as DebugValue
+        @rtype : True if dereference succeedes, otherwise False
+        """
+        # This can only be done safely when type is known
+        if self.type is None:
+            return None
+
+        try:
+            if self.type.is_ptr() and not self.type.is_pvoid():
+
+                if self.derefrence_depth > 0:
+                    ref_type = self.type.get_pointed_object()
+                    ref_loc = self.getRawValue()
+                    ref_blink = self
+                    new_deref_depth = (self.derefrence_depth -1)
+
+                    self.reference_flink = DebugValue(MEM_VAL,
+                                                      ref_loc,
+                                                      ref_type,
+                                                      "-> ",
+                                                      ref_blink,
+                                                      deref_depth=new_deref_depth)
+
+                return True
+
+        except Exception as ex:
+            self.logger.error("Failed to dereference %s: %s", self.typeName(), ex)
+            return False
+
+    def __get_array_values(self):
+        """
+        Get values of a array objects.
+        @return: True if array values were successfully retrieved, otherwise False.
+        """
+        try:
+            array = Array(self.type)
+            array_base_adrs = self.loc
+
+            if self.loc is not None:
+                prev_element = self
+                for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
+                    element_val = DebugValue(MEM_VAL,
+                                             array_base_adrs + (element_index*array.element_size),
+                                             array.element_type,
+                                             "[%d]" % element_index)
+
+                    prev_element.reference_flink = element_val
+                    prev_element = element_val
+
+            return True
+
+        except Exception as ex:
+            self.logger.error("Error while retrieving array values: %s", ex)
+            return False
+
+    def __get_container_values(self):
+        """
+        Get values of a container objects (struct\union\etc.)
+        (only structs are currently supported)
+        @return: True if container values were successfully retrieved, otherwise False.
+        """
+        try:
+            if self.derefrence_depth > 0:
+                struct = Struct(self.type)
+                struct_base_adrs = self.loc
+
+                if self.loc is not None:
+                    new_ref_depth = (self.derefrence_depth - 1)
+                    for element in struct.elements:  # Add nested DebugValue elements
+                        element_val = DebugValue(MEM_VAL,
+                                                 struct_base_adrs + element.offset,
+                                                 element.type,
+                                                 element.get_name(),
+                                                 deref_depth=new_ref_depth)
+
+                        self.nestedValues.append(element_val)
+
+            return True
+
+        except Exception as ex:
+            self.logger.error("Error while retrieving container values: %s", ex)
+            return False
+
+    def getRawValue(self):
+        """
+        Retrieve the native size raw value stored at the argument`s memory address
+        @rtype : Returns the raw value at the given location or False if value was not retrieved.
+        """
+        try:
+            # If memory value read native size bytes from ea
+            if self.storetype == MEM_VAL:
+
+                native_size = self.instParser.get_native_size()
+
+                if native_size is 16:
+                    return DbgWord(self.loc)
+                if native_size is 32:
+                    return DbgDword(self.loc)
+                if native_size is 64:
+                    return DbgQword(self.loc)
+
+            # If register value, read register`s value
+            if self.storetype == REG_VAL:
+                return GetRegValue(self.loc)
+
+            self.logger.error("Internal Error - storetype %d not supported.", self.storetype)
+            return False
+
+        except:
+            raise RuntimeError("Failed to retrieve raw value for arg %s", self.typeName())
+            return False
+
+    def parseValue(self):
+        """
+        Run all plugins and attempt to parse the raw value
+        If custom_parser is defined (i.e not None) it will override the default plugin scanning and will
+        effectively be the only parser used to parser this argument.
+        """
+
+        try:
+            if self.rawValue is not None:
+                return self.dataParser.ParseData(self.rawValue, self.type, self.loc, self.custom_parser)
+
+        except Exception as e:
+            print "Error while parsing value: %s" % e
+            return None
+
+
+    ####################################################################################################
+    # Convenience Functions
+
     def typeName(self):
         """
         Get the type human readable ASCII based name (in all upper case letters)
@@ -106,45 +301,14 @@ class DebugValue():
 
         return False
 
-    def dereference(self):
-        """
-        Get referenced value as DebugValue
-        @rtype : True if dereference succeedes, otherwise False
-        """
-        # This can only be done safely when type is known
-        if self.type is None:
-            return None
-
-        try:
-            if self.type.is_ptr() and not self.type.is_pvoid():
-
-                if self.derefrence_depth > 0:
-                    ref_type = self.type.get_pointed_object()
-                    ref_loc = self.getRawValue()
-                    ref_blink = self
-                    new_deref_depth = (self.derefrence_depth -1)
-
-                    self.reference_flink = DebugValue(MEM_VAL,
-                                                      ref_loc,
-                                                      ref_type,
-                                                      "-> ",
-                                                      ref_blink,
-                                                      deref_depth=new_deref_depth)
-
-                return True
-
-        except Exception as ex:
-            self.logger.error("Failed to dereference %s: %s", self.typeName(), ex)
-            return False
-            
     def get_next_ref_val(self):
         """
         Get the next referenced value.
-        @rtype : If reference value, returns the refered value object. otherwise returns None
+        @rtype : If reference value, returns the referred value object. otherwise returns None
         """
         if self.reference_flink is not None:
             return self.reference_flink
-        
+
         return None
 
     def get_prev_ref_val(self):
@@ -171,110 +335,6 @@ class DebugValue():
                     return True
 
         return False
-
-    def getRunetimeValues(self):
-        """
-        Get the runtime values according to the object location and store type.
-        """
-        try:
-            if self.config.is_deref:
-                self.dereference()
-
-            # If value is a container (Struct\Union, etc.)
-            if self.config.is_container:
-                if self.is_container():
-                    if self.derefrence_depth > 0:
-                        struct = Struct(self.type)
-                        struct_base_adrs = self.loc
-
-                        if self.loc is not None:
-                            new_ref_depth = (self.derefrence_depth - 1)
-                            for element in struct.elements:  # Add nested DebugValue elements
-                                element_val = DebugValue(MEM_VAL,
-                                                         struct_base_adrs + element.offset,
-                                                         element.type,
-                                                         element.get_name(),
-                                                         deref_depth=new_ref_depth)
-                                self.nestedValues.append(element_val)
-
-            # If value is an array
-            if self.config.is_array:
-                if self.is_array():
-                    array = Array(self.type)
-                    array_base_adrs = self.loc
-
-                    if self.loc is not None:
-
-                        prev_element = self
-                        for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
-                            element_val = DebugValue(MEM_VAL,
-                                                     array_base_adrs + (element_index*array.element_size),
-                                                     array.element_type,
-                                                     "[%d]" % element_index)
-
-                            prev_element.reference_flink = element_val
-                            prev_element = element_val
-
-            if self.loc and self.storetype:
-                if self.config.is_raw:
-                    self.rawValue = self.getRawValue()
-
-                if self.config.is_parse:
-                    self.parsedValues = self.parseValue()
-
-                return True
-
-            else:
-                #TODO: This is noisy. why? maybe this happens when value is NULL?
-                #self.logger.error("Could not get runtime values for %s. no location\storetype information found", self.typeName())
-                return False
-
-
-        except Exception as ex:
-            self.logger.error("Could not get runtime values for %s: %s", self.typeName(), ex)
-            return False
-
-    def getRawValue(self):
-        """
-        retrieve the raw value at the memory address
-        @rtype : Returns the raw value at the given location or False if va;lue was not retrived.
-        """
-        try:
-            # If memory value read native size bytes from ea
-            if self.storetype == MEM_VAL:
-
-                native_size = self.instParser.get_native_size()
-
-                if native_size is 16:
-                    return DbgWord(self.loc)
-                if native_size is 32:
-                    return DbgDword(self.loc)
-                if native_size is 64:
-                    return DbgQword(self.loc)
-
-            # If register value, read register`s value
-            if self.storetype == REG_VAL:
-                return GetRegValue(self.loc)
-
-            self.logger.error("Internal Error - storetype %d not supported.", self.storetype)
-            return False
-
-        except:
-            raise RuntimeError("Failed to retrieve raw value for arg %s", self.typeName())
-            return False
-
-    def parseValue(self):
-        """
-        Run all plugins and attempt to parse the raw value
-        """
-
-        try:
-            if self.rawValue is not None:
-                return self.dataParser.ParseData(self.rawValue, self.type, self.loc, self.custom_parser)
-
-        except Exception as e:
-            print "Error while parsing value: %s" % e
-            return None
 
 
 
