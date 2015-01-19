@@ -5,7 +5,7 @@ import logging
 from idaapi import *
 from idc import *
 from idautils import *
-from DIE.Lib.InstParserUtil import *
+from DIE.Lib.IDAConnector import get_adrs_mem
 
 
 class StaticImports():
@@ -124,7 +124,6 @@ class DbgImports():
         self.current_module_name = None
 
         self.rt_import_table = {}  # Real-Time import table (Key -> Real func adrs.  Value -> (ea, name, ord)}
-        self.instParser = InstructionParserX86()
 
 
     def getImportTableData(self):
@@ -151,7 +150,7 @@ class DbgImports():
             raise RuntimeError("Debugger is not currently active.")
 
         for module_name, ea, name, ord in tmpImports:
-            func_real_adrs = self.instParser.get_adrs_mem(ea)
+            func_real_adrs = get_adrs_mem(ea)
             self.rt_import_table[func_real_adrs] = (module_name, ea, name, ord)
 
     def find_func_iat_adrs(self, ea):

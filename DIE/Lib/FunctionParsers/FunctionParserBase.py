@@ -1,11 +1,9 @@
 __author__ = 'yanivb'
 
 import logging
-#from DIE.Lib.Function import Function
-#from DIE.Lib.FuncArg import FuncArg
-
 from DIE.Lib.IDATypeWrapers import Function, FuncArg
 from DIE.Lib.DebugValue import *
+from DIE.Lib.IDAConnector import get_sp, get_stack_element_size
 import DIE.Lib.DataParser
 
 class FunctionParserBase(object):
@@ -22,7 +20,6 @@ class FunctionParserBase(object):
         """
 
         self.logger = logging.getLogger(__name__)
-        self.instParser = InstructionParserX86()    # IDA wrapper utility
         self.dataParser = DataParser.getParser()    # Data Parser (ParserDataPlugin Manager) instance
 
         self.__func_args = {}          # A dictionary with the argument index as key. the dictionaries value is an array
@@ -61,7 +58,6 @@ class FunctionParserBase(object):
                  parsed_arg_ved - an array of "freshly" parsed argument values
                  ret_arg - parsed value of the return argument
         """
-
         try:
             if parsed_arg_vector is None:
                 raise TypeError("No argument vector value found.")
@@ -195,8 +191,8 @@ class FunctionParserBase(object):
         # If argument is passed via stack
         if arg.isStack():
             store_type = MEM_VAL
-            return_adr_size = self.instParser.get_stack_element_size()       # stack return address size
-            loc = self.instParser.get_sp() + return_adr_size + arg.offset()  # Absolute stack argument address
+            return_adr_size = get_stack_element_size()       # stack return address size
+            loc = get_sp() + return_adr_size + arg.offset()  # Absolute stack argument address
 
         if store_type is None:
             raise RuntimeError("Unhandled or malformed argument passing type")

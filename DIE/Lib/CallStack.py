@@ -30,7 +30,6 @@ class CallStack():
         @param library_name: Name of containing library (for library functions)
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
-
         try:
             is_new_func = self.check_if_new_func(ea, iatEA)
             funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)

@@ -1,5 +1,6 @@
 __author__ = 'yanivb'
 
+import logging
 from FunctionParserBase import FunctionParserBase
 
 class GenericFunctionParser(FunctionParserBase):
@@ -13,6 +14,7 @@ class GenericFunctionParser(FunctionParserBase):
         @param function: A Function instance
         """
         super(GenericFunctionParser, self).__init__(function)
+        self.logger = logging.getLogger(__name__)
 
     def parse_function_args_call(self):
         """

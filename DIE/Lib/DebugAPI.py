@@ -20,6 +20,7 @@ import DIE.Lib.DataParser
 from DIE.Lib.DIE_Exceptions import FuncCallExceedMax
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
+from DIE.Lib.IDAConnector import get_cur_ea, is_call
 import DIE.Lib.DIEDb
 
 ##########################
@@ -48,7 +49,6 @@ class DebugHooker(DBG_Hooks):
 
         ### Debugging ###
         DBG_Hooks.__init__(self)                        # IDA Debug Hooking API
-        self.instParser = InstructionParserX86()        # X86 Instruction Parser
         self.isHooked = False                           # Is debugger currently hooked
 
         self.runtime_imports = DbgImports()             # Runtime import addresses
@@ -140,7 +140,7 @@ class DebugHooker(DBG_Hooks):
             self.current_callstack = self.callStack[tid]
 
             # Is this a CALL instruction?
-            if self.instParser.is_call(ea):
+            if is_call(ea):
                 self.prev_bp_ea = ea  # Set prev ea
                 if not self.is_debug:
                     request_step_into()  # Great, step into the called function
@@ -162,7 +162,7 @@ class DebugHooker(DBG_Hooks):
 
         try:
             refresh_debugger_memory()
-            ea = self.instParser.get_cur_ea()
+            ea = get_cur_ea()
 
             iatEA = None
             library_name = None

@@ -8,9 +8,9 @@ import idc
 import idautils
 
 from DIE.Lib.DbgImports import StaticImports
-from DIE.Lib.InstParserUtil import InstructionParserX86
+from DIE.Lib.IDAConnector import *
 import DIE.Lib.DIEDb
-import DIE.Lib.IDAConnector
+
 
 # Was user breakpoint flag definition
 WAS_USER_BREAKPOINT = 0x1
@@ -69,7 +69,7 @@ class BpHandler():
             for head in idautils.Heads(seg_ea, idc.SegEnd(seg_ea)):
                 if idc.isCode(idc.GetFlags(head)):
                     # Add BP if instruction is a CALL
-                    if self.instParser.is_call(head):
+                    if is_call(head):
                         self.addBP(head)
 
     def unsetBPs(self):
@@ -211,7 +211,7 @@ class BpHandler():
             if iatEA is not None:
                 func_adr = iatEA
 
-            func_name = DIE.Lib.IDAConnector.get_function_name(func_adr)
+            func_name = get_function_name(func_adr)
 
             if func_name in self.die_db.excluded_funcNames:
                 return True
@@ -379,11 +379,11 @@ class BpHandler():
             call_dest = None
 
             if idc.isCode(idc.GetFlags(ea)):
-                if self.instParser.is_call(ea):
+                if is_call(ea):
                     operand_type = idc.GetOpType(ea, 0)
                     if operand_type == 5 or operand_type == 6 or operand_type == 7 or operand_type == 2:
                         call_dest = idc.GetOperandValue(ea, 0)  # Call destination
-                        func_name = DIE.Lib.IDAConnector.get_function_name(call_dest).lower()
+                        func_name = get_function_name(call_dest).lower()
 
             return call_dest, func_name
 
@@ -401,7 +401,7 @@ class BpHandler():
         @return: True if function walked succeeded or False otherwise
         """
         try:
-            function_name = DIE.Lib.IDAConnector.get_function_name(ea)
+            function_name = get_function_name(ea)
             if function_name in self.walked_functions:
                 self.logger.debug("No breakpoints will be set in function %s, "
                                   "since it was already walked before.", function_name)
@@ -410,14 +410,14 @@ class BpHandler():
             # Add function to walked function list
             self.walked_functions[function_name] = ea
 
-            start_adrs = DIE.Lib.IDAConnector.get_func_start_adr(ea)
-            end_adrs = DIE.Lib.IDAConnector.get_function_end_adr(ea)
+            start_adrs = get_func_start_adr(ea)
+            end_adrs = get_function_end_adr(ea)
 
             # Walk function and place breakpoints on every call instruction found.
             for head in idautils.Heads(start_adrs, end_adrs):
                 if idc.isCode(idc.GetFlags(head)):
                     # Add BP if instruction is a CALL
-                    if self.instParser.is_call(head):
+                    if is_call(head):
                         self.addBP(head)
 
             self.logger.debug("Function %s was successfully walked for breakpoints", function_name)

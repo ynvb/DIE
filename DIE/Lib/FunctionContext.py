@@ -7,8 +7,7 @@ from idaapi import *
 #from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
-from DIE.Lib.InstParserUtil import *
-import DIE.Lib.IDAConnector
+from DIE.Lib.IDAConnector import get_function_name, get_ret_adr
 import DIE.Lib.FunctionParsers
 
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
@@ -39,8 +38,6 @@ class FunctionContext():
         self.logger = logging.getLogger(__name__)
         self.config = DieConfig.get_config()
 
-        self.instParser = InstructionParserX86()
-
         ################################################################################
         ### Context Stuff
 
@@ -57,8 +54,8 @@ class FunctionContext():
         try:
             ### Function Data
             self.function = Function(ea, iatEA, library_name=library_name)  # This (The Callee) function
-            self.callingEA = self.instParser.get_ret_adr()                  # The ea of the CALL instruction
-            self.calling_function_name = DIE.Lib.IDAConnector.get_function_name(self.callingEA)  # Calling function name
+            self.callingEA = get_ret_adr()  # The ea of the CALL instruction
+            self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
 
             ### Flags
             self.empty = True  # empty flag is dropped when first call context is retrieved.

@@ -7,7 +7,7 @@ import idaapi
 from idc import *
 from DIE.Lib.IDATypeWrapers import Array, Struct
 from DIE.Lib.IDAConnector import get_adrs_mem
-#from DIE.Lib.InstParserUtil import *
+import logging
 
 MEM_VAL = 0x01       # Memory based value
 REG_VAL = 0x02       # Register based value
@@ -40,8 +40,6 @@ class DebugValue():
         """
         self.logger = logging.getLogger(__name__)
         self.config = DieConfig.get_config()
-
-        self.instParser = InstructionParserX86()
 
         self.storetype = storeType          # Value store location (memory\register)
         self.type = type                    # tinfo_t object.
