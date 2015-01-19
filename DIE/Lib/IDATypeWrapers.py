@@ -2,8 +2,9 @@ __author__ = 'yanivb'
 
 import idaapi
 import logging
-from DIE.Lib.InstParserUtil import *
 import DIE.Lib.IDAConnector as IDAConnector
+#from DIE.Lib.InstParserUtil import *
+from DIE.Lib.IDAConnector import get_native_size
 
 #
 # This file contains several wrappers for common IDA data type such as Functions, Function Argument,
@@ -80,7 +81,7 @@ class FuncArg():
         self.argNum = argNum        # Argument number (-1 for return argument)
         self.argname = argName      # Argument name
 
-        self.inst_parser = InstructionParserX86()
+        #self.inst_parser = InstructionParserX86()
 
     def isReg(self):
         """
@@ -113,7 +114,8 @@ class FuncArg():
             return "Ret_Arg"
 
         # Otherwise, generate name according to offset.
-        native_size = self.inst_parser.get_native_size()/8
+        #native_size = self.inst_parser.get_native_size()/8
+        native_size = get_native_size()/8
         return "Arg_%s" % hex(self.argNum * native_size)
 
     def getRegOffset(self):

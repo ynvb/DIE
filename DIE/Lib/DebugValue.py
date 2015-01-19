@@ -2,10 +2,12 @@ from DIE.Lib import DieConfig, DataParser
 
 __author__ = 'yanivb'
 
-from DIE.Lib.InstParserUtil import *
+
 import idaapi
 from idc import *
 from DIE.Lib.IDATypeWrapers import Array, Struct
+from DIE.Lib.IDAConnector import get_adrs_mem
+#from DIE.Lib.InstParserUtil import *
 
 MEM_VAL = 0x01       # Memory based value
 REG_VAL = 0x02       # Register based value
@@ -228,15 +230,16 @@ class DebugValue():
         try:
             # If memory value read native size bytes from ea
             if self.storetype == MEM_VAL:
+                return get_adrs_mem(self.loc)
 
-                native_size = self.instParser.get_native_size()
-
-                if native_size is 16:
-                    return DbgWord(self.loc)
-                if native_size is 32:
-                    return DbgDword(self.loc)
-                if native_size is 64:
-                    return DbgQword(self.loc)
+                # native_size = self.instParser.get_native_size()
+                #
+                # if native_size is 16:
+                #     return DbgWord(self.loc)
+                # if native_size is 32:
+                #     return DbgDword(self.loc)
+                # if native_size is 64:
+                #     return DbgQword(self.loc)
 
             # If register value, read register`s value
             if self.storetype == REG_VAL:
