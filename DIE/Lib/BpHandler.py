@@ -21,6 +21,11 @@ ENDS_WITH = 1
 CONTAINS = 2
 
 class BpHandler():
+    """
+    Main breakpoint handling class.
+    Used to control all breakpoint related operations, such as dynamic\static breakpoints setting,
+    breakpoint exceptions and serialization.
+    """
 
     def __init__(self):
 
@@ -28,8 +33,6 @@ class BpHandler():
 
         self.iat = StaticImports()              # Static IAT
         self.die_db = DIE.Lib.DIEDb.get_db()    # DIE DB
-
-        self.instParser = InstructionParserX86()  # X86 Instruction Parser
 
         # Walked function list is used with dynamic (runtime) breakpointing
         # it keeps track of previously walked functions in order to avoid walking them again.

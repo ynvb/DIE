@@ -7,7 +7,7 @@ from idaapi import *
 #from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
-from DIE.Lib.IDAConnector import get_function_name, get_ret_adr
+from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect
 import DIE.Lib.FunctionParsers
 
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
@@ -81,14 +81,7 @@ class FunctionContext():
             self.logger.error("Error: could not locate the calling ea for function %s", self.function.funcName)
             return False
 
-        op_type = idc.GetOpType(self.callingEA, 0)
-
-        # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
-        if op_type == 3 or op_type == 4:
-            self.logger.debug("Indirect call found. function - %s, ea - %s", self.function.funcName, hex(self.callingEA))
-            return True
-
-        return False
+        return is_indirect(self.callingEA)
 
     def get_arg_values_call(self):
         """

@@ -1,10 +1,10 @@
 __author__ = 'yanivb'
-from DIE.Plugins.DataPluginBase import DataPluginBase
+
+from DIE.Lib.DataPluginBase import DataPluginBase
 import logging
 import idaapi
 import idc
 import sys
-import os
 
 try:
     # TODO: Is singleton really required here? python modules are basically singleton by design
@@ -37,7 +37,7 @@ class DataParser():
 
         self.pluginLocation = plugin_path
         self.pManager.setPluginPlaces([self.pluginLocation])    # Set plugin directory
-        self.pManager.setCategoriesFilter({"ParserPlugins":DataPluginBase})
+        self.pManager.setCategoriesFilter({"ParserPlugins": DataPluginBase})
 
         self.logger.info("Plugin path is set to %s", plugin_path)
 
@@ -195,7 +195,6 @@ class DataParser():
 ### loaded (reloading of a module should never be preformed..)
 
 # TODO: Read from configuration file
-import DieConfig
 #config = DieConfig.get_config()
 
 print "[2] Loading data parsers"

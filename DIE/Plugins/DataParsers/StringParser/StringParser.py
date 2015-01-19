@@ -1,7 +1,6 @@
-from DIE.Plugins.DataPluginBase import DataPluginBase
-
 __author__ = 'yanivb'
 
+from DIE.Lib.DataPluginBase import DataPluginBase
 import idc
 import idaapi
 

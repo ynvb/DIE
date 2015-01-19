@@ -159,7 +159,6 @@ class DebugHooker(DBG_Hooks):
         no BPs should be set inside it, so we need to skip to the next RET instruction), or we have
         stepped into a native function (in which case we just need to gather data and continue to next BP).
         """
-
         try:
             refresh_debugger_memory()
             ea = get_cur_ea()

@@ -210,3 +210,17 @@ def get_stack_element_size():
     @return: size of a stack element (in bytes)
     """
     return get_native_size()/8
+
+def is_indirect(ea):
+    """
+    Check if a call instruction is direct or indirect.
+    @param ea: Effective address of the call instruction.
+    @return:
+    """
+    op_type = idc.GetOpType(ea, 0)
+
+    # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
+    if op_type == 3 or op_type == 4:
+        return True
+
+    return False

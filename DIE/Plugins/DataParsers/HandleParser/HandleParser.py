@@ -1,7 +1,6 @@
-from DIE.Plugins.DataPluginBase import DataPluginBase
-
 __author__ = 'lioro'
 
+from DIE.Lib.DataPluginBase import DataPluginBase
 from ctypes import *
 from win32api import *
 from win32con import *
