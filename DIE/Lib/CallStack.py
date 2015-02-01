@@ -1,6 +1,8 @@
 __author__ = 'yanivb'
 
 from DIE.Lib.FunctionContext import *
+from DIE.Lib.IDAConnector import check_new_code_area
+from DIE.Lib.DIE_Exceptions import NewCodeSectionException
 import idautils
 
 class CallStack():
@@ -30,7 +32,15 @@ class CallStack():
         @param library_name: Name of containing library (for library functions)
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
+
+        # Check if ea is in new code section.
+        if iatEA is None:
+            new_area_t = check_new_code_area(ea)
+            if new_area_t is not None:
+                (area_start, area_end) = new_area_t  # New code section scope
+                raise NewCodeSectionException(section_start=area_start, section_end=area_end)
         try:
+
             is_new_func = self.check_if_new_func(ea, iatEA)
             funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)
 
@@ -50,7 +60,7 @@ class CallStack():
             return self.function_counter[funcContext.function.funcName]
 
         except Exception as ex:
-            self.logger.error("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
+            self.logger.exception("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
             return -1
 
     def pop(self):
@@ -75,7 +85,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-           self.logger.error("Error while poping function from callstack: %s", ex)
+           self.logger.exception("Error while poping function from callstack: %s", ex)
            return False
 
     def check_if_new_func(self, ea, iatEA):
@@ -110,7 +120,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-            self.logger.error("Failed while add function %s to function counter: %s", func_name, ex)
+            self.logger.exception("Failed while add function %s to function counter: %s", func_name, ex)
             return False
 
     def get_top_func_data(self):
@@ -129,7 +139,7 @@ class CallStack():
             return None
 
         except Exception as ex:
-            self.logger.error("Error while retrieving function data for top-of-call-stack item:", ex)
+            self.logger.exception("Error while retrieving function data for top-of-call-stack item:", ex)
             return None
 
 

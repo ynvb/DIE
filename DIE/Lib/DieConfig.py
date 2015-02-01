@@ -80,6 +80,7 @@ class DIE_Config():
 
         self.config_parser.set("Debugging", "max_func_call", self.config["Debugging"]["max_func_call"])
         self.config_parser.set("Debugging", "max_deref_depth", self.config["Debugging"]["max_deref_depth"])
+        self.config_parser.set("Debugging", "code_discovery", self.config["Debugging"]["code_discovery"])
 
         with open(config_file_name, 'wb') as config_file:
             self.config_parser.write(config_file)
@@ -101,6 +102,7 @@ class DIE_Config():
 
             config_parser.set("Debugging", "max_func_call", '20')
             config_parser.set("Debugging", "max_deref_depth", '3')
+            config_parser.set("Debugging", "code_discovery", "0")
 
             config_parser.set("FunctionContext", "get_func_args", "1")
 
@@ -314,6 +316,25 @@ class DIE_Config():
         except Exception as ex:
             self.logger.error("Failed to set max_deref_depth value: %s", ex)
             self.config["Debugging"]["max_deref_depth"] = 3
+
+    @property
+    def code_discovery(self):
+        try:
+            value = self.config["debugging"]["code_discovery"]
+            if value == 1:
+                return True
+            return False
+
+        except:
+            return False
+
+    def set_code_discovery(self, value):
+        try:
+            self.config["Debugging"]["code_discovery"] = value
+
+        except Exception as ex:
+            self.logger.error("Failed to set code discovery value: %s", ex)
+            self.config["Debugging"]["code_discovery"] = 0
 
 #############################################################################
 # DIE Directories

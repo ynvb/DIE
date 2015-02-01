@@ -33,17 +33,29 @@ class DieManager():
     Manage the DIE framework
     """
 
-    def __init__(self):
+    def __init__(self, is_dbg=False):
+
+        self.is_dbg = is_dbg  # Debug mode flag
 
         ### Logging ###
         log_filename = os.getcwd() + "\\DIE.log"
         logging.basicConfig(filename=log_filename,
                     level=logging.INFO,
                     format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
+
         file_handler = handlers.RotatingFileHandler(log_filename, mode='a', maxBytes=100000, backupCount=5)
+        console_hanlder = logging.StreamHandler()
+
+        if self.is_dbg:
+            file_handler.setLevel(logging.DEBUG)
+            console_hanlder.setLevel(logging.DEBUG)
+        else:
+            file_handler.setLevel(logging.INFO)
+            console_hanlder.setLevel(logging.ERROR)
 
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(file_handler)
+        self.logger.addHandler(console_hanlder)
 
         ### DIE Configuration ###
         self.config_file_name = os.getcwd() + "\\DIE.cfg"
@@ -53,7 +65,7 @@ class DieManager():
         self.addmenu_item_ctxs = list()
         self.icon_list = {}
 
-        self.debugAPI = DebugAPI.DebugHooker()
+        self.debugAPI = DebugAPI.DebugHooker(is_dbg=self.is_dbg)
         self.die_db = DIE.Lib.DIEDb.get_db()
         self.die_config = DIE.Lib.DieConfig.get_config()
 
@@ -214,7 +226,7 @@ class DieManager():
             print "Error while loading DIE DB: %s" %mismatch
 
         except Exception as ex:
-            print "Error while loading DB: %s" % ex
+            logging.exception("Error while loading DB: %s", ex)
             return False
 
 
@@ -324,7 +336,7 @@ class die_plugin_t(plugin_t):
 
         if die_manager is not None:
             if not die_manager.die_db.is_saved:
-                response = idc.AskYN(1, "Just one more thing before you leave... I noticed DIE DB was not saved, Would you like to save it now?")
+                response = idc.AskYN(1, "One more thing before you go... DIE DB was not saved, Would you like to save it now?")
                 if response == 1:
                     die_manager.save_db()
 

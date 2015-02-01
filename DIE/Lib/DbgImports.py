@@ -167,7 +167,7 @@ class DbgImports():
 
     def is_func_imported(self, ea):
         """
-        Checks the givven ea and returns True if the function is an imported function (loacted in IAT)
+        Checks the given ea and returns True if the function is an imported function (located in IAT)
         """
         if ea in self.rt_import_table:
             return True

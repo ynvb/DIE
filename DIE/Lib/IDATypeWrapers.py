@@ -56,7 +56,7 @@ class Array():
             return False
 
         except Exception as ex:
-            self.logger.error("Error while getting array data: %s", ex)
+            self.logger.exception("Array: Error while getting array data: %s", ex)
             return False
 
 #######################################################################################################################
@@ -134,7 +134,7 @@ class FuncArg():
         if self.isReg():
             return self.getRegOffset()
 
-        self.logger.error("Failed to retrieve argument offset.")
+        self.logger.error("FuncArg: Failed to retrieve argument offset.")
         return False
 
     def registerName(self):
@@ -229,7 +229,8 @@ class Function():
             self.getArguments()
 
         except RuntimeError as ex:
-            self.logger.error("Failed to get function arguments for function %s: %s", self.funcName, ex)
+            self.logger.error("Function: Failed to get function arguments for function %s: %s", self.funcName, ex)
+            return None
 
     def getFuncProtoAdr(self):
         """
@@ -253,8 +254,7 @@ class Function():
             isGuessed = True
 
         if self.typeInfo.empty():
-            self.logger.error("Failed to retrieve function type info for function %s at %s", self.funcName, hex(self.ea))
-            raise RuntimeError()
+            raise RuntimeError("Failed to retrieve function type info for function %s at %s" % (self.funcName, hex(self.ea)))
 
         # Get function detail
         self.typeInfo.get_func_details(self.funcInfo)
