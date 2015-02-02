@@ -13,6 +13,7 @@ except ImportError, err:
     print "Yapsy not installed (please use 'pip install yapsy' or equivalent : %s", err
     sys.exit(1)
 
+# TODO: better use new style classes
 class DataParser():
     """
     Data parser is a class for parsing raw runtime values.
@@ -110,6 +111,7 @@ class DataParser():
         """
         parser_list = {}
 
+        # TODO: use classes or named tuples
         parser_list["headers"] = ["Description", "Version", "State", "Author"]
 
         for plugin in self.pManager.getAllPlugins():
@@ -182,7 +184,7 @@ class DataParser():
         @param type_name: Type name string (e.g "CONST CHAR *")
         @return: a normalized type name
         """
-        if type_name is None or type_name == "":
+        if not type_name:
             return None
 
         type_name = type_name.upper()

@@ -139,6 +139,7 @@ class DataPluginBase(IPlugin):
         """
         tname = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', '')
 
+        type_name = None
         if self.typeName_norm_cb is not None:
             type_name = self.typeName_norm_cb(tname)
 
