@@ -13,45 +13,38 @@ class DieIcons():
     DIE Icons
     """
 
+    ##########################################################################
+    # Icons Filenames
+
+    __FUNC_ICON = "func.png"
+    __V_ICON = "v.png"
+    __X_ICON = "x.png"
+    __QUESTION_ICON = "question_mark.png"
+    __MORE_ICON = "more.png"
+    __INFO_ICON = "info.png"
+    __EXCLAMATION_ICON = "exclamation-mark.png"
+    __DBG_ICON = "dbg.png"
+    __STOP_ICON = "stop.png"
+    __PLUGINS_ICON = "plugins.png"
+    __SAVE_ICON = "save.png"
+    __DIE_ICON = "die.png"
+    __FUNCVIEW_ICON = "funcview.png"
+    __LOAD_ICON = "load.png"
+    __PLAY_ICON = "play.png"
+    __SETTINGS_ICON = "settings.png"
+    __REFRESH_ICON = "refresh.png"
+    __VALUVIEW_ICON = "valueview.png"
+    __DBGALL_ICON = "dbg_all.png"
+
     def __init__(self, icons_path="icons"):
 
         self.die_config = DieConfig.get_config()
 
-        #install_path = idaapi.idadir("Plugins\DIE")
         self.icons_path = self.die_config.icons_path
-
-        #if install_path is None or not os.path.exists(install_path):
-        #    print "Error: could not locate DIE plugin directory"
-        #    return
-
-        #self.icons_path = (install_path + '\\' + icons_path)
 
         if not os.path.exists(self.icons_path):
             print "Error: could not locate DIE icons directory."
             return
-
-        ##########################################################################
-        # Icons Filenames
-
-        self.__func_icon = "func.png"
-        self.__v_icon = "v.png"
-        self.__x_icon = "x.png"
-        self.__question_icon = "question_mark.png"
-        self.__more_icon = "more.png"
-        self.__info_icon = "info.png"
-        self.__exclamation_icon = "exclamation-mark.png"
-        self.__dbg_icon = "dbg.png"
-        self.__stop_icon = "stop.png"
-        self.__plugins_icon = "plugins.png"
-        self.__save_icon = "save.png"
-        self.__DIE_icon = "die.png"
-        self.__funcview_icon = "funcview.png"
-        self.__load_icon = "load.png"
-        self.__play_icon = "play.png"
-        self.__settings_icon = "settings.png"
-        self.__refresh_icon = "refresh.png"
-        self.__valuview_icon = "valueview.png"
-        self.__dbgall_icon = "dbg_all.png"
 
         self._load_icons()
 
@@ -61,92 +54,92 @@ class DieIcons():
         @return: True if icons loaded successfully, otherwise False.
         """
         ### Function Icon
-        icon_path = self.icons_path + "\\" + self.__func_icon
+        icon_path = os.path.join(self.icons_path, self.__FUNC_ICON)
         self.icon_function = self.load_icon(icon_path)
 
         ### V Icon
-        icon_path = self.icons_path + "\\" + self.__v_icon
+        icon_path = os.path.join(self.icons_path, self.__V_ICON)
         self.icon_v = self.load_icon(icon_path)
 
         ### X Icon
-        icon_path = self.icons_path + "\\" + self.__x_icon
+        icon_path = os.path.join(self.icons_path, self.__X_ICON)
         self.icon_x = self.load_icon(icon_path)
 
         ### Question Icon
-        icon_path = self.icons_path + "\\" + self.__question_icon
+        icon_path = os.path.join(self.icons_path, self.__QUESTION_ICON)
         self.icon_question = self.load_icon(icon_path)
 
         ### More Icon
-        icon_path = self.icons_path + "\\" + self.__more_icon
+        icon_path = os.path.join(self.icons_path, self.__MORE_ICON)
         self.icon_more = self.load_icon(icon_path)
 
         ### Info Icon
-        icon_path = self.icons_path + "\\" + self.__info_icon
+        icon_path = os.path.join(self.icons_path, self.__INFO_ICON)
         self.icon_info = self.load_icon(icon_path)
 
         ### Exclamation Icon
 
-        icon_path = self.icons_path + "\\" + self.__exclamation_icon
+        icon_path = os.path.join(self.icons_path, self.__EXCLAMATION_ICON)
         self.icon_exclama = self.load_icon(icon_path)
 
         # Debug Icon
 
-        icon_path = self.icons_path + "\\" + self.__dbg_icon
+        icon_path = os.path.join(self.icons_path, self.__DBG_ICON)
         self.icon_dbg = self.load_icon(icon_path)
 
         # Plugins Icon
 
-        icon_path = self.icons_path + "\\" + self.__plugins_icon
+        icon_path = os.path.join(self.icons_path, self.__PLUGINS_ICON)
         self.icon_plugins = self.load_icon(icon_path)
 
         # Stop Icon
 
-        icon_path = self.icons_path + "\\" + self.__stop_icon
+        icon_path = os.path.join(self.icons_path, self.__STOP_ICON)
         self.icon_stop = self.load_icon(icon_path)
 
         # Save Icon
 
-        icon_path = self.icons_path + "\\" + self.__save_icon
+        icon_path = os.path.join(self.icons_path, self.__SAVE_ICON)
         self.icon_save = self.load_icon(icon_path)
 
         # DIE Icon
 
-        icon_path = self.icons_path + "\\" + self.__DIE_icon
+        icon_path = os.path.join(self.icons_path, self.__DIE_ICON)
         self.icon_die = self.load_icon(icon_path)
 
         # Function View Icon
 
-        icon_path = self.icons_path + "\\" + self.__funcview_icon
+        icon_path = os.path.join(self.icons_path, self.__FUNCVIEW_ICON)
         self.icon_funcview = self.load_icon(icon_path)
 
         # Value View Icon
 
-        icon_path = self.icons_path + "\\" + self.__valuview_icon
+        icon_path = os.path.join(self.icons_path, self.__VALUVIEW_ICON)
         self.icon_valueview = self.load_icon(icon_path)
 
         # Load Icon
 
-        icon_path = self.icons_path + "\\" + self.__load_icon
+        icon_path = os.path.join(self.icons_path, self.__LOAD_ICON)
         self.icon_load = self.load_icon(icon_path)
 
         # Play Icon
 
-        icon_path = self.icons_path + "\\" + self.__play_icon
+        icon_path = os.path.join(self.icons_path, self.__PLAY_ICON)
         self.icon_play = self.load_icon(icon_path)
 
         # Settings Icon
 
-        icon_path = self.icons_path + "\\" + self.__settings_icon
+        icon_path = os.path.join(self.icons_path, self.__SETTINGS_ICON)
         self.icon_settings = self.load_icon(icon_path)
 
         # Refresh Icons
 
-        icon_path = self.icons_path + "\\" + self.__refresh_icon
+        icon_path = os.path.join(self.icons_path, self.__REFRESH_ICON)
         self.icon_refresh = self.load_icon(icon_path)
 
         # Debug All Icon
 
-        icon_path = self.icons_path + "\\" + self.__dbgall_icon
+        icon_path = os.path.join(self.icons_path, self.__DBGALL_ICON)
         self.icon_dbg_all = self.load_icon(icon_path)
 
 
@@ -165,7 +158,9 @@ class DieIcons():
         except:
             return None
 
+
 _die_icons = DieIcons()
+
 
 def get_die_icons():
     return _die_icons
