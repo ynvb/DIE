@@ -39,11 +39,11 @@ class DIE_DB():
         self.parsed_values = {}
 
         # Breakpoints
-        self.bp_list = {}  # BreakPoint dictionary
-        self.excluded_modules = []  # A list of excluded modules
-        self.excluded_funcNames = []  # A list of excluded function names
-        self.excluded_bp_ea = []  # A list of excluded breakpoint addresses
-        self.excluded_funcNames_part = []  # A list of excluded partial function names
+        self.bp_list = {}                   # BreakPoint dictionary
+        self.excluded_modules = []          # A list of excluded modules
+        self.excluded_funcNames = []        # A list of excluded function names
+        self.excluded_bp_ea = []            # A list of excluded breakpoint addresses
+        self.excluded_funcNames_part = []   # A list of excluded partial function names
 
 
     #############################################################################
@@ -497,7 +497,7 @@ class DIE_DB():
 
             cur_dbg_value.function_context = func_context_id
 
-            # TODO: Check aginst None type was added as a quick fix, Check why is this needed here.
+            # TODO: Check against None type was added as a quick fix, Check why is this needed here.
             if debug_value.parsedValues is not None:
                 for parsed_val in debug_value.parsedValues:
                     parsed_val_id = self.add_parsed_val(parsed_val)
@@ -553,8 +553,8 @@ class DIE_DB():
             self.logger.error("Error while loading parsed data into DieDB: %s", ex)
 
 
-            ####################################################################################
-            # Serialization
+####################################################################################
+# Serialization
 
     def get_default_db_filename(self):
         """

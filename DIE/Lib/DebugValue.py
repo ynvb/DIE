@@ -171,7 +171,6 @@ class DebugValue():
         Get values of a array objects.
         @return: True if array values were successfully retrieved, otherwise False.
         """
-        # TODO: Shouldn't this function actually change something and not just iterate?
         try:
             array = Array(self.type)
             array_base_adrs = self.loc
