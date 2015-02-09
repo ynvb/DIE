@@ -320,12 +320,13 @@ class DIE_Config():
     @property
     def code_discovery(self):
         try:
-            value = self.config["debugging"]["code_discovery"]
-            if value == 1:
+            value = self.config["Debugging"]["code_discovery"]
+            if value == "1":
                 return True
             return False
 
         except:
+            self.logger.error("Could not read code_discovery config value, using default value: False")
             return False
 
     def set_code_discovery(self, value):
