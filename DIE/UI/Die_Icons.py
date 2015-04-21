@@ -43,7 +43,7 @@ class DieIcons():
         self.icons_path = self.die_config.icons_path
 
         if not os.path.exists(self.icons_path):
-            print "Error: could not locate DIE icons directory."
+            idaapi.msg("Error: could not locate DIE icons directory.\n")
             return
 
         self._load_icons()

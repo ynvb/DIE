@@ -23,7 +23,7 @@ class DIE_Config():
         """
         try:
 
-            print "Loading configuration file..."
+            idaapi.msg("Loading configuration file...\n")
 
             # Load custom configuration file
             if not os.path.isfile(config_file_name):
@@ -68,7 +68,7 @@ class DIE_Config():
         # Save configuration file
         self.logger.info("Saving Configuration.")
 
-        print "Saving configuration file"
+        idaapi.msg("Saving configuration file\n")
 
         self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
         self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
@@ -90,7 +90,7 @@ class DIE_Config():
         """
         try:
 
-            print "Configuration file not found, creating a default configfile"
+            idaapi.msg("Configuration file not found, creating a default configfile\n")
             self.logger.info("Generating a default configuration file.")
             config_parser = ConfigParser.ConfigParser()
 
@@ -116,7 +116,7 @@ class DIE_Config():
             return True
 
         except Exception as ex:
-            print "Error while creating default config file: %s" %ex
+            idaapi.msg("Error while creating default config file: %s\n" % ex)
             logging.error("Failed to create default configuration file: %s", ex)
             return False
 

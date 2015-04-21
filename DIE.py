@@ -40,22 +40,39 @@ from DIE.UI.AboutScreen import About
 
 from DIE.Lib.DIE_Exceptions import DbFileMismatch
 
+
+class MenuHelperException(Exception):
+    pass
+
+
 class DieManager():
     """
     Manage the DIE framework
     """
 
-    def __init__(self):
+    def __init__(self, is_dbg=False):
+
+        self.is_dbg = is_dbg  # Debug mode flag
 
         ### Logging ###
         log_filename = os.path.join(os.getcwd(), "DIE.log")
         logging.basicConfig(filename=log_filename,
-                    level=logging.INFO,
-                    format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
+                            level=logging.INFO,
+                            format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
+
         file_handler = handlers.RotatingFileHandler(log_filename, mode='a', maxBytes=100000, backupCount=5)
+        console_hanlder = logging.StreamHandler()
+
+        if self.is_dbg:
+            file_handler.setLevel(logging.DEBUG)
+            console_hanlder.setLevel(logging.DEBUG)
+        else:
+            file_handler.setLevel(logging.INFO)
+            console_hanlder.setLevel(logging.ERROR)
 
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(file_handler)
+        self.logger.addHandler(console_hanlder)
 
         ### DIE Configuration ###
         self.config_file_name = os.path.join(os.getcwd(), "DIE.cfg")
@@ -65,7 +82,7 @@ class DieManager():
         self.addmenu_item_ctxs = []
         self.icon_list = {}
 
-        self.debugAPI = DebugAPI.DebugHooker()
+        self.debugAPI = DebugAPI.DebugHooker(is_dbg=self.is_dbg)
         self.die_db = DIE.Lib.DIEDb.get_db()
         self.die_config = DIE.Lib.DieConfig.get_config()
 
@@ -118,50 +135,54 @@ class DieManager():
 
     ###########################################################################
     # Menu Items
-    def add_menu_item_helper(self, menupath, name, hotkey, flags, pyfunc, args):
+    def add_menu_item_helper(self, menupath, name, hotkey, pyfunc, flags=1, args=None):
 
         # add menu item and report on errors
         addmenu_item_ctx = idaapi.add_menu_item(menupath, name, hotkey, flags, pyfunc, args)
+
         if addmenu_item_ctx is None:
-            return 1
-        else:
-            self.addmenu_item_ctxs.append(addmenu_item_ctx)
-            return 0
+            raise MenuHelperException("Failed adding menu item.")
+
+        self.addmenu_item_ctxs.append(addmenu_item_ctx)
 
     def add_menu_items(self):
-        # Load DieDB
-        if self.add_menu_item_helper("Help/About program..", "DIE: Load DieDB", "", 1, self.load_db, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Load DieDB", self.icon_list["load"])
-        # Save DieDB
-        if self.add_menu_item_helper("Help/About program..", "DIE: Save DieDB", "", 1, self.save_db, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Save DieDB", self.icon_list["save"])
-        # Debug Here
-        if self.add_menu_item_helper("Help/About program..", "DIE: Go from current location", "Alt+f", 1, self.go_here, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Go from current location", self.icon_list["debug"])
-        # Debug All
-        if self.add_menu_item_helper("Help/About program..", "DIE: Debug entire code", "Alt+g", 1, self.go_all, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Debug entire code", self.icon_list["debug_all"])
-        # Debug Custom
-        if self.add_menu_item_helper("Help/About program..", "DIE: Debug a custom scope", "Alt+c", 1, self.show_scope_chooser, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Debug a custom scope", self.icon_list["debug_scope"])
-        # Function View
-        if self.add_menu_item_helper("Help/About program..", "DIE: Function View", "", 1, self.show_function_view, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Function View", self.icon_list["function_view"])
-        # Value View
-        if self.add_menu_item_helper("Help/About program..", "DIE: Value View", "", 1, self.show_value_view, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Value View", self.icon_list["value_view"])
-        # Exception View
-        if self.add_menu_item_helper("Help/About program..", "DIE: Exceptions View", "", 1, self.show_breakpoint_view, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Exceptions View", self.icon_list["exception_view"])
-        # Parsers View
-        if self.add_menu_item_helper("Help/About program..", "DIE: Parsers View", "", 1, self.show_parser_view, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Parsers View", self.icon_list["plugins"])
-        # Parsers View
-        if self.add_menu_item_helper("Help/About program..", "DIE: Settings", "", 1, self.show_settings, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: Settings", self.icon_list["settings"])
-        #About DIE
-        if self.add_menu_item_helper("Help/About program..", "DIE: About", "", 1, self.show_about, None):  return 1
-        idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
+        try:
+            # Load DieDB
+            self.add_menu_item_helper("Help/About program..", "DIE: Load DieDB", "", self.load_db)
+            idaapi.set_menu_item_icon("Help/DIE: Load DieDB", self.icon_list["load"])
+            # Save DieDB
+            self.add_menu_item_helper("Help/About program..", "DIE: Save DieDB", "", self.save_db)
+            idaapi.set_menu_item_icon("Help/DIE: Save DieDB", self.icon_list["save"])
+            # Debug Here
+            self.add_menu_item_helper("Help/About program..", "DIE: Go from current location", "Alt+f", self.go_here)
+            idaapi.set_menu_item_icon("Help/DIE: Go from current location", self.icon_list["debug"])
+            # Debug All
+            self.add_menu_item_helper("Help/About program..", "DIE: Debug entire code", "Alt+g", self.go_all)
+            idaapi.set_menu_item_icon("Help/DIE: Debug entire code", self.icon_list["debug_all"])
+            # Debug Custom
+            self.add_menu_item_helper("Help/About program..", "DIE: Debug a custom scope", "Alt+c",
+                                      self.show_scope_chooser)
+            idaapi.set_menu_item_icon("Help/DIE: Debug a custom scope", self.icon_list["debug_scope"])
+            # Function View
+            self.add_menu_item_helper("Help/About program..", "DIE: Function View", "", self.show_function_view)
+            idaapi.set_menu_item_icon("Help/DIE: Function View", self.icon_list["function_view"])
+            # Value View
+            self.add_menu_item_helper("Help/About program..", "DIE: Value View", "", self.show_value_view)
+            idaapi.set_menu_item_icon("Help/DIE: Value View", self.icon_list["value_view"])
+            # Exception View
+            self.add_menu_item_helper("Help/About program..", "DIE: Exceptions View", "", self.show_breakpoint_view)
+            idaapi.set_menu_item_icon("Help/DIE: Exceptions View", self.icon_list["exception_view"])
+            # Parsers View
+            self.add_menu_item_helper("Help/About program..", "DIE: Parsers View", "", self.show_parser_view)
+            idaapi.set_menu_item_icon("Help/DIE: Parsers View", self.icon_list["plugins"])
+            # Parsers View
+            self.add_menu_item_helper("Help/About program..", "DIE: Settings", "", self.show_settings)
+            idaapi.set_menu_item_icon("Help/DIE: Settings", self.icon_list["settings"])
+            # About DIE
+            self.add_menu_item_helper("Help/About program..", "DIE: About", "", self.show_about)
+            idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
+        except MenuHelperException:
+            return 1
 
         return 0
 
@@ -223,10 +244,10 @@ class DieManager():
                 self.show_db_details()
 
         except DbFileMismatch as mismatch:
-            print "Error while loading DIE DB: %s" %mismatch
+            idaapi.msg("Error while loading DIE DB: %s\n" % mismatch)
 
         except Exception as ex:
-            print "Error while loading DB: %s" % ex
+            logging.exception("Error while loading DB: %s", ex)
             return False
 
 
@@ -273,38 +294,39 @@ class DieManager():
          num_of_threads,
          numof_parsed_val) = self.die_db.get_run_info()
 
-        print "Die DB Loaded."
-        print "Start Time: %s, End Time %s" % (ctime(start_time), ctime(end_time))
-        print "Functions: %d, Threads: %d" % (num_of_functions, num_of_threads)
-        print "Parsed Values: %d" % numof_parsed_val
+        idaapi.msg("Die DB Loaded.\n")
+        idaapi.msg("Start Time: %s, End Time %s\n" % (ctime(start_time), ctime(end_time)))
+        idaapi.msg("Functions: %d, Threads: %d\n" % (num_of_functions, num_of_threads))
+        idaapi.msg("Parsed Values: %d\n" % numof_parsed_val)
 
 
     def show_logo(self):
         """
         Show DIE Logo
         """
-        print"-----------------------------------------------------"
-        print"                           _________-----_____       "
-        print"        _____------           __      ----_          "
-        print" ___----             ___------             /\        "
-        print"    ----________        ----                 \       "
-        print"                -----__    |             _____)      "
-        print"                     __-                /    /\      "
-        print"         _______-----    ___--          \    /)\     "
-        print"   ------_______      ---____            \__/  /     "
-        print"                -----__    \ --    _          //\    "
-        print"                       --__--__     \_____/   \_/\   "
-        print"                               ----|   /          |  "
-        print" Dynamic                           |  |___________|  "
-        print" IDA                               |  | ((_(_)| )_)  "
-        print" Enrichment                        |  \_((_(_)|/(_)  "
-        print"                                   \             (   "
-        print"                                    \_____________)  "
-        print" D.I.E v0.1 is now loaded, enjoy.                    "
-        print"-----------------------------------------------------"
+        idaapi.msg('-----------------------------------------------------\n'
+                   '                           _________-----_____       \n'
+                   '        _____------           __      ----_          \n'
+                   ' ___----             ___------             /\        \n'
+                   '    ----________        ----                 \       \n'
+                   '                -----__    |             _____)      \n'
+                   '                     __-                /    /\      \n'
+                   '         _______-----    ___--          \    /)\     \n'
+                   '   ------_______      ---____            \__/  /     \n'
+                   '                -----__    \ --    _          //\    \n'
+                   '                       --__--__     \_____/   \_/\   \n'
+                   '                               ----|   /          |  \n'
+                   ' Dynamic                           |  |___________|  \n'
+                   ' IDA                               |  | ((_(_)| )_)  \n'
+                   ' Enrichment                        |  \_((_(_)|/(_)  \n'
+                   '                                   \             (   \n'
+                   '                                    \_____________)  \n'
+                   ' D.I.E v0.1 is now loaded, enjoy.                    \n'
+                   '-----------------------------------------------------\n'
+                   )
+
 
 class die_plugin_t(plugin_t):
-
     flags = idaapi.PLUGIN_UNL
     comment = "Dynamic IDA Enrichment plugin (aka. DIE)"
     help = "Help if a matter of trust."
@@ -318,7 +340,7 @@ class die_plugin_t(plugin_t):
 
             die_manager = DieManager()
             if die_manager.add_menu_items():
-                print "Failed to initialize DIE."
+                idaapi.msg("Failed to initialize DIE.\n")
                 die_manager.del_menu_items()
                 del die_manager
                 return idaapi.PLUGIN_SKIP
@@ -336,13 +358,12 @@ class die_plugin_t(plugin_t):
 
         if die_manager is not None:
             if not die_manager.die_db.is_saved:
-                response = idc.AskYN(1, "Just one more thing before you leave... I noticed DIE DB was not saved, Would you like to save it now?")
+                response = idc.AskYN(1, "One more thing before you go... DIE DB was not saved, Would you like to save it now?")
                 if response == 1:
                     die_manager.save_db()
 
 
 def PLUGIN_ENTRY():
-
     return die_plugin_t()
 
 

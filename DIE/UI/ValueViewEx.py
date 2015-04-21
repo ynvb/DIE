@@ -10,10 +10,12 @@ from idaapi import PluginForm
 import DIE.Lib.DIEDb
 import DIE.UI.FunctionViewEx
 
+
 class ValueView(PluginForm):
     """
     DIE Value View
     """
+
     def __init__(self):
 
         super(ValueView, self).__init__()
@@ -31,7 +33,7 @@ class ValueView(PluginForm):
         """
         Called when the view is created
         """
-        self.die_db =DIE.Lib.DIEDb.get_db()
+        self.die_db = DIE.Lib.DIEDb.get_db()
         self.function_view = DIE.UI.FunctionViewEx.get_view()
 
         # Get parent widget
@@ -139,7 +141,7 @@ class ValueView(PluginForm):
 
 
 ###############################################################################################
-#  Highlight Items
+# Highlight Items
 #
 ###############################################################################################
 
@@ -156,7 +158,7 @@ class ValueView(PluginForm):
             item.setFont(cur_font)
 
         except Exception as ex:
-            print "Error while highlighting item: %s" %ex
+            idaapi.msg("Error while highlighting item: %s\n" % ex)
 
     def highlight_item_row(self, item):
         """
@@ -187,7 +189,7 @@ class ValueView(PluginForm):
                     self.highligthed_items.append(persistent_index)
 
         except Exception as ex:
-            print "Error while highlighting item row: %s" % ex
+            idaapi.msg("Error while highlighting item row: %s\n" % ex)
 
 
     def clear_highlights(self):
@@ -209,7 +211,7 @@ class ValueView(PluginForm):
             self.highligthed_items = []
 
         except Exception as ex:
-            print "Error while clearing highlights: %s" % ex
+            idaapi.msg("Error while clearing highlights: %s\n" % ex)
 
 ###############################################################################################
 #  Find Items
@@ -225,7 +227,8 @@ class ValueView(PluginForm):
             if not root_index.isValid():
                 return
 
-            matched_items = self.valueModel.match(root_index, DIE.UI.Value_Role, value.__hash__(), -1, QtCore.Qt.MatchFlag.MatchRecursive|QtCore.Qt.MatchFlag.MatchExactly)
+            matched_items = self.valueModel.match(root_index, DIE.UI.Value_Role, value.__hash__(), -1,
+                                                  QtCore.Qt.MatchFlag.MatchRecursive | QtCore.Qt.MatchFlag.MatchExactly)
 
             for index in matched_items:
                 if not index.isValid():
@@ -237,7 +240,7 @@ class ValueView(PluginForm):
                 self.highlight_item_row(item)
 
         except Exception as ex:
-            print "Error while finding value: %s" % ex
+            idaapi.msg("Error while finding value: %s\n" % ex)
 
 
 ###############################################################################################
@@ -266,7 +269,7 @@ class ValueView(PluginForm):
                 self.function_view.find_context_list(func_context_list)
 
         except Exception as ex:
-            print "Error while loading function view: %s" % ex
+            idaapi.msg("Error while loading function view: %s\n" % ex)
 
     def on_value_type_combobox_change(self, value_type):
         """
@@ -283,8 +286,6 @@ class ValueView(PluginForm):
 
         valuetypeProxyModel.setSourceModel(self.valueModel)
         self.valueTreeView.setModel(valuetypeProxyModel)
-
-
 
 
 # Singelton

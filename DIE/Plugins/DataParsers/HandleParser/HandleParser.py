@@ -82,7 +82,7 @@ class HandleParser(DataPluginBase):
                 handle_name = buf_name.raw[0x8:][::2].split("\x00")[0]
                 handle_type = buf_type.raw[0x60:][::2].split("\x00")[0]
                 
-            #print "handle:%s \n\t name:%s \n\t res_name:%s \n\t buf_name:%s \n\t type:%s \n\t res_type:%s \n\t buf_type:%s \n" % (hex(handle), handle_name, tohex(res_name), list(buf_name), handle_type, tohex(res_type), list(buf_type))
+            #idaapi.msg("handle:%s \n\t name:%s \n\t res_name:%s \n\t buf_name:%s \n\t type:%s \n\t res_type:%s \n\t buf_type:%s \n\n" % (hex(handle), handle_name, tohex(res_name), list(buf_name), handle_type, tohex(res_type), list(buf_type)))
 
             if handle_name is None or handle_name == "":
                 handle_name = "Nameless Handle"

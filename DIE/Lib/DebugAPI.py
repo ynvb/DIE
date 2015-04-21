@@ -138,7 +138,7 @@ class DebugHooker(DBG_Hooks):
 
             # Set current call-stack
             if not tid in self.callStack:
-                print "Creating new callstack for thread %d" % tid
+                idaapi.msg("Creating new callstack for thread %d\n" % tid)
                 self.callStack[tid] = CallStack()
 
             self.current_callstack = self.callStack[tid]
@@ -373,4 +373,4 @@ class DebugHooker(DBG_Hooks):
         ps = pstats.Stats(self.pr, stream=s).sort_stats(sortby)
         ps.print_stats()
 
-        print s.getvalue()
+        idaapi.msg("%s\n" % (s.getvalue(), ))

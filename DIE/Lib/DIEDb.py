@@ -599,7 +599,7 @@ class DIE_DB():
             return True
 
         except Exception as ex:
-            print "Error while saving DIE DB: %s" % ex
+            idaapi.msg("Error while saving DIE DB: %s\n" % ex)
             logging.error("Error while saving DIE DB: %s", ex)
             return False
 
@@ -613,7 +613,7 @@ class DIE_DB():
             file_name = self.get_default_db_filename()
 
         if not os.path.exists(file_name):
-            print "DIE DB file not found"
+            idaapi.msg("DIE DB file not found\n")
             logging.error("DIE DB file was not found")
             return False
 

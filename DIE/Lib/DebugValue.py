@@ -262,7 +262,7 @@ class DebugValue():
                 return self.dataParser.ParseData(self.rawValue, self.type, self.loc, self.custom_parser)
 
         except Exception as e:
-            print "Error while parsing value: %s" % e
+            idaapi.msg("Error while parsing value: %s\n" % e)
             return None
 
 

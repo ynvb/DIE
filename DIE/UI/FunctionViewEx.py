@@ -129,7 +129,7 @@ class FunctionView(PluginForm):
         self.parent.setLayout(layout)
 
     def OnClose(self, form):
-        print "Closed"
+        idaapi.msg("Closed\n")
 
     def isVisible(self):
         """
@@ -315,7 +315,7 @@ class FunctionView(PluginForm):
             return True
 
         except Exception as ex:
-            print "Error while inserting thread data: %s" %ex
+            idaapi.msg("Error while inserting thread data: %s\n" %ex)
             return False
 
     def _make_function_item(self, function):
@@ -645,7 +645,7 @@ class FunctionView(PluginForm):
             item.setFont(cur_font)
 
         except Exception as ex:
-            print "Error while highlighting item: %s" %ex
+            idaapi.msg("Error while highlighting item: %s\n" %ex)
 
 
     def highlight_item_row(self, item):
@@ -677,7 +677,7 @@ class FunctionView(PluginForm):
                     self.highligthed_items.append(persistent_index)
 
         except Exception as ex:
-            print "Error while highlighting item row: %s" % ex
+            idaapi.msg("Error while highlighting item row: %s\n" % ex)
 
 
     def clear_highlights(self):
@@ -699,7 +699,7 @@ class FunctionView(PluginForm):
             self.highligthed_items = []
 
         except Exception as ex:
-            print "Error while clearing highlights: %s" % ex
+            idaapi.msg("Error while clearing highlights: %s\n" % ex)
 
 
 ###############################################################################################
@@ -749,7 +749,7 @@ class FunctionView(PluginForm):
             return True
 
         except Exception as ex:
-            print "Error while looking up function context in FunctionView: %s" %ex
+            idaapi.msg("Error while looking up function context in FunctionView: %s\n" % ex)
             return False
 
 ###############################################################################################

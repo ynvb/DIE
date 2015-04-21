@@ -10,7 +10,8 @@ try:
     # TODO: Is singleton really required here? python modules are basically singleton by design
     from yapsy.PluginManager import PluginManagerSingleton
 except ImportError, err:
-    print "Yapsy not installed (please use 'pip install yapsy' or equivalent : %s", err
+    idaapi.msg("Yapsy not installed (please use 'pip install yapsy' or equivalent : %s\n", err)
+    # TODO: does this not kill IDA? Instead, the error should be propagated to the plugin initialization.
     sys.exit(1)
 
 # TODO: better use new style classes
@@ -52,7 +53,7 @@ class DataParser():
 
         all_plugins = self.pManager.getAllPlugins()
         if len(all_plugins) == 0:
-            print "Warning - No Plugins were loaded!"
+            idaapi.msg("Warning - No Plugins were loaded!\n")
             self.logger.error("No plugins were loaded")
 
         for pluginInfo in all_plugins:
@@ -199,7 +200,7 @@ class DataParser():
 # TODO: Read from configuration file
 #config = DieConfig.get_config()
 
-print "[2] Loading data parsers"
+idaapi.msg("[2] Loading data parsers\n")
 #_dataParser = DataParser("C:\Users\yanivb\Desktop\Workspace\Projects\DIE\Plugins\DataParsers")
 #_dataParser = DataParser(config.data_parser_path)
 _dataParser = DataParser()
