@@ -32,7 +32,7 @@ class DebugHooker(DBG_Hooks):
     """
     IDA Debug hooking functionality
     """
-    def __init__(self, isDebug=False, is_dyn_bp=False):
+    def __init__(self, is_dbg=False, is_dyn_bp=False):
 
         self.logger = logging.getLogger(__name__)
         self.config = DIE.Lib.DieConfig.get_config()
@@ -64,7 +64,7 @@ class DebugHooker(DBG_Hooks):
         self.end_time = None                            # Debugging end time
 
         ### Flags
-        self.is_debug = isDebug                         # Debug flag
+        self.is_debug = is_dbg                         # Debug flag
         self.is_dyn_breakpoints = is_dyn_bp             # Should breakpoint be set dynamically or statically
         self.update_imports = True                      # IAT updating flag (when set runtime_imports will be updated)
 
@@ -89,7 +89,7 @@ class DebugHooker(DBG_Hooks):
             self.isHooked = True
 
         except Exception as ex:
-            self.logger.critical("Failed to hook debugger", ex)
+            self.logger.exception("Failed to hook debugger", ex)
             sys.exit(1)
 
     def UnHook(self):
@@ -102,7 +102,7 @@ class DebugHooker(DBG_Hooks):
             self.isHooked = False
 
         except Exception as ex:
-            self.logger.critical("Failed to hook debugger", ex)
+            self.logger.exception("Failed to hook debugger", ex)
             raise RuntimeError("Failed to unhook debugger")
 
     def update_iat(self):
@@ -153,7 +153,7 @@ class DebugHooker(DBG_Hooks):
             return 0
 
         except Exception as ex:
-            self.logger.critical("Failed while handling breakpoint at %s:", ea, ex)
+            self.logger.exception("Failed while handling breakpoint at %s:", ea, ex)
             return 1
 
     def dbg_step_into(self):
@@ -186,6 +186,9 @@ class DebugHooker(DBG_Hooks):
             if iatEA is None and self.is_dyn_breakpoints:
                 self.bp_handler.walk_function(ea)
 
+            # Clear debugger memory cache  TODO: Check effectiveness of this instruction.
+            idaapi.invalidate_dbgmem_contents(idaapi.BADADDR, 0)
+
             # Save CALL context
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
 
@@ -208,7 +211,7 @@ class DebugHooker(DBG_Hooks):
             return 0
 
         except Exception as ex:
-            self.logger.critical("failed while stepping into breakpoint: %s", ex)
+            self.logger.exception("failed while stepping into breakpoint: %s", ex)
             exit(1)
 
     def dbg_step_until_ret(self):
@@ -226,7 +229,7 @@ class DebugHooker(DBG_Hooks):
                 run_requests()
 
         except Exception as ex:
-            self.logger.critical("Failed while stepping until return: %s", ex)
+            self.logger.exception("Failed while stepping until return: %s", ex)
 
     def dbg_thread_start(self, pid, tid, ea):
         """
@@ -243,7 +246,7 @@ class DebugHooker(DBG_Hooks):
                 run_requests()
 
         except Exception as ex:
-            self.logger.critical("Failed while handling new thread: %s", ex)
+            self.logger.exception("Failed while handling new thread: %s", ex)
 
     #def dbg_thread_exit(self, pid, tid, ea, exit_code):
 
@@ -303,7 +306,7 @@ class DebugHooker(DBG_Hooks):
             return True
 
         except Exception as ex:
-            self.logger.error("Error while creating exception: %s", ex)
+            self.logger.exception("Error while creating exception: %s", ex)
             return False
 
 ###############################################
