@@ -31,8 +31,7 @@ class FunctionView(PluginForm):
 
     def Show(self):
         # Reset highlighted items
-        if len(self.highligthed_items) > 0:
-            self.highligthed_items = []
+        self.highligthed_items = []
 
         return PluginForm.Show(self,
                                "Function View",
@@ -500,7 +499,7 @@ class FunctionView(PluginForm):
             this_row_item.setData(parsed_vals, role=DIE.UI.RetValue_Role)
 
             # If len(parsed_vals)>1 create a combobox delegate.
-            if parsed_vals is not None and len(parsed_vals) > 0:
+            if parsed_vals:
                 is_guessed, best_val = self.die_db.get_best_parsed_val(parsed_vals)
                 item_parsed_val_ret = QtGui.QStandardItem(best_val.data)
                 if is_guessed:
@@ -520,7 +519,7 @@ class FunctionView(PluginForm):
                 if ret_value.raw_value is not None:
                     parsed_val_data = hex(ret_value.raw_value)
 
-                if len(ret_value.nested_values) > 0 or ret_value.reference_flink is not None:
+                if ret_value.nested_values or ret_value.reference_flink is not None:
                     parsed_val_data = ""
 
                 item_parsed_val_ret = QtGui.QStandardItem(parsed_val_data)
@@ -582,7 +581,7 @@ class FunctionView(PluginForm):
         """
         # If call value is a container type (struct\union\etc)
         if call_value is not None and call_value.nested_values is not None:
-            if len(call_value.nested_values) > 0:
+            if call_value.nested_values:
                 for index in xrange(0, len(call_value.nested_values)):
                     nested_val_call = self.die_db.get_dbg_value(call_value.nested_values[index])
                     nested_val_ret = None
@@ -590,7 +589,7 @@ class FunctionView(PluginForm):
                      # Try to get the same member from the return debug value.
                     if ret_value is not None and ret_value.type == call_value.type:
                         if ret_value.nested_values is not None:
-                            if len(ret_value.nested_values) > 0:
+                            if ret_value.nested_values:
                                 nested_val_ret = self.die_db.get_dbg_value(ret_value.nested_values[index])
 
                     self._add_model_arg_value(parent, nested_val_call, nested_val_ret, nested_val_call.name, nested_val_call.type, nest_depth+1)
@@ -598,11 +597,16 @@ class FunctionView(PluginForm):
         # If return value is a container type (and call value is not)
         elif ret_value is not None:
             if ret_value.nested_values is not None:
-                if len(ret_value.nested_values) > 0:
-                    for index in xrange(0, len(ret_value.nested_values)):
-                        nested_val_ret = self.die_db.get_dbg_value((ret_value.nested_values[index]))
+                if ret_value.nested_values:
+                    for nested_value in ret_value.nested_values:
+                        nested_val_ret = self.die_db.get_dbg_value(nested_value)
 
-                        self._add_model_arg_value(parent, None, nested_val_ret, nested_val_ret.name, nested_val_ret.type, nest_depth+1)
+                        self._add_model_arg_value(parent,
+                                                  None,
+                                                  nested_val_ret,
+                                                  nested_val_ret.name,
+                                                  nested_val_ret.type,
+                                                  nest_depth+1)
 
     def reset_function_count(self, thread_id=None):
         """
@@ -998,42 +1002,3 @@ function_view = FunctionView()
 
 def get_view():
     return function_view
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
