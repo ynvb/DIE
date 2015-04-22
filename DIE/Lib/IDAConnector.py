@@ -1,8 +1,8 @@
 from awesome.context import ignored
+import sark
 
 __author__ = 'yanivb'
 
-import sark
 from idaapi import *
 from idc import *
 import idc
