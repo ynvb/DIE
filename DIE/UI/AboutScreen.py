@@ -9,16 +9,16 @@ class About(Form):
     def __init__(self):
 
         Form.__init__(self,
-                      (r"BUTTON YES* NONE\n"
-                       r"BUTTON NO NONE\n"
-                       r"BUTTON CANCEL NONE\n"
-                       r"DIE - Dynamic IDA Enrichment\n"
-                       r"{FormChangeCb}\n"
-                       r"            {imgDIE}\n"
-                       r"DIE - Dynamic IDA Enrichment Framework\n"
-                       r"Version 0.1\n"
-                       r"\n"
-                       r"Written by: Yaniv Balmas.\n"
+                      ("BUTTON YES* NONE\n"
+                       "BUTTON NO NONE\n"
+                       "BUTTON CANCEL NONE\n"
+                       "DIE - Dynamic IDA Enrichment\n"
+                       "{FormChangeCb}\n"
+                       "            {imgDIE}\n"
+                       "DIE - Dynamic IDA Enrichment Framework\n"
+                       "Version 0.1\n"
+                       "\n"
+                       "Written by: Yaniv Balmas.\n"
                       ), {
                 'imgDIE'        : Form.StringLabel(""),
                 'FormChangeCb'  : Form.FormChangeCb(self.OnFormChange),
