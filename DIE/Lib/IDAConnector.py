@@ -26,9 +26,7 @@ def get_function_name(ea):
         # Try to demangle
         funcName = idc.Demangle(idc.GetFunctionName(ea), idc.GetLongPrm(idc.INF_SHORT_DN))
         if funcName:
-            first_parens = funcName.find("(")
-            if first_parens != -1:
-                funcName = funcName[0:first_parens]
+            funcName = funcName.split("(")[0]
 
         # Function name is not mangled
         if not funcName:
@@ -38,7 +36,7 @@ def get_function_name(ea):
             funcName = idc.Name(ea)
 
         # If we still have no function name, make one up. Format is - 'UNKN_FNC_4120000'
-        if funcName == "":
+        if not funcName:
             funcName = "UNKN_FNC_%s" % hex(ea)
 
         return funcName
@@ -86,11 +84,8 @@ def get_functions():
     Get all current functions
     @return: a tuple of (function_name, function_ea)
     """
-    functions = {}
-    for func_ea in idautils.Functions():
-        functions[get_function_name(func_ea)] = func_ea
+    return {get_function_name(func_ea): func_ea for func_ea in idautils.Functions()}
 
-    return functions
 
 def get_native_size():
     """
