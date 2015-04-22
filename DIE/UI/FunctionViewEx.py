@@ -192,12 +192,15 @@ class FunctionView(PluginForm):
                     curret_ret_arg_value = self.die_db.get_return_arg_value(function_context)
 
                     for arg_index in xrange(0, function.arg_num):
-                        current_arg = self.die_db.get_function_arg(function, arg_index)
-                        self._add_model_arg_value(item_func_context,
-                                                   current_call_values[arg_index],
-                                                   current_ret_values[arg_index],
-                                                   current_arg.name,
-                                                   current_arg.type)
+                        try:
+                            current_arg = self.die_db.get_function_arg(function, arg_index)
+                            self._add_model_arg_value(item_func_context,
+                                                       current_call_values[arg_index],
+                                                       current_ret_values[arg_index],
+                                                       current_arg.name,
+                                                       current_arg.type)
+                        except IndexError:
+                            break
 
                     ret_arg = self.die_db.get_function_arg(function, -1)
                     if ret_arg is None:
