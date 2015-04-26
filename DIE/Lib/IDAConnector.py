@@ -158,7 +158,7 @@ def get_sp():
     """
     Get the current stack pointer address
     """
-    return Registers().sp.name
+    return GetRegValue(Registers().sp.name)
 
 def get_adrs_mem(ea):
     """
