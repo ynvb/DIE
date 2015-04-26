@@ -1,6 +1,5 @@
 from collections import namedtuple
 from awesome.context import ignored
-from sark.debug import Registers
 import sark
 
 __author__ = 'yanivb'
@@ -12,6 +11,7 @@ import idaapi
 import idautils
 import re
 import os
+from sark.debug import Registers
 
 ################################################################
 #
@@ -123,6 +123,9 @@ def get_proc_type():
 
     except Exception as ex:
         raise RuntimeError("Could not retrieve processor type: %s" %ex)
+
+
+
 
 def is_call(ea):
     """
