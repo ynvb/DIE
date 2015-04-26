@@ -323,7 +323,7 @@ class DIE_Config():
         """
         DIE Installation path
         """
-        return idaapi.idadir("plugins\DIE")
+        return os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
     @property
     def icons_path(self):
