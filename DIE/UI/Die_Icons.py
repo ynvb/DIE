@@ -150,6 +150,8 @@ class DieIcons():
         @return: the loaded icon object or None
         """
 
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "icons", icon_path)
+
         try:
             if os.path.exists(icon_path):
                 return QtGui.QIcon(icon_path)
