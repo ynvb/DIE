@@ -647,6 +647,9 @@ class DIE_DB():
 
 __die_db = DIE_DB()
 
+def initialize_db():
+    global __die_db
+    __die_db = DIE_DB()
 
 def get_db():
     return __die_db

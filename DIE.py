@@ -83,6 +83,7 @@ class DieManager():
         self.icon_list = {}
 
         self.debugAPI = DebugAPI.DebugHooker(is_dbg=self.is_dbg)
+        DIE.Lib.DIEDb.initialize_db()
         self.die_db = DIE.Lib.DIEDb.get_db()
         self.die_config = DIE.Lib.DieConfig.get_config()
 
@@ -146,45 +147,40 @@ class DieManager():
         self.addmenu_item_ctxs.append(addmenu_item_ctx)
 
     def add_menu_items(self):
-        try:
-            # Load DieDB
-            self.add_menu_item_helper("Help/About program..", "DIE: Load DieDB", "", self.load_db)
-            idaapi.set_menu_item_icon("Help/DIE: Load DieDB", self.icon_list["load"])
-            # Save DieDB
-            self.add_menu_item_helper("Help/About program..", "DIE: Save DieDB", "", self.save_db)
-            idaapi.set_menu_item_icon("Help/DIE: Save DieDB", self.icon_list["save"])
-            # Debug Here
-            self.add_menu_item_helper("Help/About program..", "DIE: Go from current location", "Alt+f", self.go_here)
-            idaapi.set_menu_item_icon("Help/DIE: Go from current location", self.icon_list["debug"])
-            # Debug All
-            self.add_menu_item_helper("Help/About program..", "DIE: Debug entire code", "Alt+g", self.go_all)
-            idaapi.set_menu_item_icon("Help/DIE: Debug entire code", self.icon_list["debug_all"])
-            # Debug Custom
-            self.add_menu_item_helper("Help/About program..", "DIE: Debug a custom scope", "Alt+c",
-                                      self.show_scope_chooser)
-            idaapi.set_menu_item_icon("Help/DIE: Debug a custom scope", self.icon_list["debug_scope"])
-            # Function View
-            self.add_menu_item_helper("Help/About program..", "DIE: Function View", "", self.show_function_view)
-            idaapi.set_menu_item_icon("Help/DIE: Function View", self.icon_list["function_view"])
-            # Value View
-            self.add_menu_item_helper("Help/About program..", "DIE: Value View", "", self.show_value_view)
-            idaapi.set_menu_item_icon("Help/DIE: Value View", self.icon_list["value_view"])
-            # Exception View
-            self.add_menu_item_helper("Help/About program..", "DIE: Exceptions View", "", self.show_breakpoint_view)
-            idaapi.set_menu_item_icon("Help/DIE: Exceptions View", self.icon_list["exception_view"])
-            # Parsers View
-            self.add_menu_item_helper("Help/About program..", "DIE: Parsers View", "", self.show_parser_view)
-            idaapi.set_menu_item_icon("Help/DIE: Parsers View", self.icon_list["plugins"])
-            # Parsers View
-            self.add_menu_item_helper("Help/About program..", "DIE: Settings", "", self.show_settings)
-            idaapi.set_menu_item_icon("Help/DIE: Settings", self.icon_list["settings"])
-            # About DIE
-            self.add_menu_item_helper("Help/About program..", "DIE: About", "", self.show_about)
-            idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
-        except MenuHelperException:
-            return 1
-
-        return 0
+        # Load DieDB
+        self.add_menu_item_helper("Help/About program..", "DIE: Load DieDB", "", self.load_db)
+        idaapi.set_menu_item_icon("Help/DIE: Load DieDB", self.icon_list["load"])
+        # Save DieDB
+        self.add_menu_item_helper("Help/About program..", "DIE: Save DieDB", "", self.save_db)
+        idaapi.set_menu_item_icon("Help/DIE: Save DieDB", self.icon_list["save"])
+        # Debug Here
+        self.add_menu_item_helper("Help/About program..", "DIE: Go from current location", "Alt+f", self.go_here)
+        idaapi.set_menu_item_icon("Help/DIE: Go from current location", self.icon_list["debug"])
+        # Debug All
+        self.add_menu_item_helper("Help/About program..", "DIE: Debug entire code", "Alt+g", self.go_all)
+        idaapi.set_menu_item_icon("Help/DIE: Debug entire code", self.icon_list["debug_all"])
+        # Debug Custom
+        self.add_menu_item_helper("Help/About program..", "DIE: Debug a custom scope", "Alt+c",
+                                  self.show_scope_chooser)
+        idaapi.set_menu_item_icon("Help/DIE: Debug a custom scope", self.icon_list["debug_scope"])
+        # Function View
+        self.add_menu_item_helper("Help/About program..", "DIE: Function View", "", self.show_function_view)
+        idaapi.set_menu_item_icon("Help/DIE: Function View", self.icon_list["function_view"])
+        # Value View
+        self.add_menu_item_helper("Help/About program..", "DIE: Value View", "", self.show_value_view)
+        idaapi.set_menu_item_icon("Help/DIE: Value View", self.icon_list["value_view"])
+        # Exception View
+        self.add_menu_item_helper("Help/About program..", "DIE: Exceptions View", "", self.show_breakpoint_view)
+        idaapi.set_menu_item_icon("Help/DIE: Exceptions View", self.icon_list["exception_view"])
+        # Parsers View
+        self.add_menu_item_helper("Help/About program..", "DIE: Parsers View", "", self.show_parser_view)
+        idaapi.set_menu_item_icon("Help/DIE: Parsers View", self.icon_list["plugins"])
+        # Parsers View
+        self.add_menu_item_helper("Help/About program..", "DIE: Settings", "", self.show_settings)
+        idaapi.set_menu_item_icon("Help/DIE: Settings", self.icon_list["settings"])
+        # About DIE
+        self.add_menu_item_helper("Help/About program..", "DIE: About", "", self.show_about)
+        idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
 
     def del_menu_items(self):
         for addmenu_item_ctx in self.addmenu_item_ctxs:
@@ -327,40 +323,39 @@ class DieManager():
 
 
 class die_plugin_t(plugin_t):
-    flags = idaapi.PLUGIN_UNL
+    flags = idaapi.PLUGIN_PROC
     comment = "Dynamic IDA Enrichment plugin (aka. DIE)"
     help = "Help if a matter of trust."
     wanted_name = "DIE"
     wanted_hotkey = ""
 
     def init(self):
-        global die_manager
+        self.die_manager = DieManager()
+        try:
+            self.die_manager.add_menu_items()
+            self.die_manager.show_logo()
+            return idaapi.PLUGIN_KEEP
 
-        if not 'die_manager' in globals():
-
-            die_manager = DieManager()
-            if die_manager.add_menu_items():
-                idaapi.msg("Failed to initialize DIE.\n")
-                die_manager.del_menu_items()
-                del die_manager
-                return idaapi.PLUGIN_SKIP
-
-            else:
-                die_manager.show_logo()
-
-        return idaapi.PLUGIN_KEEP
+        except:
+            idaapi.msg("Failed to initialize DIE.\n")
+            import traceback
+            idaapi.msg("{}\n".format(traceback.format_exc()))
+            self.die_manager.del_menu_items()
+            del self.die_manager
+            idaapi.msg("Errors and fun!\n")
+            return idaapi.PLUGIN_SKIP
 
     def run(self, arg):
         pass
 
     def term(self):
-        global die_manager
-
-        if die_manager is not None:
-            if not die_manager.die_db.is_saved:
+        with ignored(AttributeError):
+            if not self.die_manager.die_db.is_saved:
                 response = idc.AskYN(1, "One more thing before you go... DIE DB was not saved, Would you like to save it now?")
                 if response == 1:
-                    die_manager.save_db()
+                    self.die_manager.save_db()
+
+            self.die_manager.del_menu_items()
 
 
 def PLUGIN_ENTRY():
