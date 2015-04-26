@@ -1,4 +1,6 @@
+from collections import namedtuple
 from awesome.context import ignored
+from sark.debug import Registers
 import sark
 
 __author__ = 'yanivb'
@@ -83,6 +85,7 @@ def get_function_end_address(ea):
     except Exception as ex:
         raise RuntimeError("Count not locate end address for function %s: %s" % (hex(ea), ex))
 
+
 def get_functions():
     """
     Get all current functions
@@ -121,62 +124,41 @@ def get_proc_type():
     except Exception as ex:
         raise RuntimeError("Could not retrieve processor type: %s" %ex)
 
-# TODO: Change this to be architecture independent
 def is_call(ea):
     """
     Check if the current instruction a CALL instruction
     """
     return sark.Line(ea).insn.is_call
 
-# TODO: Change this to be architecture independent
 def is_ret(ea):
     """
     Check if the current instruction a RET instruction
     """
     return sark.Line(ea).insn.is_ret
 
-# TODO: Change this to be architecture independent
 def get_cur_ea():
     """
     Return the current effective address
     """
-    nativeSize = get_native_size()
-
-    if nativeSize is 16:
-        return GetRegValue('IP')
-
-    if nativeSize is 32:
-        return GetRegValue('EIP')
-
-    if nativeSize is 64:
-        return GetRegValue('RIP')
+    return GetRegValue(Registers().ip.name)
 
 # TODO: Change this to be architecture independent
 def get_ret_adr():
     """
     Get the return address for the current function
     """
-    nativeSize = get_native_size()
 
-    if nativeSize is 16:
-        nextInst = DbgWord(GetRegValue('SP'))  # Address of instruction following the CALL
+    sp = Registers().sp.name
 
-    if nativeSize is 32:
-        nextInst = DbgDword(GetRegValue('ESP'))  # Address of instruction following the CALL
+    pushed_ip = GetRegValue(sp)
 
-    if nativeSize is 64:
-        nextInst = DbgQword(GetRegValue('RSP'))  # Address of instruction following the CALL
+    return sark.Line(pushed_ip).next.ea
 
-    prev_addr, farref = idaapi.decode_preceding_insn(nextInst)  # Get previous instruction
-
-    return prev_addr
-
-# TODO: Change this to be architecture independent
 def get_sp():
     """
     Get the current stack pointer address
     """
-    return GetRegValue('ESP')
+    return Registers().sp.name
 
 def get_adrs_mem(ea):
     """
@@ -202,21 +184,13 @@ def regOffsetToName(offset):
     """
     Get register name from an offset to ph.regnames
     """
-    regName = idaapi.ph_get_regnames()[offset]
+    native_size = get_native_size()
 
-    if not offset in range(0,7):
-        return regName.upper()
+    reg_name = idaapi.get_reg_name(offset, native_size / 8)
+    if not reg_name:
+        raise ValueError("Failed to retrieve register name.")
 
-    if get_native_size() is 16:
-        return regName.upper()
-
-    if get_native_size() is 32:
-        return "E" + regName.upper()
-
-    if get_native_size() is 64:
-        return "R" + regName.upper()
-
-    return ValueError("Failed to retrieve register name.")
+    return reg_name
 
 def get_stack_element_size():
     """

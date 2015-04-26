@@ -1,3 +1,6 @@
+from awesome.context import ignored
+import sark
+
 __author__ = 'yanivb'
 
 import idaapi
@@ -374,7 +377,9 @@ class FunctionView(PluginForm):
         @param function_context: a dbFunction_Context object
         @return: QStandradItemModel item for the function context
         """
-        calling_function_start = DIE.Lib.IDAConnector.get_function_start_address(function_context.calling_ea)
+        calling_function_start = None
+        with ignored(sark.exceptions.SarkNoFunction):
+            calling_function_start = sark.Function(function_context.calling_ea).startEA
 
         if calling_function_start is not None:
             call_offset = function_context.calling_ea - calling_function_start
