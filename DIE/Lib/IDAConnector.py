@@ -1,5 +1,3 @@
-from collections import namedtuple
-from awesome.context import ignored
 import sark
 
 __author__ = 'yanivb'
