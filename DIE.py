@@ -50,7 +50,7 @@ class DieManager():
         self.is_dbg = is_dbg  # Debug mode flag
 
         ### Logging ###
-        log_filename = os.getcwd() + "\\DIE.log"
+        log_filename = os.path.join(os.getcwd(), "DIE.log")
         logging.basicConfig(filename=log_filename,
                     level=logging.INFO,
                     format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
@@ -70,11 +70,11 @@ class DieManager():
         self.logger.addHandler(console_hanlder)
 
         ### DIE Configuration ###
-        self.config_file_name = os.getcwd() + "\\DIE.cfg"
+        self.config_file_name = os.path.join(os.getcwd(), "DIE.cfg")
         config = DIE.Lib.DieConfig.get_config()
         config.load_configuration(self.config_file_name)
 
-        self.addmenu_item_ctxs = list()
+        self.addmenu_item_ctxs = []
         self.icon_list = {}
 
         self.debugAPI = DebugAPI.DebugHooker(is_dbg=self.is_dbg)
@@ -102,7 +102,7 @@ class DieManager():
         try:
             icons_path = self.die_config.icons_path
 
-            icon_filename = (icons_path + "\\" + icon_filename)
+            icon_filename = os.path.join(icons_path, icon_filename)
             icon_num = idaapi.load_custom_icon(icon_filename)
             self.icon_list[icon_key_name.lower()] = icon_num
             return True
