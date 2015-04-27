@@ -87,6 +87,7 @@ class FunctionParserBase(object):
             return arg_values, ret_arg_value
 
         except Exception as ex:
+            # TODO: format all the exceptions to get the stacktrace and not just an error. If relevant...
             self.logger.error("Could not parse function %s return arguments: %s", self.function.funcName, ex)
             return None
 
@@ -225,7 +226,7 @@ class FunctionParserBase(object):
         # Lookup a specific argument parser for this argument
         lookup_res = self.lookup_custom_parser(arg_index)
         if lookup_res is not None:
-            [parser, parser_params] = lookup_res
+            parser, parser_params = lookup_res
 
         return DebugValue(store_type,
                           loc,
