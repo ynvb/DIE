@@ -12,6 +12,7 @@ from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
 from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect
 import DIE.Lib.FunctionParsers
+import DIE.Lib.DIE_Exceptions
 
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
 
@@ -71,9 +72,13 @@ class FunctionContext():
             # (currently only GenericFunctionParser exist, and this is used to enable future extensions)
             self.function_parser = GenericFunctionParser(self.function)
 
+        except DIE.Lib.DIE_Exceptions.DieNoFunction:
+            raise
+
         except Exception as ex:
             logging.critical("Error while initializing function context: %s", ex)
-            return
+            logging.exception("Error while initializing function context: %s", ex)
+            raise
 
     def check_if_indirect(self):
         """

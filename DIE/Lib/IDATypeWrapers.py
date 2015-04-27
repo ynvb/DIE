@@ -1,7 +1,10 @@
+import sark
+
 __author__ = 'yanivb'
 
 import idaapi
 import logging
+import DIE.Lib.DIE_Exceptions
 from DIE.Lib.IDAConnector import get_native_size, regOffsetToName,\
     get_function_name, get_function_start_address, get_function_end_address
 
@@ -203,9 +206,14 @@ class Function():
         self.ea = ea        # Effective Address of the function
         self.iatEA = iatEA  # If imported function, the address in the IAT
 
-        self.funcName = get_function_name(self.ea)     # Function name
-        self.func_start = get_function_start_address(self.ea)  # Function start address
-        self.func_end = get_function_end_address(self.ea)  # Function end address
+        try:
+            function = sark.Function(ea)
+        except sark.exceptions.SarkNoFunction:
+            raise DIE.Lib.DIE_Exceptions.DieNoFunction("No Function at 0x%08X" % (ea, ))
+
+        self.funcName = get_function_name(function.ea)
+        self.func_start = function.startEA
+        self.func_end = function.endEA
 
         self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
         self.typeInfo = idaapi.tinfo_t()            # Function type info
