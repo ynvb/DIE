@@ -151,8 +151,6 @@ class FuncArg():
         A string representation of the argument type
         """
         typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
-        if typeStr is None:
-            return None
 
         return typeStr
 
@@ -160,10 +158,7 @@ class FuncArg():
         """
         Is this argument a return value?
         """
-        if self.argNum is -1:
-            return True
-        else:
-            return False
+        return self.argNum is -1
 
     def getArgStr(self):
         """
@@ -230,7 +225,7 @@ class Function():
 
         except RuntimeError as ex:
             self.logger.error("Function: Failed to get function arguments for function %s: %s", self.funcName, ex)
-            return None
+            return
 
     def getFuncProtoAdr(self):
         """
@@ -306,12 +301,12 @@ class StructElement():
     Struct Element
     """
 
-    def __init__(self, size, offset, type, name=None, comment=None):
+    def __init__(self, size, offset, type_, name=None, comment=None):
         """
         Struct element class
         @param size: Size of element
         @param offset: Element offset within the struct
-        @param type: Element type
+        @param type_: Element type
         @param name: Element name string
         @param comment: Element comment (Optional)
         """
@@ -322,7 +317,7 @@ class StructElement():
         self.offset = offset
         self.size = size
 
-        self.type = type
+        self.type = type_
 
     def get_name(self):
         """
@@ -337,6 +332,7 @@ class StructElement():
         """
         Get type name (int, char, LPCSTR etc.)
         """
+        # TODO: no return value???
         idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type, '', '')
 
 #######################################################################################################################
@@ -371,7 +367,7 @@ class Struct():
         except:
             self.logger.error("Error while extracting struct data: %s",
                           idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', ''))
-            return False
+            return
 
 
     def getStructData(self):

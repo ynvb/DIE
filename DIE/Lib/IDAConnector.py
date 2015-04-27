@@ -127,6 +127,7 @@ def is_call(ea):
     """
     Check if the current instruction a CALL instruction
     """
+    # TODO: this is processor specific
     mnem = GetMnem(ea)
     if re.match('call\s+far prt', mnem):  return None
     return re.match('call', mnem)
@@ -136,6 +137,7 @@ def is_ret(ea):
     """
     Check if the current instruction a RET instruction
     """
+    # TODO: this is processor specific
     mnem = GetMnem(ea)
     return re.match('ret', mnem)
 

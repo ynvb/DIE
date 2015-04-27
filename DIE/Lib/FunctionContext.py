@@ -70,7 +70,7 @@ class FunctionContext():
 
         except Exception as ex:
             logging.critical("Error while initializing function context: %s", ex)
-            return None
+            return
 
     def check_if_indirect(self):
         """
