@@ -69,8 +69,7 @@ class FunctionParserBase(object):
 
             arg_values = []
 
-            for arg_index in xrange(0, len(parsed_arg_vector)):
-                parsed_arg = parsed_arg_vector[arg_index]
+            for arg_index, parsed_arg in enumerate(parsed_arg_vector):
                 if not isinstance(parsed_arg, DebugValue):
                     raise TypeError("Invalid parsed argument value")
 
