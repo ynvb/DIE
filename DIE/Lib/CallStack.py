@@ -4,6 +4,7 @@ from DIE.Lib.FunctionContext import *
 from DIE.Lib.IDAConnector import check_new_code_area, is_ea_loaded_module
 from DIE.Lib.DIE_Exceptions import NewCodeSectionException
 import idautils
+from collections import defaultdict
 
 class CallStack():
     """
@@ -22,7 +23,7 @@ class CallStack():
         self.function_list = list(idautils.Functions())
 
         # Function counter counts the number of time a specific function have been called (pushed to the call-stack)
-        self.function_counter = {}
+        self.function_counter = defaultdict(int)
 
     def push(self, ea, iatEA = None, library_name=None):
         """
@@ -70,7 +71,7 @@ class CallStack():
         @rtype : Returns True if function was succesfully poped from callstack. otherwise False
         """
         try:
-            if len(self.callStack) == 0:
+            if not self.callStack:
                 # Error: cannot pop value from empty callstack
                 return
 
@@ -113,11 +114,7 @@ class CallStack():
         @return: True if added sucessfully, otherwise False
         """
         try:
-            if func_name in self.function_counter:
-                self.function_counter[func_name] += 1
-            else:
-                self.function_counter[func_name] = 1
-
+            self.function_counter[func_name] += 1
             return True
 
         except Exception as ex:
