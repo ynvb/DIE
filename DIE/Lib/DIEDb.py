@@ -99,7 +99,7 @@ class DIE_DB():
         @return: A dictionary of function contexts grouped by their calling ea`s.
                  each dictionary node is a list of function contexts for this ea.
         """
-        function_context_dict = {}
+        function_context_dict = defaultdict(list)
 
         if function is None:
             # Global function context list (for the entire db)
@@ -114,10 +114,6 @@ class DIE_DB():
 
         for function_context_id in cur_context_list:
             current_context = self.function_contexts[function_context_id]
-
-            if current_context.calling_ea not in function_context_dict:
-                function_context_dict[current_context.calling_ea] = []
-
             function_context_dict[current_context.calling_ea].append(current_context)
 
         return function_context_dict
