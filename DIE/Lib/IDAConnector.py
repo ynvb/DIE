@@ -148,10 +148,17 @@ def get_ret_adr():
     """
     Get the return address for the current function
     """
-
     sp = Registers().sp.name
 
-    pushed_ip = GetRegValue(sp)
+    sp_value = GetRegValue(sp)
+
+    value_getter = {
+        16:DbgWord,
+        32:DbgDword,
+        64:DbgQword
+    }[get_native_size()]
+
+    pushed_ip = value_getter(sp_value)
 
     return sark.Line(pushed_ip).next.ea
 
