@@ -82,11 +82,39 @@ class DebugValue():
             if self.config.is_container:
                 if self.is_container():
                     self.__get_container_values()
+                    # if self.derefrence_depth > 0:
+                    #     struct = Struct(self.type)
+                    #     struct_base_adrs = self.loc
+                    #
+                    #     if self.loc is not None:
+                    #         new_ref_depth = (self.derefrence_depth - 1)
+                    #         for element in struct.elements:  # Add nested DebugValue elements
+                    #             element_val = DebugValue(MEM_VAL,
+                    #                                      struct_base_adrs + element.offset,
+                    #                                      element.type,
+                    #                                      element.get_name(),
+                    #                                      deref_depth=new_ref_depth)
+                    #             self.nestedValues.append(element_val)
 
             # If value is an array
             if self.config.is_array:
                 if self.is_array():
                     self.__get_array_values()
+                    # array = Array(self.type)
+                    # array_base_adrs = self.loc
+                    #
+                    # if self.loc is not None:
+                    #
+                    #     prev_element = self
+                    #     for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
+                    #         element_val = DebugValue(MEM_VAL,
+                    #                                  array_base_adrs + (element_index*array.element_size),
+                    #                                  array.element_type,
+                    #                                  "[%d]" % element_index)
+                    #
+                    #         prev_element.reference_flink = element_val
+                    #         prev_element = element_val
+
 
             if self.loc and self.storetype:
                 if self.config.is_raw:

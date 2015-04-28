@@ -240,38 +240,6 @@ def is_indirect(ea):
 
     return False
 
-def check_new_code_area(ea):
-    """
-    Check if the current ea is a part of an un-analyzed code segment
-    @return: If new code segment was located return a tuple of (new_code_seg_start, new_code_seg_end),
-             otherwise return None
-    """
-    if ea is idaapi.BADADDR:
-        raise RuntimeError("check_new_code_segment failed. Bad Address: %s" % hex(ea))
-
-    # If ea is defined as code, this is not a new code segment.
-    if idaapi.isCode(idc.GetFlags(ea)):
-        return None
-
-    # If ea is not defined as code return the entire segment borders
-    # TODO: this should be refined to return a more specific area
-
-    return (idc.SegStart(ea), idc.SegEnd(ea))
-
-def analyze_area(start_ea, end_ea):
-    """
-    Analyze a code area while debugging
-    @param start_ea: Area start address
-    @param end_ea:  Area end address
-    @return: True if area successfully analyzed, otherwise False.
-    """
-    #TODO: Check with hex-rays why is it necessary to refresh memory.
-    refresh_debugger_memory()
-
-    if idc.AnalyzeArea(start_ea, end_ea) !=1:
-        return False
-
-    return True
 
 def is_ida_debugger_present():
     """
