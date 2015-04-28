@@ -374,7 +374,7 @@ class FunctionView(PluginForm):
         @param function_context: a dbFunction_Context object
         @return: QStandradItemModel item for the function context
         """
-        calling_function_start = DIE.Lib.IDAConnector.get_func_start_adr(function_context.calling_ea)
+        calling_function_start = DIE.Lib.IDAConnector.get_function_start_address(function_context.calling_ea)
 
         if calling_function_start is not None:
             call_offset = function_context.calling_ea - calling_function_start

@@ -3,7 +3,7 @@ __author__ = 'yanivb'
 import idaapi
 import logging
 from DIE.Lib.IDAConnector import get_native_size, regOffsetToName,\
-    get_function_name, get_func_start_adr, get_function_end_adr
+    get_function_name, get_function_start_address, get_function_end_address
 
 #
 # This file contains several wrappers for common IDA data type such as Functions, Function Argument,
@@ -204,8 +204,8 @@ class Function():
         self.iatEA = iatEA  # If imported function, the address in the IAT
 
         self.funcName = get_function_name(self.ea)     # Function name
-        self.func_start = get_func_start_adr(self.ea)  # Function start address
-        self.func_end = get_function_end_adr(self.ea)  # Function end address
+        self.func_start = get_function_start_address(self.ea)  # Function start address
+        self.func_end = get_function_end_address(self.ea)  # Function end address
 
         self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
         self.typeInfo = idaapi.tinfo_t()            # Function type info

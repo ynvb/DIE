@@ -137,7 +137,7 @@ class DebugHooker(DBG_Hooks):
                 self.update_iat()
 
             # Set current call-stack
-            if not tid in self.callStack:
+            if tid not in self.callStack:
                 idaapi.msg("Creating new callstack for thread %d\n" % tid)
                 self.callStack[tid] = CallStack()
 
@@ -327,7 +327,7 @@ class DebugHooker(DBG_Hooks):
 
             # If end function address was not explicitly defined, set to end of current function
             if end_func_ea is None:
-                self.end_bp = DIE.Lib.IDAConnector.get_function_end_adr(start_func_ea)
+                self.end_bp = DIE.Lib.IDAConnector.get_function_end_address(start_func_ea)
                 self.bp_handler.addBP(self.end_bp, "FINAL_BP")
 
             # Walk current function

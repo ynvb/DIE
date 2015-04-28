@@ -1,3 +1,6 @@
+from awesome import context
+
+
 __author__ = 'yanivb'
 
 import time
@@ -88,24 +91,22 @@ class FunctionContext():
         Get the function argument values upon function call
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
+        with context.Timer() as timer:
+            self.empty = False  # drop the empty flag
 
-        start_time = time.time()  # Start timer
-        self.empty = False  # drop the empty flag
+            # If no function arg retrieval is disabled in configuration - quit:
+            if not self.config.get_func_args:
+                return True
 
-        # If no function arg retrieval is disabled in configuration - quit:
-        if not self.config.get_func_args:
-            return True
+            self.callRegState = self.getRegisters()  # Get registers state
+            self.callValues = self.function_parser.parse_function_args_call()  # Get function Arguments
 
-        self.callRegState = self.getRegisters()  # Get registers state
-        self.callValues = self.function_parser.parse_function_args_call()  # Get function Arguments
+            if self.callValues is None:
+                self.logger("Failed parsing function arguments")
+                self.empty = True
+                return False
 
-        if self.callValues is None:
-            self.logger("Failed parsing function arguments")
-            self.empty = True
-            return False
-
-        elapsed_time = time.time() - start_time  # Get elapsed time
-        self.total_proc_time += elapsed_time  # Add to total elapsed time
+        self.total_proc_time += timer.elapsed  # Add to total elapsed time
 
         return True
 
@@ -123,14 +124,12 @@ class FunctionContext():
         if not self.config.get_func_args:
             return True
 
-        start_time = time.time()  # Start timer
+        with context.Timer() as timer:
+            self.retRegState = self.getRegisters()  # Get register state
+            # Get function arguments
+            (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
 
-        self.retRegState = self.getRegisters()  # Get register state
-        # Get function arguments
-        (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
-
-        elapsed_time = time.time() - start_time  # Get elapsed time
-        self.total_proc_time += elapsed_time  # Add to total elapsed time
+        self.total_proc_time += timer.elapsed  # Add to total elapsed time
 
         return True
 

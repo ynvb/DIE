@@ -1,5 +1,8 @@
+from awesome.context import ignored
+
 __author__ = 'yanivb'
 
+import sark
 from idaapi import *
 from idc import *
 import idc
@@ -24,24 +27,25 @@ def get_function_name(ea):
         Get the real function name
         """
         # Try to demangle
-        funcName = idc.Demangle(idc.GetFunctionName(ea), idc.GetLongPrm(idc.INF_SHORT_DN))
-        if funcName:
-            funcName = funcName.split("(")[0]
+        function_name = idc.Demangle(idc.GetFunctionName(ea), idc.GetLongPrm(idc.INF_SHORT_DN))
+
+        if function_name:
+            function_name = function_name.split("(")[0]
 
         # Function name is not mangled
-        if not funcName:
-            funcName = idc.GetFunctionName(ea)
+        if not function_name:
+            function_name = idc.GetFunctionName(ea)
 
-        if funcName is None or funcName is "":
-            funcName = idc.Name(ea)
+        if not function_name:
+            function_name = idc.Name(ea)
 
         # If we still have no function name, make one up. Format is - 'UNKN_FNC_4120000'
-        if not funcName:
-            funcName = "UNKN_FNC_%s" % hex(ea)
+        if not function_name:
+            function_name = "UNKN_FNC_%s" % hex(ea)
 
-        return funcName
+        return function_name
 
-def get_func_start_adr(ea):
+def get_function_start_address(ea):
     """
     Get function start address
     @param ea: ea from within the function boundaries.
@@ -60,24 +64,24 @@ def get_func_start_adr(ea):
     except Exception as ex:
         raise RuntimeError("Count not locate start address for function %s: %s" % (hex(ea), ex))
 
-def get_function_end_adr(start_ea):
+def get_function_end_address(ea):
     """
     Get function end address
     @param ea: function start_ea.
     @return: The function end ea. If no ea found returns None.
     """
     try:
-        if start_ea is None:
+        if ea is None:
             return None
 
-        end_adrs = idc.PrevHead( idc.GetFunctionAttr(start_ea, idc.FUNCATTR_END), start_ea)
+        end_adrs = idc.PrevHead( idc.GetFunctionAttr(ea, idc.FUNCATTR_END), ea)
         if end_adrs != idc.BADADDR:
             return end_adrs
 
         return None
 
     except Exception as ex:
-        raise RuntimeError("Count not locate end address for function %s: %s" % (hex(start_ea), ex))
+        raise RuntimeError("Count not locate end address for function %s: %s" % (hex(ea), ex))
 
 def get_functions():
     """
@@ -122,19 +126,14 @@ def is_call(ea):
     """
     Check if the current instruction a CALL instruction
     """
-    # TODO: this is processor specific
-    mnem = GetMnem(ea)
-    if re.match('call\s+far prt', mnem):  return None
-    return re.match('call', mnem)
+    return sark.Line(ea).insn.is_call
 
 # TODO: Change this to be architecture independent
 def is_ret(ea):
     """
     Check if the current instruction a RET instruction
     """
-    # TODO: this is processor specific
-    mnem = GetMnem(ea)
-    return re.match('ret', mnem)
+    return sark.Line(ea).insn.is_ret
 
 # TODO: Change this to be architecture independent
 def get_cur_ea():
@@ -232,10 +231,9 @@ def is_indirect(ea):
     @param ea: Effective address of the call instruction.
     @return:
     """
-    op_type = idc.GetOpType(ea, 0)
-
+    operand = sark.Line(ea).insn.operands[0]
     # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
-    if op_type == 3 or op_type == 4:
+    if operand.type.is_phrase or operand.type.is_displ:
         return True
 
     return False

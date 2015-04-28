@@ -414,8 +414,8 @@ class BpHandler():
             # Add function to walked function list
             self.walked_functions[function_name] = ea
 
-            start_adrs = get_func_start_adr(ea)
-            end_adrs = get_function_end_adr(ea)
+            start_adrs = get_function_start_address(ea)
+            end_adrs = get_function_end_address(ea)
 
             # Walk function and place breakpoints on every call instruction found.
             for head in idautils.Heads(start_adrs, end_adrs):
