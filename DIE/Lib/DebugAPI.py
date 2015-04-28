@@ -32,7 +32,7 @@ class DebugHooker(DBG_Hooks):
     """
     IDA Debug hooking functionality
     """
-    def __init__(self, isDebug=False, is_dyn_bp=False):
+    def __init__(self, is_dbg_pause=False, is_dbg_profile=False, is_dyn_bp=False):
 
         self.logger = logging.getLogger(__name__)
         self.config = DIE.Lib.DieConfig.get_config()
@@ -64,7 +64,8 @@ class DebugHooker(DBG_Hooks):
         self.end_time = None                            # Debugging end time
 
         ### Flags
-        self.is_debug = isDebug                         # Debug flag
+        self.is_dbg_pause = is_dbg_pause                # Pause execution at each breakpoint
+        self.is_dbg_profile = is_dbg_profile            # Profiling flag
         self.is_dyn_breakpoints = is_dyn_bp             # Should breakpoint be set dynamically or statically
         self.update_imports = True                      # IAT updating flag (when set runtime_imports will be updated)
 
@@ -142,7 +143,7 @@ class DebugHooker(DBG_Hooks):
             # Is this a CALL instruction?
             if is_call(ea):
                 self.prev_bp_ea = ea  # Set prev ea
-                if not self.is_debug:
+                if not self.is_dbg_pause:
                     request_step_into()  # Great, step into the called function
                     run_requests()  # Execute dbg_step_into callback.
 
@@ -217,7 +218,7 @@ class DebugHooker(DBG_Hooks):
             # Save Return Context
             self.current_callstack.pop()
 
-            if not self.is_debug:
+            if not self.is_dbg_pause:
                 request_continue_process()
                 run_requests()
 
@@ -234,7 +235,7 @@ class DebugHooker(DBG_Hooks):
             if not tid in self.callStack:
                 self.callStack[tid] = CallStack()
 
-            if not self.is_debug:
+            if not self.is_dbg_pause:
                 request_continue_process()
                 run_requests()
 
@@ -248,8 +249,14 @@ class DebugHooker(DBG_Hooks):
         TODO: debugging, should be implemented fully.
         @return:
         """
-        self.end_time = time.time()
+        try:
+            if self.is_dbg_profile:
+                self.profile_stop()
 
+        except Exception as ex:
+            self.logger.error("Failed to stop profiling: %s", ex)
+
+        self.end_time = time.time()
         self.bp_handler.unsetBPs()
 
         die_db = DIE.Lib.DIEDb.get_db()
@@ -313,6 +320,12 @@ class DebugHooker(DBG_Hooks):
         @param auto_start: Automatically start the debugger
         @rtype : object
         """
+        try:
+            if self.is_dbg_profile:
+                self.profile_start()
+        except Exception as ex:
+            self.logger.error("Failed to start profiling: %s", ex)
+
         self.Hook()
 
         if start_func_ea is not None:

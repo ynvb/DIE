@@ -33,17 +33,23 @@ class DieManager():
     Manage the DIE framework
     """
 
-    def __init__(self):
+    def __init__(self, is_dbg_log=False, is_dbg_pause=False, is_dbg_profile=False):
 
         ### Logging ###
+
         log_filename = os.getcwd() + "\\DIE.log"
-        logging.basicConfig(filename=log_filename,
+
+        #TODO: Fix logging to include rotating_file_handler \ console_logging
+        if is_dbg_log:
+            logging.basicConfig(filename=log_filename,
+                        level=logging.DEBUG,
+                        format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
+        else:
+             logging.basicConfig(filename=log_filename,
                     level=logging.INFO,
                     format='[%(asctime)s] [%(levelname)s] [%(name)s] : %(message)s')
-        file_handler = handlers.RotatingFileHandler(log_filename, mode='a', maxBytes=100000, backupCount=5)
 
         self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(file_handler)
 
         ### DIE Configuration ###
         self.config_file_name = os.getcwd() + "\\DIE.cfg"
@@ -53,7 +59,7 @@ class DieManager():
         self.addmenu_item_ctxs = list()
         self.icon_list = {}
 
-        self.debugAPI = DebugAPI.DebugHooker()
+        self.debugAPI = DebugAPI.DebugHooker(is_dbg_pause, is_dbg_profile)
         self.die_db = DIE.Lib.DIEDb.get_db()
         self.die_config = DIE.Lib.DieConfig.get_config()
 
@@ -304,7 +310,7 @@ class die_plugin_t(plugin_t):
 
         if not 'die_manager' in globals():
 
-            die_manager = DieManager()
+            die_manager = DieManager(is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=True)
             if die_manager.add_menu_items():
                 print "Failed to initialize DIE."
                 die_manager.del_menu_items()
