@@ -10,14 +10,14 @@ class ScopeChooser(Form):
 
     def __init__(self, functions):
         self.functions = functions
-        Form.__init__(self, r"""STARTITEM 0
-BUTTON YES* StartDIE
-BUTTON CANCEL Cancel
-Form Scope Chooser
-
-<Start Function :{cbStartFunction}>
-<End Function   :{cbEndFunction}>
-""", {
+        Form.__init__(self, ("STARTITEM 0\n"
+                             "BUTTON YES* StartDIE\n"
+                             "BUTTON CANCEL Cancel\n"
+                             "Form Scope Chooser\n"
+                             "\n"
+                             "<Start Function :{cbStartFunction}>\n"
+                             "<End Function   :{cbEndFunction}>\n"
+        ), {
         'iStartAddr' : Form.NumericInput(tp=Form.FT_ADDR),
         'iEndAddr' : Form.NumericInput(tp=Form.FT_ADDR),
         'cbStartFunction': Form.DropdownListControl(

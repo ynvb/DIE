@@ -1,3 +1,6 @@
+from awesome.context import ignored
+import sark
+
 __author__ = 'yanivb'
 
 import idaapi
@@ -31,8 +34,7 @@ class FunctionView(PluginForm):
 
     def Show(self):
         # Reset highlighted items
-        if len(self.highligthed_items) > 0:
-            self.highligthed_items = []
+        self.highligthed_items = []
 
         return PluginForm.Show(self,
                                "Function View",
@@ -129,7 +131,7 @@ class FunctionView(PluginForm):
         self.parent.setLayout(layout)
 
     def OnClose(self, form):
-        print "Closed"
+        idaapi.msg("Closed\n")
 
     def isVisible(self):
         """
@@ -192,12 +194,15 @@ class FunctionView(PluginForm):
                     curret_ret_arg_value = self.die_db.get_return_arg_value(function_context)
 
                     for arg_index in xrange(0, function.arg_num):
-                        current_arg = self.die_db.get_function_arg(function, arg_index)
-                        self._add_model_arg_value(item_func_context,
-                                                   current_call_values[arg_index],
-                                                   current_ret_values[arg_index],
-                                                   current_arg.name,
-                                                   current_arg.type)
+                        try:
+                            current_arg = self.die_db.get_function_arg(function, arg_index)
+                            self._add_model_arg_value(item_func_context,
+                                                       current_call_values[arg_index],
+                                                       current_ret_values[arg_index],
+                                                       current_arg.name,
+                                                       current_arg.type)
+                        except IndexError:
+                            break
 
                     ret_arg = self.die_db.get_function_arg(function, -1)
                     if ret_arg is None:
@@ -315,7 +320,7 @@ class FunctionView(PluginForm):
             return True
 
         except Exception as ex:
-            print "Error while inserting thread data: %s" %ex
+            idaapi.msg("Error while inserting thread data: %s\n" %ex)
             return False
 
     def _make_function_item(self, function):
@@ -372,7 +377,9 @@ class FunctionView(PluginForm):
         @param function_context: a dbFunction_Context object
         @return: QStandradItemModel item for the function context
         """
-        calling_function_start = DIE.Lib.IDAConnector.get_func_start_adr(function_context.calling_ea)
+        calling_function_start = None
+        with ignored(sark.exceptions.SarkNoFunction):
+            calling_function_start = sark.Function(function_context.calling_ea).startEA
 
         if calling_function_start is not None:
             call_offset = function_context.calling_ea - calling_function_start
@@ -497,7 +504,7 @@ class FunctionView(PluginForm):
             this_row_item.setData(parsed_vals, role=DIE.UI.RetValue_Role)
 
             # If len(parsed_vals)>1 create a combobox delegate.
-            if parsed_vals is not None and len(parsed_vals) > 0:
+            if parsed_vals:
                 is_guessed, best_val = self.die_db.get_best_parsed_val(parsed_vals)
                 item_parsed_val_ret = QtGui.QStandardItem(best_val.data)
                 if is_guessed:
@@ -517,7 +524,7 @@ class FunctionView(PluginForm):
                 if ret_value.raw_value is not None:
                     parsed_val_data = hex(ret_value.raw_value)
 
-                if len(ret_value.nested_values) > 0 or ret_value.reference_flink is not None:
+                if ret_value.nested_values or ret_value.reference_flink is not None:
                     parsed_val_data = ""
 
                 item_parsed_val_ret = QtGui.QStandardItem(parsed_val_data)
@@ -579,7 +586,7 @@ class FunctionView(PluginForm):
         """
         # If call value is a container type (struct\union\etc)
         if call_value is not None and call_value.nested_values is not None:
-            if len(call_value.nested_values) > 0:
+            if call_value.nested_values:
                 for index in xrange(0, len(call_value.nested_values)):
                     nested_val_call = self.die_db.get_dbg_value(call_value.nested_values[index])
                     nested_val_ret = None
@@ -587,7 +594,7 @@ class FunctionView(PluginForm):
                      # Try to get the same member from the return debug value.
                     if ret_value is not None and ret_value.type == call_value.type:
                         if ret_value.nested_values is not None:
-                            if len(ret_value.nested_values) > 0:
+                            if ret_value.nested_values:
                                 nested_val_ret = self.die_db.get_dbg_value(ret_value.nested_values[index])
 
                     self._add_model_arg_value(parent, nested_val_call, nested_val_ret, nested_val_call.name, nested_val_call.type, nest_depth+1)
@@ -595,11 +602,16 @@ class FunctionView(PluginForm):
         # If return value is a container type (and call value is not)
         elif ret_value is not None:
             if ret_value.nested_values is not None:
-                if len(ret_value.nested_values) > 0:
-                    for index in xrange(0, len(ret_value.nested_values)):
-                        nested_val_ret = self.die_db.get_dbg_value((ret_value.nested_values[index]))
+                if ret_value.nested_values:
+                    for nested_value in ret_value.nested_values:
+                        nested_val_ret = self.die_db.get_dbg_value(nested_value)
 
-                        self._add_model_arg_value(parent, None, nested_val_ret, nested_val_ret.name, nested_val_ret.type, nest_depth+1)
+                        self._add_model_arg_value(parent,
+                                                  None,
+                                                  nested_val_ret,
+                                                  nested_val_ret.name,
+                                                  nested_val_ret.type,
+                                                  nest_depth+1)
 
     def reset_function_count(self, thread_id=None):
         """
@@ -645,7 +657,7 @@ class FunctionView(PluginForm):
             item.setFont(cur_font)
 
         except Exception as ex:
-            print "Error while highlighting item: %s" %ex
+            idaapi.msg("Error while highlighting item: %s\n" %ex)
 
 
     def highlight_item_row(self, item):
@@ -677,7 +689,7 @@ class FunctionView(PluginForm):
                     self.highligthed_items.append(persistent_index)
 
         except Exception as ex:
-            print "Error while highlighting item row: %s" % ex
+            idaapi.msg("Error while highlighting item row: %s\n" % ex)
 
 
     def clear_highlights(self):
@@ -699,7 +711,7 @@ class FunctionView(PluginForm):
             self.highligthed_items = []
 
         except Exception as ex:
-            print "Error while clearing highlights: %s" % ex
+            idaapi.msg("Error while clearing highlights: %s\n" % ex)
 
 
 ###############################################################################################
@@ -749,7 +761,7 @@ class FunctionView(PluginForm):
             return True
 
         except Exception as ex:
-            print "Error while looking up function context in FunctionView: %s" %ex
+            idaapi.msg("Error while looking up function context in FunctionView: %s\n" % ex)
             return False
 
 ###############################################################################################
@@ -995,42 +1007,3 @@ function_view = FunctionView()
 
 def get_view():
     return function_view
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -36,7 +36,7 @@ class DataPluginBase(IPlugin):
         Plguin Initialization
         @param type_norm_callback: a type name normalization callback function
         """
-        print "Initializing plugin %s" % self.__class__
+        idaapi.msg("Initializing plugin %s\n" % self.__class__)
 
         # Set type name normalization callback function
         if type_norm_callback is not None:
@@ -139,6 +139,7 @@ class DataPluginBase(IPlugin):
         """
         tname = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', '')
 
+        type_name = None
         if self.typeName_norm_cb is not None:
             type_name = self.typeName_norm_cb(tname)
 

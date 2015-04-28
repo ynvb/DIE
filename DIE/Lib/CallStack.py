@@ -2,6 +2,7 @@ __author__ = 'yanivb'
 
 from DIE.Lib.FunctionContext import *
 import idautils
+from collections import defaultdict
 
 class CallStack():
     """
@@ -20,7 +21,7 @@ class CallStack():
         self.function_list = list(idautils.Functions())
 
         # Function counter counts the number of time a specific function have been called (pushed to the call-stack)
-        self.function_counter = {}
+        self.function_counter = defaultdict(int)
 
     def push(self, ea, iatEA = None, library_name=None):
         """
@@ -59,7 +60,7 @@ class CallStack():
         @rtype : Returns True if function was succesfully poped from callstack. otherwise False
         """
         try:
-            if len(self.callStack) == 0:
+            if not self.callStack:
                 # Error: cannot pop value from empty callstack
                 return
 
@@ -75,7 +76,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-           self.logger.error("Error while poping function from callstack: %s", ex)
+           self.logger.exception("Error while poping function from callstack: %s", ex)
            return False
 
     def check_if_new_func(self, ea, iatEA):
@@ -102,15 +103,11 @@ class CallStack():
         @return: True if added sucessfully, otherwise False
         """
         try:
-            if func_name in self.function_counter:
-                self.function_counter[func_name] += 1
-            else:
-                self.function_counter[func_name] = 1
-
+            self.function_counter[func_name] += 1
             return True
 
         except Exception as ex:
-            self.logger.error("Failed while add function %s to function counter: %s", func_name, ex)
+            self.logger.exception("Failed while add function %s to function counter: %s", func_name, ex)
             return False
 
     def get_top_func_data(self):
@@ -129,7 +126,7 @@ class CallStack():
             return None
 
         except Exception as ex:
-            self.logger.error("Error while retrieving function data for top-of-call-stack item:", ex)
+            self.logger.exception("Error while retrieving function data for top-of-call-stack item:", ex)
             return None
 
 

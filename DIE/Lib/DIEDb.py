@@ -1,7 +1,12 @@
+from collections import defaultdict, namedtuple
+
+MAX_SCORE = 10
+
 __author__ = 'yanivb'
 import logging
 import pickle
 import os
+import operator
 
 from DIE_Exceptions import DbFileMismatch
 
@@ -9,7 +14,7 @@ from DIE.Lib.db_DataTypes import dbDebug_Values, dbFuncArg, \
     dbFunction, dbFunction_Context, dbParsed_Value, dbRun_Info, dbThread
 
 import idautils
-
+import idaapi
 
 class DIE_DB():
     """
@@ -50,12 +55,8 @@ class DIE_DB():
         Get a list of all functions in the db
         @return: A list of dbFunction objects
         """
-        function_list = []
 
-        for function_id in self.functions:
-            function_list.append(self.functions[function_id])
-
-        return function_list
+        return self.functions.values()
 
     def get_function_by_name(self, function_name):
         """
@@ -77,8 +78,6 @@ class DIE_DB():
         @param function: Get a list of function contexts for this function only.
         @return:
         """
-        function_context_list = []
-
         if function is None:
             # Global function context list (for the entire db)
             cur_context_list = self.function_contexts
@@ -88,12 +87,10 @@ class DIE_DB():
 
         # No contexts found
         if cur_context_list is None:
-            return function_context_list
+            return []
 
-        for function_context_id in cur_context_list:
-            function_context_list.append(self.function_contexts[function_context_id])
+        return self.function_contexts.values()
 
-        return function_context_list
 
     def get_function_context_dict(self, function=None):
         """
@@ -102,7 +99,7 @@ class DIE_DB():
         @return: A dictionary of function contexts grouped by their calling ea`s.
                  each dictionary node is a list of function contexts for this ea.
         """
-        function_context_dict = {}
+        function_context_dict = defaultdict(list)
 
         if function is None:
             # Global function context list (for the entire db)
@@ -117,10 +114,6 @@ class DIE_DB():
 
         for function_context_id in cur_context_list:
             current_context = self.function_contexts[function_context_id]
-
-            if current_context.calling_ea not in function_context_dict:
-                function_context_dict[current_context.calling_ea] = []
-
             function_context_dict[current_context.calling_ea].append(current_context)
 
         return function_context_dict
@@ -131,11 +124,8 @@ class DIE_DB():
         @param func_context_id: Function context ID
         @return: function context object (type: dbFunction_Context) or None for invalid ID.
         """
+        return self.function_contexts.get(func_context_id, None)
 
-        if func_context_id in self.function_contexts:
-            return self.function_contexts[func_context_id]
-
-        return None
 
     def get_call_values(self, function_context):
         """
@@ -143,15 +133,11 @@ class DIE_DB():
         @param function_context: function_context object to retrieve call values from
         @return:
         """
-        call_value_list = []
+        if not function_context:
+            return []
 
-        if function_context is None:
-            return call_value_list
+        return [self.dbg_values[call_value_id] for call_value_id in function_context.call_values]
 
-        for call_value_id in function_context.call_values:
-            call_value_list.append(self.dbg_values[call_value_id])
-
-        return call_value_list
 
     def get_return_values(self, function_context):
         """
@@ -159,15 +145,11 @@ class DIE_DB():
         @param function_context: function_context object to retrieve return values from
         @return:
         """
-        return_value_list = []
+        if not function_context:
+            return []
 
-        if function_context is None:
-            return return_value_list
+        return [self.dbg_values[ret_value_id] for ret_value_id in function_context.ret_values]
 
-        for ret_value_id in function_context.ret_values:
-            return_value_list.append(self.dbg_values[ret_value_id])
-
-        return return_value_list
 
     def get_return_arg_value(self, function_context):
         """
@@ -179,10 +161,11 @@ class DIE_DB():
         if function_context is None:
             return None
 
-        if function_context.ret_arg_value is not None:
-            return self.dbg_values[function_context.ret_arg_value]
+        if function_context.ret_arg_value is None:
+            return None
 
-        return None
+        return self.dbg_values[function_context.ret_arg_value]
+
 
     def get_function_arg(self, function, arg_index):
         """
@@ -215,10 +198,8 @@ class DIE_DB():
         else:
             parsed_val_id_list = self.parsed_values
 
-        for parsed_val_id in parsed_val_id_list:
-            parsed_val_list.append(self.parsed_values[parsed_val_id])
+        return [self.parsed_values[parsed_val_id] for parsed_val_id in parsed_val_id_list]
 
-        return parsed_val_list
 
     def get_dbg_value(self, dbg_val_id):
         """
@@ -231,7 +212,7 @@ class DIE_DB():
 
         return None
 
-    def count_function_occurs(self, function, thread_id = None):
+    def count_function_occurs(self, function, thread_id=None):
         """
         Count run-time function occurrences
         @param function: Count occurrences for this function only
@@ -264,15 +245,9 @@ class DIE_DB():
         if parsed_vals is None or len(parsed_vals) == 0:
             return None
 
-        best_score = 10
-        best_val = None
+        best_val = min(parsed_vals, key=operator.attrgetter("score"))
 
-        for parsed_val in parsed_vals:
-            if parsed_val.score < best_score:
-                best_val = parsed_val
-                best_score = parsed_val.score
-
-        if best_score == 0:
+        if best_val.score == 0:
             return False, best_val
 
         return True, best_val
@@ -282,12 +257,8 @@ class DIE_DB():
         Get all parsed values from the db
         @return: A list of parsed values (of type dbParsed_Value)
         """
-        value_list = []
+        return self.parsed_values.values()
 
-        for parsed_value_id in self.parsed_values:
-            value_list.append(self.parsed_values[parsed_value_id])
-
-        return value_list
 
     def get_all_values_dict(self):
         """
@@ -297,9 +268,7 @@ class DIE_DB():
 
         value_dict = {}
 
-        for parsed_value_id in self.parsed_values:
-            cur_val = self.parsed_values[parsed_value_id]
-
+        for cur_val in self.parsed_values.values():
             if cur_val.type in value_dict:
                 value_dict[cur_val.type].append(cur_val)
             else:
@@ -312,13 +281,8 @@ class DIE_DB():
         Get all contained value types
         @return: a list of all of the contained value types
         """
-        type_list = []
-        for parsed_value_id in self.parsed_values:
-            cur_val = self.parsed_values[parsed_value_id]
-            if not cur_val.type in type_list:
-                type_list.append(cur_val.type)
 
-        return type_list
+        return list(set(self.parsed_values.values()))
 
     def get_parsed_value_contexts(self, value):
         """
@@ -346,12 +310,7 @@ class DIE_DB():
         Get a list of threads from DB
         @return: a list of thread objects (of type dbThread)
         """
-        thread_list = []
-
-        for thread_id in self.threads:
-            thread_list.append(self.threads[thread_id])
-
-        return thread_list
+        return self.threads.values()
 
 
     def get_run_info(self):
@@ -365,13 +324,14 @@ class DIE_DB():
         num_of_threads = len(self.threads)
         num_of_parsed_vals = len(self.parsed_values)
 
-        return (self.run_info.start_time,
-                self.run_info.end_time,
-                self.run_info.file,
-                len(self.functions),
-                len(self.threads),
-                len(self.parsed_values))
+        RunInfo = namedtuple("RunInfo", "start end filename num_of_functions num_of_threads num_of_values")
 
+        return RunInfo(self.run_info.start_time,
+                       self.run_info.end_time,
+                       self.run_info.file,
+                       num_of_exec_funcs,
+                       num_of_threads,
+                       num_of_parsed_vals)
 
 
     #############################################################################
@@ -474,7 +434,8 @@ class DIE_DB():
         """
 
         try:
-            cur_function = dbFunction(function.funcName, function.func_start, function.func_end, function.proto_ea, function.argNum, function.isLibFunc, function.library_name)
+            cur_function = dbFunction(function.funcName, function.func_start, function.func_end, function.proto_ea,
+                                      function.argNum, function.isLibFunc, function.library_name)
             func_id = cur_function.__hash__()
 
             if func_id in self.functions:
@@ -498,7 +459,7 @@ class DIE_DB():
             return func_id
 
         except Exception as ex:
-            self.logger.error("Error while loading function %s into DieDB: %s", function.funcName ,ex)
+            self.logger.error("Error while loading function %s into DieDB: %s", function.funcName, ex)
 
     def add_func_arg(self, func_arg):
         """
@@ -536,7 +497,7 @@ class DIE_DB():
 
             cur_dbg_value.function_context = func_context_id
 
-            #TODO: Check aginst None type was added as a quick fix, Check why is this needed here.
+            # TODO: Check against None type was added as a quick fix, Check why is this needed here.
             if debug_value.parsedValues is not None:
                 for parsed_val in debug_value.parsedValues:
                     parsed_val_id = self.add_parsed_val(parsed_val)
@@ -551,7 +512,8 @@ class DIE_DB():
                 cur_dbg_value.reference_blink = ref_blink_id
 
             if debug_value.reference_flink is not None:
-                ref_flink_id = self.add_debug_value(debug_value.reference_flink, func_context_id=func_context_id, ref_blink_id=dbg_val_id)
+                ref_flink_id = self.add_debug_value(debug_value.reference_flink, func_context_id=func_context_id,
+                                                    ref_blink_id=dbg_val_id)
                 cur_dbg_value.reference_flink = ref_flink_id
 
             # Get the best parsed value (lowest score)
@@ -577,13 +539,12 @@ class DIE_DB():
         @return:
         """
         try:
-            cur_parsed_val = dbParsed_Value(parsed_val.data, parsed_val.description, parsed_val.raw, parsed_val.score, parsed_val.type)
+            cur_parsed_val = dbParsed_Value(parsed_val.data, parsed_val.description, parsed_val.raw, parsed_val.score,
+                                            parsed_val.type)
             parsed_val_id = cur_parsed_val.__hash__()
 
             if not parsed_val_id in self.parsed_values:
                 self.parsed_values[parsed_val_id] = cur_parsed_val
-
-            self.is_saved = False
 
             self.is_saved = False  # Un-check the saved flag
             return parsed_val_id
@@ -630,7 +591,7 @@ class DIE_DB():
                          self.excluded_funcNames_part,
                          self.excluded_funcNames,
                          self.excluded_modules
-                        ]
+            ]
 
             pickle.dump(db_tables, out_file)
 
@@ -638,7 +599,7 @@ class DIE_DB():
             return True
 
         except Exception as ex:
-            print "Error while saving DIE DB: %s" %ex
+            idaapi.msg("Error while saving DIE DB: %s\n" % ex)
             logging.error("Error while saving DIE DB: %s", ex)
             return False
 
@@ -652,7 +613,7 @@ class DIE_DB():
             file_name = self.get_default_db_filename()
 
         if not os.path.exists(file_name):
-            print "DIE DB file not found"
+            idaapi.msg("DIE DB file not found\n")
             logging.error("DIE DB file was not found")
             return False
 
@@ -685,6 +646,10 @@ class DIE_DB():
 #############################################################################
 
 __die_db = DIE_DB()
+
+def initialize_db():
+    global __die_db
+    __die_db = DIE_DB()
 
 def get_db():
     return __die_db

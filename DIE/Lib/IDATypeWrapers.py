@@ -1,9 +1,12 @@
+import sark
+
 __author__ = 'yanivb'
 
 import idaapi
 import logging
+import DIE.Lib.DIE_Exceptions
 from DIE.Lib.IDAConnector import get_native_size, regOffsetToName,\
-    get_function_name, get_func_start_adr, get_function_end_adr
+    get_function_name, get_function_start_address, get_function_end_address
 
 #
 # This file contains several wrappers for common IDA data type such as Functions, Function Argument,
@@ -56,7 +59,7 @@ class Array():
             return False
 
         except Exception as ex:
-            self.logger.error("Error while getting array data: %s", ex)
+            self.logger.exception("Array: Error while getting array data: %s", ex)
             return False
 
 #######################################################################################################################
@@ -134,7 +137,7 @@ class FuncArg():
         if self.isReg():
             return self.getRegOffset()
 
-        self.logger.error("Failed to retrieve argument offset.")
+        self.logger.error("FuncArg: Failed to retrieve argument offset.")
         return False
 
     def registerName(self):
@@ -151,8 +154,6 @@ class FuncArg():
         A string representation of the argument type
         """
         typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
-        if typeStr is None:
-            return None
 
         return typeStr
 
@@ -160,10 +161,7 @@ class FuncArg():
         """
         Is this argument a return value?
         """
-        if self.argNum is -1:
-            return True
-        else:
-            return False
+        return self.argNum is -1
 
     def getArgStr(self):
         """
@@ -208,9 +206,14 @@ class Function():
         self.ea = ea        # Effective Address of the function
         self.iatEA = iatEA  # If imported function, the address in the IAT
 
-        self.funcName = get_function_name(self.ea)     # Function name
-        self.func_start = get_func_start_adr(self.ea)  # Function start address
-        self.func_end = get_function_end_adr(self.ea)  # Function end address
+        try:
+            function = sark.Function(ea)
+        except sark.exceptions.SarkNoFunction:
+            raise DIE.Lib.DIE_Exceptions.DieNoFunction("No Function at 0x%08X" % (ea, ))
+
+        self.funcName = get_function_name(function.ea)
+        self.func_start = function.startEA
+        self.func_end = function.endEA
 
         self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
         self.typeInfo = idaapi.tinfo_t()            # Function type info
@@ -225,11 +228,15 @@ class Function():
         if self.iatEA:
             self.isLibFunc = True  # Is this a library function
 
+        elif sark.Function(ea).flags & (idaapi.FUNC_LIB | idaapi.FUNC_THUNK):
+            self.isLibFunc = True
+
         try:
             self.getArguments()
 
         except RuntimeError as ex:
-            self.logger.error("Failed to get function arguments for function %s: %s", self.funcName, ex)
+            self.logger.error("Function: Failed to get function arguments for function %s: %s", self.funcName, ex)
+            return
 
     def getFuncProtoAdr(self):
         """
@@ -253,8 +260,7 @@ class Function():
             isGuessed = True
 
         if self.typeInfo.empty():
-            self.logger.error("Failed to retrieve function type info for function %s at %s", self.funcName, hex(self.ea))
-            raise RuntimeError()
+            raise RuntimeError("Failed to retrieve function type info for function %s at %s" % (self.funcName, hex(self.ea)))
 
         # Get function detail
         self.typeInfo.get_func_details(self.funcInfo)
@@ -306,12 +312,12 @@ class StructElement():
     Struct Element
     """
 
-    def __init__(self, size, offset, type, name=None, comment=None):
+    def __init__(self, size, offset, type_, name=None, comment=None):
         """
         Struct element class
         @param size: Size of element
         @param offset: Element offset within the struct
-        @param type: Element type
+        @param type_: Element type
         @param name: Element name string
         @param comment: Element comment (Optional)
         """
@@ -322,7 +328,7 @@ class StructElement():
         self.offset = offset
         self.size = size
 
-        self.type = type
+        self.type = type_
 
     def get_name(self):
         """
@@ -337,6 +343,7 @@ class StructElement():
         """
         Get type name (int, char, LPCSTR etc.)
         """
+        # TODO: no return value???
         idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type, '', '')
 
 #######################################################################################################################
@@ -371,7 +378,7 @@ class Struct():
         except:
             self.logger.error("Error while extracting struct data: %s",
                           idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', ''))
-            return False
+            return
 
 
     def getStructData(self):
