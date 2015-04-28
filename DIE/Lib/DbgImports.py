@@ -7,7 +7,6 @@ from idc import *
 from idautils import *
 from DIE.Lib.IDAConnector import get_adrs_mem
 
-
 class StaticImports():
     """
     Contains static data of the IAT
@@ -120,10 +119,11 @@ class DbgImports():
         Ctor
         """
         self.logger = logging.getLogger(__name__)
-
         self.current_module_name = None
 
-        self.rt_import_table = {}  # Real-Time import table (Key -> Real func adrs.  Value -> (ea, name, ord)}
+        # Real-Time import table
+        # (Key -> Real func adrs.  Value -> (ea, name, ord)}
+        self.rt_import_table = {}
 
 
     def getImportTableData(self):
@@ -167,7 +167,7 @@ class DbgImports():
 
     def is_func_imported(self, ea):
         """
-        Checks the givven ea and returns True if the function is an imported function (loacted in IAT)
+        Checks the given ea and returns True if the function is an imported function (loacted in IAT)
         """
         if ea in self.rt_import_table:
             return True
@@ -192,17 +192,3 @@ class DbgImports():
         for dbgImp in self.rt_import_table:
             (module_name, ea, name, ord) = self.rt_import_table[dbgImp]
             print "ModuleName - %s,\t\tFunctionName - %s,\t\t Address in IAT - %s,\t\t Real address - %s" % (module_name, name, hex(ea), hex(dbgImp))
-
-
-
-
-
-
-
-
-
-
-
-
-
-

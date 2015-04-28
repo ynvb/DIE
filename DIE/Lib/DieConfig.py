@@ -70,7 +70,6 @@ class DIE_Config():
         print "Saving configuration file"
 
         try:
-
             self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
             self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
             self.config_parser.set("DebugValues", "is_parse", self.config["DebugValues"]["is_parse"])
