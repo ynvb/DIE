@@ -172,7 +172,7 @@ class DataParser():
             return parsedValues
 
         except Exception as ex:
-            self.logger.error("Error while parsing data: %s", ex)
+            self.logger.exception("Error while parsing data: %s", ex)
 
 
     def typeName_norm(self, type_name):

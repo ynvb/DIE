@@ -25,19 +25,23 @@ class Array():
 
     def __init__(self, type):
 
-        self.logger = logging.getLogger(__name__)
+        try:
+            self.logger = logging.getLogger(__name__)
 
-        self.type_info = type
-        self.array_type_data = idaapi.array_type_data_t()
+            self.type_info = type
+            self.array_type_data = idaapi.array_type_data_t()
 
-        self.element_type = None
-        self.element_num = 0
-        self.element_size = 0
+            self.element_type = None
+            self.element_num = 0
+            self.element_size = 0
 
-        self.elements = []
+            self.elements = []
 
-        # Extract array data
-        self.get_array_data()
+            # Extract array data
+            self.get_array_data()
+
+        except Exception as ex:
+            self.logger.exception("Failed to initialize array object: %s", ex)
 
     def get_array_data(self):
         """
@@ -56,7 +60,7 @@ class Array():
             return False
 
         except Exception as ex:
-            self.logger.error("Error while getting array data: %s", ex)
+            self.logger.exception("Error while getting array data: %s", ex)
             return False
 
 #######################################################################################################################
@@ -86,75 +90,100 @@ class FuncArg():
         """
         Is a register based argument
         """
-        if self.argloc.is_reg1():
-            return True
-        else:
-            return False
+        try:
+            if self.argloc.is_reg1():
+                return True
+            else:
+                return False
+        except Exception as ex:
+            self.logger.exception("Failed while checking if argument passed via register: %s", ex)
 
     def isStack(self):
         """
         Is a stack based argument
         """
-        if self.argloc.is_stkoff():
-            return True
-        else:
-            return False
+        try:
+            if self.argloc.is_stkoff():
+                return True
+            else:
+                return False
+        except Exception as ex:
+            self.logger.exception("Failed while checking if argument passed via stack: %s", ex)
 
     def name(self):
         """
         Argument name
         """
-        # If argument name was explicitly provided.
-        if self.argname:
-            return self.argname
+        try:
+            # If argument name was explicitly provided.
+            if self.argname:
+                return self.argname
 
-        # If this is a return argument.
-        if self.argNum is -1:
-            return "Ret_Arg"
+            # If this is a return argument.
+            if self.argNum is -1:
+                return "Ret_Arg"
 
-        # Otherwise, generate name according to offset.
-        #native_size = self.inst_parser.get_native_size()/8
-        native_size = get_native_size()/8
-        return "Arg_%s" % hex(self.argNum * native_size)
+            # Otherwise, generate name according to offset.
+            #native_size = self.inst_parser.get_native_size()/8
+            native_size = get_native_size()/8
+            return "Arg_%s" % hex(self.argNum * native_size)
+
+        except Exception as ex:
+            self.logger.exception("Failed getting arumnet name: %s", ex)
 
     def getRegOffset(self):
         """
         Get register offset (into ph.regnames)
         """
-        if self.argloc.is_reg1():
-            return self.argloc.reg1()
+        try:
+            if self.argloc.is_reg1():
+                return self.argloc.reg1()
+        except Exception as ex:
+            self.logger.exception("Failed getting argument register offset (into ph.regnames): %s", ex)
 
     def offset(self):
         """
         Stack Offset for stack args, or ph.regnames offset for register args
         """
-        if self.isStack():
-            return self.argloc.stkoff()
+        try:
+            if self.isStack():
+                return self.argloc.stkoff()
 
-        if self.isReg():
-            return self.getRegOffset()
+            if self.isReg():
+                return self.getRegOffset()
 
-        self.logger.error("Failed to retrieve argument offset.")
-        return False
+            self.logger.error("Argument is not defined either as stack or reg")
+            return False
+
+        except Exception as ex:
+            self.logger.exception("Failed to get argumnet stack offset: %s", ex)
 
     def registerName(self):
         """
         Get register name for this arg
         """
-        if self.isReg():
-            return regOffsetToName(self.offset())
+        try:
+            if self.isReg():
+                return regOffsetToName(self.offset())
 
-        return None
+            return None
+
+        except Exception as ex:
+            self.logger.exception("Failed while getting register name: %s", ex)
 
     def type_str(self):
         """
         A string representation of the argument type
         """
-        typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
-        if typeStr is None:
-            return None
+        try:
+            typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
+            if typeStr is None:
+                return None
 
-        return typeStr
+            return typeStr
+
+        except Exception as ex:
+            self.logger.exception("Failed to get argument name: %s", ex)
 
     def isRetValue(self):
         """
@@ -203,32 +232,37 @@ class Function():
         """
         Ctor
         """
-        self.logger = logging.getLogger(__name__)
+        try:
+            self.logger = logging.getLogger(__name__)
 
-        self.ea = ea        # Effective Address of the function
-        self.iatEA = iatEA  # If imported function, the address in the IAT
+            self.ea = ea        # Effective Address of the function
+            self.iatEA = iatEA  # If imported function, the address in the IAT
 
-        self.funcName = get_function_name(self.ea)     # Function name
-        self.func_start = get_func_start_adr(self.ea)  # Function start address
-        self.func_end = get_function_end_adr(self.ea)  # Function end address
+            self.funcName = get_function_name(self.ea)     # Function name
+            self.func_start = get_func_start_adr(self.ea)  # Function start address
+            self.func_end = get_function_end_adr(self.ea)  # Function end address
 
-        self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
-        self.typeInfo = idaapi.tinfo_t()            # Function type info
-        self.funcInfo = idaapi.func_type_data_t()   # Function info
-        self.argNum = 0                             # Number of input arguments
+            self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
+            self.typeInfo = idaapi.tinfo_t()            # Function type info
+            self.funcInfo = idaapi.func_type_data_t()   # Function info
+            self.argNum = 0                             # Number of input arguments
 
-        self.args = []      # Function argument list
-        self.retArg = None  # Return argument
+            self.args = []      # Function argument list
+            self.retArg = None  # Return argument
 
-        self.library_name = library_name  # If library function, name of containing library
-        self.isLibFunc = False
-        if self.iatEA:
-            self.isLibFunc = True  # Is this a library function
+            self.library_name = library_name  # If library function, name of containing library
+            self.isLibFunc = False
+            if self.iatEA:
+                self.isLibFunc = True  # Is this a library function
+
+        except Exception as ex:
+            self.logger.exception("Failed to initialize Function object: %s", ex)
+            return
 
         try:
             self.getArguments()
 
-        except RuntimeError as ex:
+        except Exception as ex:
             self.logger.error("Failed to get function arguments for function %s: %s", self.funcName, ex)
 
     def getFuncProtoAdr(self):
@@ -339,6 +373,7 @@ class StructElement():
         """
         idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type, '', '')
 
+
 #######################################################################################################################
 #
 #  IDA Struct class wrapper
@@ -353,24 +388,27 @@ class Struct():
 
         self.logger = logging.getLogger(__name__)
 
-        self.name = ""
-        self.size = 0
-        self.element_num = 0
-        self.is_union = False
+        try:
+            self.name = ""
+            self.size = 0
+            self.element_num = 0
+            self.is_union = False
 
-        self.elements = []
+            self.elements = []
 
-        self.type_info = type
-        self.udt_type_data = idaapi.udt_type_data_t()
+            self.type_info = type
+            self.udt_type_data = idaapi.udt_type_data_t()
 
+        except Exception as ex:
+            self.logger.exception("Failed to initialize Struct object: %s", ex)
 
         try:
             if self.getStructData():
                 self.getElements()
 
-        except:
-            self.logger.error("Error while extracting struct data: %s",
-                          idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', ''))
+        except Exception as ex:
+            self.logger.exception("Error while extracting Struct data: %s",
+                          idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', ''), ex)
             return False
 
 
@@ -380,28 +418,22 @@ class Struct():
         @return: True if successful, otherwise False
         """
 
-        try:
-            if self.type_info.is_udt():
-                if self.type_info.get_udt_details(self.udt_type_data):
+        if self.type_info.is_udt():
+            if self.type_info.get_udt_details(self.udt_type_data):
 
-                    self.name = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type_info, '', '')
-                    self.size = self.udt_type_data.size
-                    self.element_num = len(self.udt_type_data)
-                    self.is_union = self.udt_type_data.is_union
+                self.name = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type_info, '', '')
+                self.size = self.udt_type_data.size
+                self.element_num = len(self.udt_type_data)
+                self.is_union = self.udt_type_data.is_union
 
-                    return True
+                return True
 
-            return False
-
-        except Exception as ex:
-            self.logger.error("Error while enumerating struct: %s", ex)
-            return False
+        return False
 
     def getElements(self):
         """
         Get struct elements
         """
-
         for element_index in xrange(0, self.element_num):
             cur_element = self.udt_type_data[element_index]
             name = None

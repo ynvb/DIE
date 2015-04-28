@@ -34,43 +34,48 @@ class DebugHooker(DBG_Hooks):
     """
     def __init__(self, is_dbg_pause=False, is_dbg_profile=False, is_dyn_bp=False):
 
-        self.logger = logging.getLogger(__name__)
-        self.config = DIE.Lib.DieConfig.get_config()
-        data_parser = DIE.Lib.DataParser.getParser()
+        try:
+            self.logger = logging.getLogger(__name__)
+            self.config = DIE.Lib.DieConfig.get_config()
+            data_parser = DIE.Lib.DataParser.getParser()
 
-        plugin_path = self.config.parser_path
+            plugin_path = self.config.parser_path
 
-        data_parser.set_plugin_path(plugin_path)
-        data_parser.loadPlugins()
+            data_parser.set_plugin_path(plugin_path)
+            data_parser.loadPlugins()
 
-        # Breakpoint Exceptions
-        self.bp_handler = DIE.Lib.BpHandler.get_bp_handler()
-        self.bp_handler.load_exceptions(DIE.Lib.DIEDb.get_db())
+            # Breakpoint Exceptions
+            self.bp_handler = DIE.Lib.BpHandler.get_bp_handler()
+            self.bp_handler.load_exceptions(DIE.Lib.DIEDb.get_db())
 
-        ### Debugging ###
-        DBG_Hooks.__init__(self)                        # IDA Debug Hooking API
-        self.isHooked = False                           # Is debugger currently hooked
+            ### Debugging ###
+            DBG_Hooks.__init__(self)                        # IDA Debug Hooking API
+            self.isHooked = False                           # Is debugger currently hooked
 
-        self.runtime_imports = DbgImports()             # Runtime import addresses
+            self.runtime_imports = DbgImports()             # Runtime import addresses
 
-        self.callStack = {}                             # Function call-stack dictionary
-                                                        # (Key: ThreadId, Value: Thread specific Call-Stack)
-        self.current_callstack = None                   # A pointer to the currently active call-stack
+            self.callStack = {}                             # Function call-stack dictionary
+                                                            # (Key: ThreadId, Value: Thread specific Call-Stack)
+            self.current_callstack = None                   # A pointer to the currently active call-stack
 
-        self.prev_bp_ea = None                          # Address of previously hit breakpoint
-        self.end_bp = None                              # If set framework will stop once this bp was reached
+            self.prev_bp_ea = None                          # Address of previously hit breakpoint
+            self.end_bp = None                              # If set framework will stop once this bp was reached
 
-        self.start_time = None                          # Debugging start time
-        self.end_time = None                            # Debugging end time
+            self.start_time = None                          # Debugging start time
+            self.end_time = None                            # Debugging end time
 
-        ### Flags
-        self.is_dbg_pause = is_dbg_pause                # Pause execution at each breakpoint
-        self.is_dbg_profile = is_dbg_profile            # Profiling flag
-        self.is_dyn_breakpoints = is_dyn_bp             # Should breakpoint be set dynamically or statically
-        self.update_imports = True                      # IAT updating flag (when set runtime_imports will be updated)
+            ### Flags
+            self.is_dbg_pause = is_dbg_pause                # Pause execution at each breakpoint
+            self.is_dbg_profile = is_dbg_profile            # Profiling flag
+            self.is_dyn_breakpoints = is_dyn_bp             # Should breakpoint be set dynamically or statically
+            self.update_imports = True                      # IAT updating flag (when set runtime_imports will be updated)
 
-        ### Debugging
-        self.pr = None                                  # Profiling object (for debug only)
+            ### Debugging
+            self.pr = None                                  # Profiling object (for debug only)
+
+        except Exception as ex:
+            self.logger.exception("Failed to initialize DebugAPI: %s", ex)
+            return
 
     def Hook(self):
         """
@@ -78,6 +83,7 @@ class DebugHooker(DBG_Hooks):
         """
 
         if self.isHooked:   # Release any current hooks
+            self.logger.debug("Debugger is already hooked, releasing previous hook.")
             self.UnHook()
 
         try:
@@ -150,7 +156,7 @@ class DebugHooker(DBG_Hooks):
             return 0
 
         except Exception as ex:
-            self.logger.critical("Failed while handling breakpoint at %s:", ea, ex)
+            self.logger.exception("Failed while handling breakpoint at %s:", ea, ex)
             return 1
 
     def dbg_step_into(self):
@@ -205,7 +211,7 @@ class DebugHooker(DBG_Hooks):
             return 0
 
         except Exception as ex:
-            self.logger.critical("failed while stepping into breakpoint: %s", ex)
+            self.logger.exception("failed while stepping into breakpoint: %s", ex)
             exit(1)
 
     def dbg_step_until_ret(self):
@@ -223,7 +229,7 @@ class DebugHooker(DBG_Hooks):
                 run_requests()
 
         except Exception as ex:
-            self.logger.critical("Failed while stepping until return: %s", ex)
+            self.logger.exception("Failed while stepping until return: %s", ex)
 
     def dbg_thread_start(self, pid, tid, ea):
         """
@@ -240,7 +246,7 @@ class DebugHooker(DBG_Hooks):
                 run_requests()
 
         except Exception as ex:
-            self.logger.critical("Failed while handling new thread: %s", ex)
+            self.logger.exception("Failed while handling new thread: %s", ex)
 
     #def dbg_thread_exit(self, pid, tid, ea, exit_code):
 
@@ -256,18 +262,22 @@ class DebugHooker(DBG_Hooks):
         except Exception as ex:
             self.logger.error("Failed to stop profiling: %s", ex)
 
-        self.end_time = time.time()
-        self.bp_handler.unsetBPs()
+        try:
+            self.end_time = time.time()
+            self.bp_handler.unsetBPs()
 
-        die_db = DIE.Lib.DIEDb.get_db()
+            die_db = DIE.Lib.DIEDb.get_db()
 
-        die_db.add_run_info(self.callStack,
-                            self.start_time,
-                            self.end_time,
-                            idaapi.get_input_file_path(),
-                            idautils.GetInputFileMD5())
+            die_db.add_run_info(self.callStack,
+                                self.start_time,
+                                self.end_time,
+                                idaapi.get_input_file_path(),
+                                idautils.GetInputFileMD5())
 
-        self.bp_handler.save_exceptions(die_db)
+            self.bp_handler.save_exceptions(die_db)
+
+        except Exception as ex:
+            self.logger.exception("Failed while finalizing DIE run: %s", ex)
 
     def dbg_process_start(self, pid, tid, ea, name, base, size):
         """
@@ -306,7 +316,7 @@ class DebugHooker(DBG_Hooks):
             return True
 
         except Exception as ex:
-            self.logger.error("Error while creating exception: %s", ex)
+            self.logger.exception("Error while creating exception: %s", ex)
             return False
 
 ###############################################
@@ -326,30 +336,35 @@ class DebugHooker(DBG_Hooks):
         except Exception as ex:
             self.logger.error("Failed to start profiling: %s", ex)
 
-        self.Hook()
+        try:
 
-        if start_func_ea is not None:
-            self.is_dyn_breakpoints = True
+            self.Hook()
 
-            # If end function address was not explicitly defined, set to end of current function
-            if end_func_ea is None:
-                self.end_bp = DIE.Lib.IDAConnector.get_function_end_adr(start_func_ea)
-                self.bp_handler.addBP(self.end_bp, "FINAL_BP")
+            if start_func_ea is not None:
+                self.is_dyn_breakpoints = True
 
-            # Walk current function
-            self.bp_handler.walk_function(start_func_ea)
+                # If end function address was not explicitly defined, set to end of current function
+                if end_func_ea is None:
+                    self.end_bp = DIE.Lib.IDAConnector.get_function_end_adr(start_func_ea)
+                    self.bp_handler.addBP(self.end_bp, "FINAL_BP")
 
-        else:
-            self.bp_handler.setBPs()
+                # Walk current function
+                self.bp_handler.walk_function(start_func_ea)
 
-        # Set start time
-        if self.start_time is None:
-            self.start_time = time.time()
+            else:
+                self.bp_handler.setBPs()
 
-        # start the process automatically
-        if auto_start:
-            request_start_process(None, None, None)
-            run_requests()
+            # Set start time
+            if self.start_time is None:
+                self.start_time = time.time()
+
+            # start the process automatically
+            if auto_start:
+                request_start_process(None, None, None)
+                run_requests()
+
+        except Exception as ex:
+            self.logger.exception("Error while staring debugger: %s", ex)
 
 ################################################################################
 # Profiling, for debug usage only.

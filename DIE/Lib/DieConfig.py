@@ -58,7 +58,7 @@ class DIE_Config():
                 return True
 
         except Exception as ex:
-            self.logger.error("Failed to load configuration: %s", ex)
+            self.logger.exception("Failed to load configuration: %s", ex)
             return False
 
     def save_configuration(self, config_file_name):
@@ -67,22 +67,26 @@ class DIE_Config():
         """
         # Save configuration file
         self.logger.info("Saving Configuration.")
-
         print "Saving configuration file"
 
-        self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
-        self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
-        self.config_parser.set("DebugValues", "is_parse", self.config["DebugValues"]["is_parse"])
-        self.config_parser.set("DebugValues", "is_array", self.config["DebugValues"]["is_array"])
-        self.config_parser.set("DebugValues", "is_container", self.config["DebugValues"]["is_container"])
+        try:
 
-        self.config_parser.set("FunctionContext", "get_func_args", self.config["FunctionContext"]["get_func_args"])
+            self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
+            self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
+            self.config_parser.set("DebugValues", "is_parse", self.config["DebugValues"]["is_parse"])
+            self.config_parser.set("DebugValues", "is_array", self.config["DebugValues"]["is_array"])
+            self.config_parser.set("DebugValues", "is_container", self.config["DebugValues"]["is_container"])
 
-        self.config_parser.set("Debugging", "max_func_call", self.config["Debugging"]["max_func_call"])
-        self.config_parser.set("Debugging", "max_deref_depth", self.config["Debugging"]["max_deref_depth"])
+            self.config_parser.set("FunctionContext", "get_func_args", self.config["FunctionContext"]["get_func_args"])
 
-        with open(config_file_name, 'wb') as config_file:
-            self.config_parser.write(config_file)
+            self.config_parser.set("Debugging", "max_func_call", self.config["Debugging"]["max_func_call"])
+            self.config_parser.set("Debugging", "max_deref_depth", self.config["Debugging"]["max_deref_depth"])
+
+            with open(config_file_name, 'wb') as config_file:
+                self.config_parser.write(config_file)
+
+        except Exception as ex:
+            self.logger.exception("Error while saving configuration: %s", ex)
 
     def make_default_config_file(self, config_file_name):
         """
@@ -117,7 +121,7 @@ class DIE_Config():
 
         except Exception as ex:
             print "Error while creating default config file: %s" %ex
-            logging.error("Failed to create default configuration file: %s", ex)
+            logging.exception("Failed to create default configuration file: %s", ex)
             return False
 
 

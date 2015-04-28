@@ -69,7 +69,7 @@ class FunctionContext():
             self.function_parser = GenericFunctionParser(self.function)
 
         except Exception as ex:
-            logging.critical("Error while initializing function context: %s", ex)
+            logging.exception("Error while initializing function context: %s", ex)
             return None
 
     def check_if_indirect(self):
@@ -88,51 +88,57 @@ class FunctionContext():
         Get the function argument values upon function call
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
+        try:
+            start_time = time.time()  # Start timer
+            self.empty = False  # drop the empty flag
 
-        start_time = time.time()  # Start timer
-        self.empty = False  # drop the empty flag
+            # If no function arg retrieval is disabled in configuration - quit:
+            if not self.config.get_func_args:
+                return True
 
-        # If no function arg retrieval is disabled in configuration - quit:
-        if not self.config.get_func_args:
+            self.callRegState = self.getRegisters()  # Get registers state
+            self.callValues = self.function_parser.parse_function_args_call()  # Get function Arguments
+
+            if self.callValues is None:
+                self.logger.error("Failed parsing function arguments")
+                self.empty = True
+                return False
+
+            elapsed_time = time.time() - start_time  # Get elapsed time
+            self.total_proc_time += elapsed_time  # Add to total elapsed time
+
             return True
 
-        self.callRegState = self.getRegisters()  # Get registers state
-        self.callValues = self.function_parser.parse_function_args_call()  # Get function Arguments
-
-        if self.callValues is None:
-            self.logger("Failed parsing function arguments")
-            self.empty = True
-            return False
-
-        elapsed_time = time.time() - start_time  # Get elapsed time
-        self.total_proc_time += elapsed_time  # Add to total elapsed time
-
-        return True
+        except Exception as ex:
+            self.logger.exception("Failed to get argument call value: %s", ex)
 
     def get_arg_values_ret(self):
         """
         Get the function argument values upon function return
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
+        try:
+            if self.empty:
+                self.logger.error("Call values must be retrieved prior to return values.")
+                return False
 
-        if self.empty:
-            self.logger.error("Call values must be retrieved prior to return values.")
-            return False
+            # If no function arg retrieval is disabled in configuration - quit:
+            if not self.config.get_func_args:
+                return True
 
-        # If no function arg retrieval is disabled in configuration - quit:
-        if not self.config.get_func_args:
+            start_time = time.time()  # Start timer
+
+            self.retRegState = self.getRegisters()  # Get register state
+            # Get function arguments
+            (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
+
+            elapsed_time = time.time() - start_time  # Get elapsed time
+            self.total_proc_time += elapsed_time  # Add to total elapsed time
+
             return True
 
-        start_time = time.time()  # Start timer
-
-        self.retRegState = self.getRegisters()  # Get register state
-        # Get function arguments
-        (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
-
-        elapsed_time = time.time() - start_time  # Get elapsed time
-        self.total_proc_time += elapsed_time  # Add to total elapsed time
-
-        return True
+        except Exception as ex:
+            self.logger.exception("Failed to get argument return value: %s", ex)
 
     def getRegisters(self):
         """

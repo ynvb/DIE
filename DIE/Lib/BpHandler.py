@@ -95,7 +95,7 @@ class BpHandler():
                 self.walked_functions.clear()
 
         except Exception as ex:
-            self.logger.error("Failed to remove breakpoints: %s", ex)
+            self.logger.exception("Failed to remove breakpoints: %s", ex)
 
     def addBP(self, ea, bp_description=None):
         """
@@ -121,7 +121,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            self.logger.error("Could not add breakpoint: %s", ex)
+            self.logger.exception("Could not add breakpoint: %s", ex)
             return -1
 
     def removeBP(self, ea):
@@ -144,7 +144,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            self.logger.error("Could not remove breakpoint: %s", ex)
+            self.logger.exception("Could not remove breakpoint: %s", ex)
             return -1
 
     ###############################################################################################
@@ -198,7 +198,7 @@ class BpHandler():
             return False
 
         except Exception as ex:
-            self.logger.error("Failed to check for breakpoint exception: %s", ex)
+            self.logger.exception("Failed to check for breakpoint exception: %s", ex)
             return False
 
     def is_exception_func(self, ea, iatEA):
@@ -222,7 +222,7 @@ class BpHandler():
             return False
 
         except Exception as ex:
-            self.logger("Failed checking if function at address %s is excepted: %s", hex(ea), ex)
+            self.logger.exception("Failed checking if function at address %s is excepted: %s", hex(ea), ex)
             return False
 
     def reload_bps(self):
@@ -237,11 +237,11 @@ class BpHandler():
                     if self.removeBP(bp_ea):
                         self.logger.debug("breakpoint exception removed from %s", hex(bp_ea))
 
-            self.logger.debug("Breakpoints were reloaded successfully")
+            self.logger.info("Breakpoints were reloaded successfully")
             return True
 
         except Exception as ex:
-            self.logger.error("Failed while reloading exceptions: %s", ex)
+            self.logger.exception("Failed while reloading exceptions: %s", ex)
             return False
 
     def add_module_exception(self, module_name, reload_bps=False):
@@ -271,7 +271,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            self.logger.error("Could not add module \"%s\" to excluded module list:", module_name, ex)
+            self.logger.exception("Could not add module \"%s\" to excluded module list:", module_name, ex)
             return False
 
     def add_bp_ea_exception(self, ea, reload_bps=False):
@@ -296,7 +296,7 @@ class BpHandler():
                 self.reload_bps()
 
         except Exception as ex:
-            self.logger.error("Could not add address %s to excluded address list: %s", hex(ea), ex)
+            self.logger.exception("Could not add address %s to excluded address list: %s", hex(ea), ex)
             return False
 
     def add_bp_funcname_exception(self, funcName, reload_bps=False):
@@ -325,7 +325,7 @@ class BpHandler():
                 self.reload_bps()
 
         except Exception as ex:
-            self.logger.error("Could not add function name %s to excluded function names list:", funcName, ex)
+            self.logger.exception("Could not add function name %s to excluded function names list:", funcName, ex)
             return False
 
     def add_bp_funcname_part_exception(self, func_name_part, match_type=STARTS_WITH, reload_bps=False):
@@ -366,7 +366,7 @@ class BpHandler():
                 self.reload_bps()
 
         except Exception as ex:
-            self.logger.error("Could not add partial function name %s "
+            self.logger.exception("Could not add partial function name %s "
                               "to excluded partial function names list: %s", func_name_part, ex)
             return False
 
@@ -391,7 +391,7 @@ class BpHandler():
             return call_dest, func_name
 
         except Exception as ex:
-            self.logger.error("Failed to get called function data: %s", ex)
+            self.logger.exception("Failed to get called function data: %s", ex)
             return None, None
 
     ###############################################################################################
@@ -427,7 +427,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            self.logger.error("Failed walking function at address %s for breakpoints.", hex(ea))
+            self.logger.exception("Failed walking function at address %s for breakpoints.", hex(ea))
             return False
 
     def flush_walked_funcs(self):
@@ -448,8 +448,7 @@ class BpHandler():
         """
         try:
             if not isinstance(die_db, DIE.Lib.DIEDb.DIE_DB):
-                self.logger.error("Wrong type. expected DIE_DB.")
-                return False
+                raise TypeError("Wrong type. expected DIE_DB.")
 
             self.die_db.excluded_bp_ea = die_db.excluded_bp_ea
             self.die_db.excluded_funcNames = die_db.excluded_funcNames
@@ -459,7 +458,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            logging.error("Failed while loading breakpoint exception data from db: %s", ex)
+            self.logger.exception("Failed while loading breakpoint exception data from db: %s", ex)
             return False
 
     def save_exceptions(self, die_db):
@@ -469,8 +468,7 @@ class BpHandler():
         """
         try:
             if not isinstance(die_db, DIE.Lib.DIEDb.DIE_DB):
-                self.logger.error("Wrong type. expected DIE_DB.")
-                return False
+                raise TypeError("Wrong type. expected DIE_DB.")
 
             die_db.excluded_bp_ea = self.die_db.excluded_bp_ea
             die_db.excluded_funcNames = self.die_db.excluded_funcNames
@@ -480,7 +478,7 @@ class BpHandler():
             return True
 
         except Exception as ex:
-            logging.error("Failed while saving exception data to db: %s", ex)
+            logging.exception("Failed while saving exception data to db: %s", ex)
             return False
 
 

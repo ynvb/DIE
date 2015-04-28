@@ -50,7 +50,7 @@ class CallStack():
             return self.function_counter[funcContext.function.funcName]
 
         except Exception as ex:
-            self.logger.error("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
+            self.logger.exception("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
             return -1
 
     def pop(self):
@@ -75,7 +75,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-           self.logger.error("Error while poping function from callstack: %s", ex)
+           self.logger.exception("Error while poping function from callstack: %s", ex)
            return False
 
     def check_if_new_func(self, ea, iatEA):
@@ -110,7 +110,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-            self.logger.error("Failed while add function %s to function counter: %s", func_name, ex)
+            self.logger.exception("Failed while add function %s to function counter: %s", func_name, ex)
             return False
 
     def get_top_func_data(self):
@@ -129,7 +129,7 @@ class CallStack():
             return None
 
         except Exception as ex:
-            self.logger.error("Error while retrieving function data for top-of-call-stack item:", ex)
+            self.logger.exception("Error while retrieving function data for top-of-call-stack item:", ex)
             return None
 
 

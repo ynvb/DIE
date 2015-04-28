@@ -63,11 +63,13 @@ class DebugValue():
         else:
             self.derefrence_depth = deref_depth     # de-reference depth
 
-        # Collect runtime values!
-        self.dataParser = DataParser.getParser()
-        self.getRunetimeValues()
+        try:
+            # Collect runtime values!
+            self.dataParser = DataParser.getParser()
+            self.getRunetimeValues()
 
-
+        except Exception as ex:
+            self.logger.exception("Error while collecting runtime values: %s", ex)
 
     def getRunetimeValues(self):
         """
@@ -82,39 +84,11 @@ class DebugValue():
             if self.config.is_container:
                 if self.is_container():
                     self.__get_container_values()
-                    # if self.derefrence_depth > 0:
-                    #     struct = Struct(self.type)
-                    #     struct_base_adrs = self.loc
-                    #
-                    #     if self.loc is not None:
-                    #         new_ref_depth = (self.derefrence_depth - 1)
-                    #         for element in struct.elements:  # Add nested DebugValue elements
-                    #             element_val = DebugValue(MEM_VAL,
-                    #                                      struct_base_adrs + element.offset,
-                    #                                      element.type,
-                    #                                      element.get_name(),
-                    #                                      deref_depth=new_ref_depth)
-                    #             self.nestedValues.append(element_val)
 
             # If value is an array
             if self.config.is_array:
                 if self.is_array():
                     self.__get_array_values()
-                    # array = Array(self.type)
-                    # array_base_adrs = self.loc
-                    #
-                    # if self.loc is not None:
-                    #
-                    #     prev_element = self
-                    #     for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
-                    #         element_val = DebugValue(MEM_VAL,
-                    #                                  array_base_adrs + (element_index*array.element_size),
-                    #                                  array.element_type,
-                    #                                  "[%d]" % element_index)
-                    #
-                    #         prev_element.reference_flink = element_val
-                    #         prev_element = element_val
-
 
             if self.loc and self.storetype:
                 if self.config.is_raw:
@@ -132,7 +106,7 @@ class DebugValue():
 
 
         except Exception as ex:
-            self.logger.error("Could not get runtime values for %s: %s", self.typeName(), ex)
+            self.logger.exception("Could not get runtime values for %s: %s", self.typeName(), ex)
             return False
 
     def dereference(self):
@@ -163,7 +137,7 @@ class DebugValue():
                 return True
 
         except Exception as ex:
-            self.logger.error("Failed to dereference %s: %s", self.typeName(), ex)
+            self.logger.exception("Failed to dereference %s: %s", self.typeName(), ex)
             return False
 
     def __get_array_values(self):
@@ -189,7 +163,7 @@ class DebugValue():
             return True
 
         except Exception as ex:
-            self.logger.error("Error while retrieving array values: %s", ex)
+            self.logger.exception("Error while retrieving array values: %s", ex)
             return False
 
     def __get_container_values(self):
@@ -217,7 +191,7 @@ class DebugValue():
             return True
 
         except Exception as ex:
-            self.logger.error("Error while retrieving container values: %s", ex)
+            self.logger.exception("Error while retrieving container values: %s", ex)
             return False
 
     def getRawValue(self):
@@ -229,15 +203,6 @@ class DebugValue():
             # If memory value read native size bytes from ea
             if self.storetype == MEM_VAL:
                 return get_adrs_mem(self.loc)
-
-                # native_size = self.instParser.get_native_size()
-                #
-                # if native_size is 16:
-                #     return DbgWord(self.loc)
-                # if native_size is 32:
-                #     return DbgDword(self.loc)
-                # if native_size is 64:
-                #     return DbgQword(self.loc)
 
             # If register value, read register`s value
             if self.storetype == REG_VAL:
@@ -261,8 +226,8 @@ class DebugValue():
             if self.rawValue is not None:
                 return self.dataParser.ParseData(self.rawValue, self.type, self.loc, self.custom_parser)
 
-        except Exception as e:
-            print "Error while parsing value: %s" % e
+        except Exception as ex:
+            self.logger.exception("Error while parsing value: %s" % ex)
             return None
 
 

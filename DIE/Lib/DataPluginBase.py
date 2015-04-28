@@ -36,14 +36,18 @@ class DataPluginBase(IPlugin):
         Plguin Initialization
         @param type_norm_callback: a type name normalization callback function
         """
-        print "Initializing plugin %s" % self.__class__
+        try:
+            self.logger.info("Initializing plugin %s", self.__class__)
 
-        # Set type name normalization callback function
-        if type_norm_callback is not None:
-            self.typeName_norm_cb = type_norm_callback
+            # Set type name normalization callback function
+            if type_norm_callback is not None:
+                self.typeName_norm_cb = type_norm_callback
 
-        # Register supported types
-        self.registerSupportedTypes()
+            # Register supported types
+            self.registerSupportedTypes()
+
+        except Exception as ex:
+            self.logger.exception("Failed to initialize plugin: %s", ex)
 
     def guessValues(self, rawData):
         """
@@ -84,23 +88,26 @@ class DataPluginBase(IPlugin):
         @param match_override: set this flag in order to bypass the plugin type matching method.
         @return: DebugValue array with the parsed data
         """
+        try:
+            self.parsedValues = []  # Initialize parsed value list
 
-        self.parsedValues = []  # Initialize parsed value list
+            # If type was not recognized, try to guess the value.
+            if type is None:
+                self.guessValues(rawData)
+                return self.parsedValues
 
-        # If type was not recognized, try to guess the value.
-        if type is None:
-            self.guessValues(rawData)
-            return self.parsedValues
+            # If bypass match flag is set, force parsing.
+            if match_override:
+                self.parseValue(rawData)
+                return self.parsedValues
 
-        # If bypass match flag is set, force parsing.
-        if match_override:
-            self.parseValue(rawData)
-            return self.parsedValues
+            # Otherwise, if type matches the plugin parser type, run the parser logic.
+            if self.matchType(type):
+                self.parseValue(rawData)
+                return self.parsedValues
 
-        # Otherwise, if type matches the plugin parser type, run the parser logic.
-        if self.matchType(type):
-            self.parseValue(rawData)
-            return self.parsedValues
+        except Exception as ex:
+            self.logger.exception("Error while running plugin: %s", ex)
 
     def setPluginType(self, type):
         """
@@ -112,7 +119,7 @@ class DataPluginBase(IPlugin):
             self.type = type.lower()
 
         except Exception as ex:
-            self.logger.error("Setting plugin type failed: %s", ex)
+            self.logger.exception("Setting plugin type failed: %s", ex)
             return False
 
     def addSuportedType(self, type_name, type_desc):
@@ -122,14 +129,19 @@ class DataPluginBase(IPlugin):
         @param type_desc: type description
         """
         # type description must not be Null. set to an empty string by default.
-        if type_desc is None:
-            type_desc = ""
+        try:
+            if type_desc is None:
+                type_desc = ""
 
-        type_name = self.typeName_norm_cb(type_name)
-        type_tuple = (type_name, type_desc)
+            type_name = self.typeName_norm_cb(type_name)
+            type_tuple = (type_name, type_desc)
 
-        if not type_tuple in self.supported_types:
-            self.supported_types.append(type_tuple)
+            if not type_tuple in self.supported_types:
+                self.supported_types.append(type_tuple)
+
+        except Exception as ex:
+            self.logger.exception("Failed to add supported type: %s", ex)
+
 
     def checkSupportedType(self, type):
         """
@@ -137,17 +149,21 @@ class DataPluginBase(IPlugin):
         @param type: IDA type_into_t object
         @return: True if type name is supported or otherwise False
         """
-        tname = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', '')
+        try:
+            tname = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, type, '', '')
 
-        if self.typeName_norm_cb is not None:
-            type_name = self.typeName_norm_cb(tname)
+            if self.typeName_norm_cb is not None:
+                type_name = self.typeName_norm_cb(tname)
 
-        for (stype, sparams) in self.supported_types:
-            if type_name == stype:
-                self.type_params = sparams
-                return True
+            for (stype, sparams) in self.supported_types:
+                if type_name == stype:
+                    self.type_params = sparams
+                    return True
 
-        return False
+            return False
+
+        except Exception as ex:
+            self.logger.exception("Error while checking for supported type: %s", ex)
 
     def getSupportedTypes(self):
         """

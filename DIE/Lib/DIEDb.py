@@ -50,12 +50,16 @@ class DIE_DB():
         Get a list of all functions in the db
         @return: A list of dbFunction objects
         """
-        function_list = []
+        try:
+            function_list = []
 
-        for function_id in self.functions:
-            function_list.append(self.functions[function_id])
+            for function_id in self.functions:
+                function_list.append(self.functions[function_id])
 
-        return function_list
+            return function_list
+
+        except Exception as ex:
+            self.logger.exception("Failed to get functions: %s", ex)
 
     def get_function_by_name(self, function_name):
         """
@@ -63,13 +67,16 @@ class DIE_DB():
         @param function_name: function name
         @return: if function was found, returns function object of type dbFunction, otherwise returns None
         """
+        try:
+            functions = self.get_functions()
+            for function in functions:
+                if function.function_name == function_name:
+                    return function
 
-        functions = self.get_functions()
-        for function in functions:
-            if function.function_name == function_name:
-                return function
+            return None
 
-        return None
+        except Exception as ex:
+            self.logger.exception("Failed to get function by name: %s", ex)
 
     def get_function_context_list(self, function=None):
         """
@@ -77,23 +84,27 @@ class DIE_DB():
         @param function: Get a list of function contexts for this function only.
         @return:
         """
-        function_context_list = []
+        try:
+            function_context_list = []
 
-        if function is None:
-            # Global function context list (for the entire db)
-            cur_context_list = self.function_contexts
-        else:
-            # Local function context list (for a specific function)
-            cur_context_list = function.function_contexts
+            if function is None:
+                # Global function context list (for the entire db)
+                cur_context_list = self.function_contexts
+            else:
+                # Local function context list (for a specific function)
+                cur_context_list = function.function_contexts
 
-        # No contexts found
-        if cur_context_list is None:
+            # No contexts found
+            if cur_context_list is None:
+                return function_context_list
+
+            for function_context_id in cur_context_list:
+                function_context_list.append(self.function_contexts[function_context_id])
+
             return function_context_list
 
-        for function_context_id in cur_context_list:
-            function_context_list.append(self.function_contexts[function_context_id])
-
-        return function_context_list
+        except Exception as ex:
+            self.logger.exception("Failed to get function context list: %s", ex)
 
     def get_function_context_dict(self, function=None):
         """
@@ -102,28 +113,32 @@ class DIE_DB():
         @return: A dictionary of function contexts grouped by their calling ea`s.
                  each dictionary node is a list of function contexts for this ea.
         """
-        function_context_dict = {}
+        try:
+            function_context_dict = {}
 
-        if function is None:
-            # Global function context list (for the entire db)
-            cur_context_list = self.function_contexts
-        else:
-            # Local function context list (for a specific function)
-            cur_context_list = function.function_contexts
+            if function is None:
+                # Global function context list (for the entire db)
+                cur_context_list = self.function_contexts
+            else:
+                # Local function context list (for a specific function)
+                cur_context_list = function.function_contexts
 
-        # No contexts found
-        if cur_context_list is None:
+            # No contexts found
+            if cur_context_list is None:
+                return function_context_dict
+
+            for function_context_id in cur_context_list:
+                current_context = self.function_contexts[function_context_id]
+
+                if current_context.calling_ea not in function_context_dict:
+                    function_context_dict[current_context.calling_ea] = []
+
+                function_context_dict[current_context.calling_ea].append(current_context)
+
             return function_context_dict
 
-        for function_context_id in cur_context_list:
-            current_context = self.function_contexts[function_context_id]
-
-            if current_context.calling_ea not in function_context_dict:
-                function_context_dict[current_context.calling_ea] = []
-
-            function_context_dict[current_context.calling_ea].append(current_context)
-
-        return function_context_dict
+        except Exception as ex:
+            self.logger.exception("Failed while getting function context dict: %s", ex)
 
     def get_function_context(self, func_context_id):
         """
@@ -131,11 +146,14 @@ class DIE_DB():
         @param func_context_id: Function context ID
         @return: function context object (type: dbFunction_Context) or None for invalid ID.
         """
+        try:
+            if func_context_id in self.function_contexts:
+                return self.function_contexts[func_context_id]
 
-        if func_context_id in self.function_contexts:
-            return self.function_contexts[func_context_id]
+            return None
 
-        return None
+        except Exception as ex:
+            self.logger.exception("Failed to get function context; %s", ex)
 
     def get_call_values(self, function_context):
         """
@@ -143,15 +161,19 @@ class DIE_DB():
         @param function_context: function_context object to retrieve call values from
         @return:
         """
-        call_value_list = []
+        try:
+            call_value_list = []
 
-        if function_context is None:
+            if function_context is None:
+                return call_value_list
+
+            for call_value_id in function_context.call_values:
+                call_value_list.append(self.dbg_values[call_value_id])
+
             return call_value_list
 
-        for call_value_id in function_context.call_values:
-            call_value_list.append(self.dbg_values[call_value_id])
-
-        return call_value_list
+        except Exception as ex:
+            self.logger.exception("Failed to get call values: %s", ex)
 
     def get_return_values(self, function_context):
         """
@@ -159,15 +181,19 @@ class DIE_DB():
         @param function_context: function_context object to retrieve return values from
         @return:
         """
-        return_value_list = []
+        try:
+            return_value_list = []
 
-        if function_context is None:
+            if function_context is None:
+                return return_value_list
+
+            for ret_value_id in function_context.ret_values:
+                return_value_list.append(self.dbg_values[ret_value_id])
+
             return return_value_list
 
-        for ret_value_id in function_context.ret_values:
-            return_value_list.append(self.dbg_values[ret_value_id])
-
-        return return_value_list
+        except Exception as ex:
+            self.logger.exception("Failed to get return values: %s", ex)
 
     def get_return_arg_value(self, function_context):
         """
@@ -175,14 +201,17 @@ class DIE_DB():
         @param function_context: function_context object to retrieve return arg values from
         @return:
         """
+        try:
+            if function_context is None:
+                return None
 
-        if function_context is None:
+            if function_context.ret_arg_value is not None:
+                return self.dbg_values[function_context.ret_arg_value]
+
             return None
 
-        if function_context.ret_arg_value is not None:
-            return self.dbg_values[function_context.ret_arg_value]
-
-        return None
+        except Exception as ex:
+            self.logger.exception("Failed to get return arg value: %s", ex)
 
     def get_function_arg(self, function, arg_index):
         """
@@ -191,16 +220,20 @@ class DIE_DB():
         @param arg_index: the argument index
         @return:
         """
-        if arg_index == -1:
-            arg_id = function.ret_arg
-            if arg_id is None:
-                return None
-        else:
-            arg_id = function.args[arg_index]
-            if arg_id is None:
-                return None
+        try:
+            if arg_index == -1:
+                arg_id = function.ret_arg
+                if arg_id is None:
+                    return None
+            else:
+                arg_id = function.args[arg_index]
+                if arg_id is None:
+                    return None
 
-        return self.function_args[arg_id]
+            return self.function_args[arg_id]
+
+        except Exception as ex:
+            self.logger.exception("Failed to get function args: %s", ex)
 
     def get_parsed_values(self, dbg_value=None):
         """
@@ -208,17 +241,21 @@ class DIE_DB():
         @param dbg_value: a debug value object to retrieve parsed values from. (type: dbDebug_Values)
         @return:
         """
-        parsed_val_list = []
+        try:
+            parsed_val_list = []
 
-        if dbg_value is not None:
-            parsed_val_id_list = dbg_value.parsed_values
-        else:
-            parsed_val_id_list = self.parsed_values
+            if dbg_value is not None:
+                parsed_val_id_list = dbg_value.parsed_values
+            else:
+                parsed_val_id_list = self.parsed_values
 
-        for parsed_val_id in parsed_val_id_list:
-            parsed_val_list.append(self.parsed_values[parsed_val_id])
+            for parsed_val_id in parsed_val_id_list:
+                parsed_val_list.append(self.parsed_values[parsed_val_id])
 
-        return parsed_val_list
+            return parsed_val_list
+
+        except Exception as ex:
+            self.logger.exception("Failed to get parsed values: %s", ex)
 
     def get_dbg_value(self, dbg_val_id):
         """
@@ -226,10 +263,14 @@ class DIE_DB():
         @param dbg_val_id: debug value id
         @return: a debug value object
         """
-        if dbg_val_id is not None:
-            return self.dbg_values[dbg_val_id]
+        try:
+            if dbg_val_id is not None:
+                return self.dbg_values[dbg_val_id]
 
-        return None
+            return None
+
+        except Exception as ex:
+            self.logger.exception("Failed to get debug value: %s", ex)
 
     def count_function_occurs(self, function, thread_id = None):
         """
@@ -238,21 +279,25 @@ class DIE_DB():
         @param thread_id: Count occurrences matching this thread_id only.
         @return: Number of run-time occurrences for the function
         """
-        if function is None:
-            return 0
+        try:
+            if function is None:
+                return 0
 
-        if not isinstance(function, dbFunction):
-            raise ValueError("dbFunction type is expected. Got %s." % function.__class__)
+            if not isinstance(function, dbFunction):
+                raise ValueError("dbFunction type is expected. Got %s." % function.__class__)
 
-        if thread_id is None:
-            return len(function.function_contexts)
+            if thread_id is None:
+                return len(function.function_contexts)
 
-        count = 0
-        for func_context in self.get_function_context_list(function):
-            if func_context.thread_id == thread_id:
-                count += 1
+            count = 0
+            for func_context in self.get_function_context_list(function):
+                if func_context.thread_id == thread_id:
+                    count += 1
 
-        return count
+            return count
+
+        except Exception as ex:
+            self.logger.exception("Failed to count function occurrences: %s", ex)
 
     def get_best_parsed_val(self, parsed_vals):
         """
@@ -260,99 +305,118 @@ class DIE_DB():
         @param parsed_vals: parsed value list
         @return: A tuple of ( (bool)isGussed, (dbParsed_Value)best_value )
         """
+        try:
+            if parsed_vals is None or len(parsed_vals) == 0:
+                return None
 
-        if parsed_vals is None or len(parsed_vals) == 0:
-            return None
+            best_score = 10
+            best_val = None
 
-        best_score = 10
-        best_val = None
+            for parsed_val in parsed_vals:
+                if parsed_val.score < best_score:
+                    best_val = parsed_val
+                    best_score = parsed_val.score
 
-        for parsed_val in parsed_vals:
-            if parsed_val.score < best_score:
-                best_val = parsed_val
-                best_score = parsed_val.score
+            if best_score == 0:
+                return False, best_val
 
-        if best_score == 0:
-            return False, best_val
+            return True, best_val
 
-        return True, best_val
+        except Exception as ex:
+            self.logger.exception("Failed to get best parsed value: %s", ex)
 
     def get_all_values(self):
         """
         Get all parsed values from the db
         @return: A list of parsed values (of type dbParsed_Value)
         """
-        value_list = []
+        try:
+            value_list = []
 
-        for parsed_value_id in self.parsed_values:
-            value_list.append(self.parsed_values[parsed_value_id])
+            for parsed_value_id in self.parsed_values:
+                value_list.append(self.parsed_values[parsed_value_id])
 
-        return value_list
+            return value_list
+
+        except Exception as ex:
+            self.logger.exception("Failed to get all values: %s", ex)
 
     def get_all_values_dict(self):
         """
         Get all parsed value from the db as a dictionary with value.type as key
         @return: a dictionary with value.type as key and a list of parsed values as value
         """
+        try:
+            value_dict = {}
 
-        value_dict = {}
+            for parsed_value_id in self.parsed_values:
+                cur_val = self.parsed_values[parsed_value_id]
 
-        for parsed_value_id in self.parsed_values:
-            cur_val = self.parsed_values[parsed_value_id]
+                if cur_val.type in value_dict:
+                    value_dict[cur_val.type].append(cur_val)
+                else:
+                    value_dict[cur_val.type] = [cur_val]
 
-            if cur_val.type in value_dict:
-                value_dict[cur_val.type].append(cur_val)
-            else:
-                value_dict[cur_val.type] = [cur_val]
+            return value_dict
 
-        return value_dict
+        except Exception as ex:
+            self.logger.exception("Failed to get all values as dict: %s", ex)
 
     def get_all_value_types(self):
         """
         Get all contained value types
         @return: a list of all of the contained value types
         """
-        type_list = []
-        for parsed_value_id in self.parsed_values:
-            cur_val = self.parsed_values[parsed_value_id]
-            if not cur_val.type in type_list:
-                type_list.append(cur_val.type)
+        try:
+            type_list = []
+            for parsed_value_id in self.parsed_values:
+                cur_val = self.parsed_values[parsed_value_id]
+                if not cur_val.type in type_list:
+                    type_list.append(cur_val.type)
 
-        return type_list
+            return type_list
+
+        except Exception as ex:
+            self.logger.exception("Failed to get all value types: %s", ex)
 
     def get_parsed_value_contexts(self, value):
         """
         Get the ea`s of a parsed value item
         @return: address list of function context items containing the value calls
         """
+        try:
+            if not isinstance(value, dbParsed_Value):
+                raise TypeError("Expected type dbParsed_Value but got type: %s" % value.__class__)
 
-        if not isinstance(value, dbParsed_Value):
-            raise TypeError("Expected type dbParsed_Value but got type: %s" % value.__class__)
+            func_context_list = []
 
-        func_context_list = []
+            for dbg_val_id in value.dbgValues:
+                dbg_val = self.get_dbg_value(dbg_val_id)
 
-        for dbg_val_id in value.dbgValues:
-            dbg_val = self.get_dbg_value(dbg_val_id)
+                if dbg_val.function_context is not None:
+                    func_context = self.get_function_context(dbg_val.function_context)
+                    func_context_list.append(func_context)
 
-            if dbg_val.function_context is not None:
-                func_context = self.get_function_context(dbg_val.function_context)
-                func_context_list.append(func_context)
+            return func_context_list
 
-        return func_context_list
-
+        except Exception as ex:
+            self.logger.exception("Failed to get parsed value context: %s", ex)
 
     def get_thread_list(self):
         """
         Get a list of threads from DB
         @return: a list of thread objects (of type dbThread)
         """
-        thread_list = []
+        try:
+            thread_list = []
 
-        for thread_id in self.threads:
-            thread_list.append(self.threads[thread_id])
+            for thread_id in self.threads:
+                thread_list.append(self.threads[thread_id])
 
-        return thread_list
+            return thread_list
 
+        except Exception as ex:
+            self.logger.exception("Failed to get thread list: %s", ex)
 
     def get_run_info(self):
         """
@@ -361,18 +425,20 @@ class DIE_DB():
                              num_of_exec_function, num_of_threads, num_of_parsed_vals)
         """
 
-        num_of_exec_funcs = len(self.functions)
-        num_of_threads = len(self.threads)
-        num_of_parsed_vals = len(self.parsed_values)
+        try:
+            num_of_exec_funcs = len(self.functions)
+            num_of_threads = len(self.threads)
+            num_of_parsed_vals = len(self.parsed_values)
 
-        return (self.run_info.start_time,
-                self.run_info.end_time,
-                self.run_info.file,
-                len(self.functions),
-                len(self.threads),
-                len(self.parsed_values))
+            return (self.run_info.start_time,
+                    self.run_info.end_time,
+                    self.run_info.file,
+                    len(self.functions),
+                    len(self.threads),
+                    len(self.parsed_values))
 
-
+        except Exception as ex:
+            self.logger.exception("Failed to get run info; %s", ex)
 
     #############################################################################
     # Add data base items
@@ -398,7 +464,7 @@ class DIE_DB():
             return True
 
         except Exception as ex:
-            self.logger.error("Error while loading RunInfo data into DieDB: %s", ex)
+            self.logger.exception("Error while loading RunInfo data into DieDB: %s", ex)
 
     def add_thread_data(self, thread_num, call_tree):
         """
@@ -422,7 +488,7 @@ class DIE_DB():
             return thread_id
 
         except Exception as ex:
-            self.logger.error("Error while loading thread-%d to DieDB: %s", thread_num, ex)
+            self.logger.exception("Error while loading thread-%d to DieDB: %s", thread_num, ex)
 
     def add_function_context(self, function_context, thread_id):
         """
@@ -463,7 +529,7 @@ class DIE_DB():
             return func_context_id
 
         except Exception as ex:
-            self.logger.error("Error while adding function %s to DieDB: %s", function_context.function.funcName, ex)
+            self.logger.exception("Error while adding function %s to DieDB: %s", function_context.function.funcName, ex)
 
     def add_function(self, function, func_context_id):
         """
@@ -498,7 +564,7 @@ class DIE_DB():
             return func_id
 
         except Exception as ex:
-            self.logger.error("Error while loading function %s into DieDB: %s", function.funcName ,ex)
+            self.logger.exception("Error while loading function %s into DieDB: %s", function.funcName ,ex)
 
     def add_func_arg(self, func_arg):
         """
@@ -516,7 +582,7 @@ class DIE_DB():
             return arg_id
 
         except Exception as ex:
-            self.logger.error("Error while loading function argument %s into DieDB: %s", func_arg.argname, ex)
+            self.logger.exception("Error while loading function argument %s into DieDB: %s", func_arg.argname, ex)
 
     def add_debug_value(self, debug_value, func_context_id, ref_blink_id=None):
         """
@@ -568,7 +634,7 @@ class DIE_DB():
             return dbg_val_id
 
         except Exception as ex:
-            self.logger.error("Error while loading DebugValue to DieDB: %s", ex)
+            self.logger.exception("Error while loading DebugValue to DieDB: %s", ex)
 
     def add_parsed_val(self, parsed_val):
         """
@@ -589,7 +655,7 @@ class DIE_DB():
             return parsed_val_id
 
         except Exception as ex:
-            self.logger.error("Error while loading parsed data into DieDB: %s", ex)
+            self.logger.exception("Error while loading parsed data into DieDB: %s", ex)
 
 
 ####################################################################################
@@ -639,7 +705,7 @@ class DIE_DB():
 
         except Exception as ex:
             print "Error while saving DIE DB: %s" %ex
-            logging.error("Error while saving DIE DB: %s", ex)
+            logging.exception("Error while saving DIE DB: %s", ex)
             return False
 
     def load_db(self, file_name=None):
@@ -652,9 +718,7 @@ class DIE_DB():
             file_name = self.get_default_db_filename()
 
         if not os.path.exists(file_name):
-            print "DIE DB file not found"
-            logging.error("DIE DB file was not found")
-            return False
+            raise IOError("DIE DB file not found")
 
         in_file = open(file_name, 'rb')
 
