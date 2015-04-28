@@ -228,6 +228,9 @@ class Function():
         if self.iatEA:
             self.isLibFunc = True  # Is this a library function
 
+        elif sark.Function(ea).flags & (idaapi.FUNC_LIB | idaapi.FUNC_THUNK):
+            self.isLibFunc = True
+
         try:
             self.getArguments()
 
