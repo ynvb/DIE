@@ -191,4 +191,18 @@ class DbgImports():
         """
         for dbgImp in self.rt_import_table:
             (module_name, ea, name, ord) = self.rt_import_table[dbgImp]
-            print "ModuleName - %s,\t\tFunctionName - %s,\t\t Address in IAT - %s,\t\t Real address - %s" % (module_name, name, hex(ea), hex(dbgImp))
+            idaapi.msg("ModuleName - %s,\t\tFunctionName - %s,\t\t Address in IAT - %s,\t\t Real address - %s\n" % (module_name, name, hex(ea), hex(dbgImp)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -10,9 +10,11 @@ try:
     # TODO: Is singleton really required here? python modules are basically singleton by design
     from yapsy.PluginManager import PluginManagerSingleton
 except ImportError, err:
-    print "Yapsy not installed (please use 'pip install yapsy' or equivalent : %s", err
+    idaapi.msg("Yapsy not installed (please use 'pip install yapsy' or equivalent : %s\n", err)
+    # TODO: does this not kill IDA? Instead, the error should be propagated to the plugin initialization.
     sys.exit(1)
 
+# TODO: better use new style classes
 class DataParser():
     """
     Data parser is a class for parsing raw runtime values.
@@ -51,7 +53,7 @@ class DataParser():
 
         all_plugins = self.pManager.getAllPlugins()
         if len(all_plugins) == 0:
-            print "Warning - No Plugins were loaded!"
+            idaapi.msg("Warning - No Plugins were loaded!\n")
             self.logger.error("No plugins were loaded")
 
         for pluginInfo in all_plugins:
@@ -110,6 +112,7 @@ class DataParser():
         """
         parser_list = {}
 
+        # TODO: use classes or named tuples
         parser_list["headers"] = ["Description", "Version", "State", "Author"]
 
         for plugin in self.pManager.getAllPlugins():
@@ -182,7 +185,7 @@ class DataParser():
         @param type_name: Type name string (e.g "CONST CHAR *")
         @return: a normalized type name
         """
-        if type_name is None or type_name == "":
+        if not type_name:
             return None
 
         type_name = type_name.upper()
@@ -197,7 +200,7 @@ class DataParser():
 # TODO: Read from configuration file
 #config = DieConfig.get_config()
 
-print "[2] Loading data parsers"
+idaapi.msg("[2] Loading data parsers\n")
 #_dataParser = DataParser("C:\Users\yanivb\Desktop\Workspace\Projects\DIE\Plugins\DataParsers")
 #_dataParser = DataParser(config.data_parser_path)
 _dataParser = DataParser()

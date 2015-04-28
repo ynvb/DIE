@@ -22,10 +22,7 @@ class GenericFunctionParser(FunctionParserBase):
         @return: an array of parsed argument values (element type: DebugValue)
         """
         try:
-            arg_values = []
-
-            for arg in self.function.args:
-                arg_values.append(self.get_arg_value(arg))
+            arg_values = [self.get_arg_value(arg) for arg in self.function.args]
 
             return arg_values
 

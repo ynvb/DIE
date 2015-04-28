@@ -1,3 +1,6 @@
+from awesome import context
+
+
 __author__ = 'yanivb'
 
 import time
@@ -9,6 +12,7 @@ from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
 from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect
 import DIE.Lib.FunctionParsers
+import DIE.Lib.DIE_Exceptions
 
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
 
@@ -68,9 +72,13 @@ class FunctionContext():
             # (currently only GenericFunctionParser exist, and this is used to enable future extensions)
             self.function_parser = GenericFunctionParser(self.function)
 
+        except DIE.Lib.DIE_Exceptions.DieNoFunction:
+            raise
+
         except Exception as ex:
+            logging.critical("Error while initializing function context: %s", ex)
             logging.exception("Error while initializing function context: %s", ex)
-            return None
+            raise
 
     def check_if_indirect(self):
         """
@@ -88,8 +96,7 @@ class FunctionContext():
         Get the function argument values upon function call
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
-        try:
-            start_time = time.time()  # Start timer
+        with context.Timer() as timer:
             self.empty = False  # drop the empty flag
 
             # If no function arg retrieval is disabled in configuration - quit:
@@ -104,41 +111,32 @@ class FunctionContext():
                 self.empty = True
                 return False
 
-            elapsed_time = time.time() - start_time  # Get elapsed time
-            self.total_proc_time += elapsed_time  # Add to total elapsed time
+        self.total_proc_time += timer.elapsed  # Add to total elapsed time
 
-            return True
-
-        except Exception as ex:
-            self.logger.exception("Failed to get argument call value: %s", ex)
+        return True
 
     def get_arg_values_ret(self):
         """
         Get the function argument values upon function return
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
-        try:
-            if self.empty:
-                self.logger.error("Call values must be retrieved prior to return values.")
-                return False
 
-            # If no function arg retrieval is disabled in configuration - quit:
-            if not self.config.get_func_args:
-                return True
+        if self.empty:
+            self.logger.error("Call values must be retrieved prior to return values.")
+            return False
 
-            start_time = time.time()  # Start timer
+        # If no function arg retrieval is disabled in configuration - quit:
+        if not self.config.get_func_args:
+            return True
 
+        with context.Timer() as timer:
             self.retRegState = self.getRegisters()  # Get register state
             # Get function arguments
             (self.retValues, self.retArgValue) = self.function_parser.parse_function_args_ret(self.callValues)
 
-            elapsed_time = time.time() - start_time  # Get elapsed time
-            self.total_proc_time += elapsed_time  # Add to total elapsed time
+        self.total_proc_time += timer.elapsed  # Add to total elapsed time
 
-            return True
-
-        except Exception as ex:
-            self.logger.exception("Failed to get argument return value: %s", ex)
+        return True
 
     def getRegisters(self):
         """

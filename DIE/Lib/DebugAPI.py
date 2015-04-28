@@ -20,7 +20,7 @@ import DIE.Lib.DataParser
 from DIE.Lib.DIE_Exceptions import FuncCallExceedMax
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
-from DIE.Lib.IDAConnector import get_cur_ea, is_call
+from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present
 import DIE.Lib.DIEDb
 
 ##########################
@@ -87,12 +87,16 @@ class DebugHooker(DBG_Hooks):
             self.UnHook()
 
         try:
+            if not is_ida_debugger_present():
+                self.logger.error("DIE cannot be started with no debugger defined.")
+                return
+
             self.logger.info("Hooking to debugger.")
             self.hook()
             self.isHooked = True
 
         except Exception as ex:
-            self.logger.critical("Failed to hook debugger", ex)
+            self.logger.exception("Failed to hook debugger", ex)
             sys.exit(1)
 
     def UnHook(self):
@@ -105,7 +109,7 @@ class DebugHooker(DBG_Hooks):
             self.isHooked = False
 
         except Exception as ex:
-            self.logger.critical("Failed to hook debugger", ex)
+            self.logger.exception("Failed to hook debugger", ex)
             raise RuntimeError("Failed to unhook debugger")
 
     def update_iat(self):
@@ -140,8 +144,8 @@ class DebugHooker(DBG_Hooks):
                 self.update_iat()
 
             # Set current call-stack
-            if not tid in self.callStack:
-                print "Creating new callstack for thread %d" % tid
+            if tid not in self.callStack:
+                idaapi.msg("Creating new callstack for thread %d\n" % tid)
                 self.callStack[tid] = CallStack()
 
             self.current_callstack = self.callStack[tid]
@@ -345,7 +349,7 @@ class DebugHooker(DBG_Hooks):
 
                 # If end function address was not explicitly defined, set to end of current function
                 if end_func_ea is None:
-                    self.end_bp = DIE.Lib.IDAConnector.get_function_end_adr(start_func_ea)
+                    self.end_bp = DIE.Lib.IDAConnector.get_function_end_address(start_func_ea)
                     self.bp_handler.addBP(self.end_bp, "FINAL_BP")
 
                 # Walk current function
@@ -394,4 +398,4 @@ class DebugHooker(DBG_Hooks):
         ps = pstats.Stats(self.pr, stream=s).sort_stats(sortby)
         ps.print_stats()
 
-        print s.getvalue()
+        idaapi.msg("%s\n" % (s.getvalue(), ))

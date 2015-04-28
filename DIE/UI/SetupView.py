@@ -6,25 +6,25 @@ import DIE.Lib.DieConfig
 class SettingsView(Form):
 
     def __init__(self):
-        Form.__init__(self, r"""STARTITEM 0
-BUTTON YES* Save Settings
-BUTTON CANCEL Cancel
-Form Setup View
-
-Debbuging:
-<##Maximal function calls:   {iMaxFuncCall}>
-<##Maximal dereference depth:{iDerefDepth}>
-
-
-Debug Values:
-<Raw:{rRaw}>
-<Parse:{rParse}>
-<Array:{rArray}>
-<Containers:{rContainer}>
-<Dereference:{rDeref}>
-<Arguments:{rArgs}>{cDebugValues}>
-
-""", {
+        Form.__init__(self, ("STARTITEM 0\n"
+                             "BUTTON YES* Save Settings\n"
+                             "BUTTON CANCEL Cancel\n"
+                             "Form Setup View\n"
+                             "\n"
+                             "Debbuging:\n"
+                             "<##Maximal function calls:   {iMaxFuncCall}>\n"
+                             "<##Maximal dereference depth:{iDerefDepth}>\n"
+                             "\n"
+                             "\n"
+                             "Debug Values:\n"
+                             "<Raw:{rRaw}>\n"
+                             "<Parse:{rParse}>\n"
+                             "<Array:{rArray}>\n"
+                             "<Containers:{rContainer}>\n"
+                             "<Dereference:{rDeref}>\n"
+                             "<Arguments:{rArgs}>{cDebugValues}>\n"
+                             "\n"
+        ), {
             'cDebugValues': Form.ChkGroupControl(("rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
             'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
             'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),

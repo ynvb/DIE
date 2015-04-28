@@ -23,7 +23,7 @@ class DIE_Config():
         """
         try:
 
-            print "Loading configuration file..."
+            idaapi.msg("Loading configuration file...\n")
 
             # Load custom configuration file
             if not os.path.isfile(config_file_name):
@@ -67,25 +67,22 @@ class DIE_Config():
         """
         # Save configuration file
         self.logger.info("Saving Configuration.")
-        print "Saving configuration file"
 
-        try:
-            self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
-            self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
-            self.config_parser.set("DebugValues", "is_parse", self.config["DebugValues"]["is_parse"])
-            self.config_parser.set("DebugValues", "is_array", self.config["DebugValues"]["is_array"])
-            self.config_parser.set("DebugValues", "is_container", self.config["DebugValues"]["is_container"])
+        idaapi.msg("Saving configuration file\n")
 
-            self.config_parser.set("FunctionContext", "get_func_args", self.config["FunctionContext"]["get_func_args"])
+        self.config_parser.set("DebugValues", "is_deref", self.config["DebugValues"]["is_deref"])
+        self.config_parser.set("DebugValues", "is_raw", self.config["DebugValues"]["is_raw"])
+        self.config_parser.set("DebugValues", "is_parse", self.config["DebugValues"]["is_parse"])
+        self.config_parser.set("DebugValues", "is_array", self.config["DebugValues"]["is_array"])
+        self.config_parser.set("DebugValues", "is_container", self.config["DebugValues"]["is_container"])
 
-            self.config_parser.set("Debugging", "max_func_call", self.config["Debugging"]["max_func_call"])
-            self.config_parser.set("Debugging", "max_deref_depth", self.config["Debugging"]["max_deref_depth"])
+        self.config_parser.set("FunctionContext", "get_func_args", self.config["FunctionContext"]["get_func_args"])
 
-            with open(config_file_name, 'wb') as config_file:
-                self.config_parser.write(config_file)
+        self.config_parser.set("Debugging", "max_func_call", self.config["Debugging"]["max_func_call"])
+        self.config_parser.set("Debugging", "max_deref_depth", self.config["Debugging"]["max_deref_depth"])
 
-        except Exception as ex:
-            self.logger.exception("Error while saving configuration: %s", ex)
+        with open(config_file_name, 'wb') as config_file:
+            self.config_parser.write(config_file)
 
     def make_default_config_file(self, config_file_name):
         """
@@ -93,7 +90,7 @@ class DIE_Config():
         """
         try:
 
-            print "Configuration file not found, creating a default configfile"
+            idaapi.msg("Configuration file not found, creating a default configfile\n")
             self.logger.info("Generating a default configuration file.")
             config_parser = ConfigParser.ConfigParser()
 
@@ -119,8 +116,8 @@ class DIE_Config():
             return True
 
         except Exception as ex:
-            print "Error while creating default config file: %s" %ex
-            logging.exception("Failed to create default configuration file: %s", ex)
+            idaapi.msg("Error while creating default config file: %s\n" % ex)
+            logging.error("Failed to create default configuration file: %s", ex)
             return False
 
 
@@ -326,7 +323,7 @@ class DIE_Config():
         """
         DIE Installation path
         """
-        return idaapi.idadir("plugins\DIE")
+        return os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
     @property
     def icons_path(self):

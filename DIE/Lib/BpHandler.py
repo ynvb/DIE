@@ -115,6 +115,7 @@ class BpHandler():
                 # Check if breakpoint is not excluded.
                 if self.is_exception_call(ea):
                     return False
+                # TODO: better replace with a named tuple.
                 self.die_db.bp_list[ea] = (0, bp_description)
                 idc.AddBpt(ea)
 
@@ -384,7 +385,7 @@ class BpHandler():
             if idc.isCode(idc.GetFlags(ea)):
                 if is_call(ea):
                     operand_type = idc.GetOpType(ea, 0)
-                    if operand_type == 5 or operand_type == 6 or operand_type == 7 or operand_type == 2:
+                    if operand_type in (5, 6, 7, 2):
                         call_dest = idc.GetOperandValue(ea, 0)  # Call destination
                         func_name = get_function_name(call_dest).lower()
 
@@ -413,8 +414,8 @@ class BpHandler():
             # Add function to walked function list
             self.walked_functions[function_name] = ea
 
-            start_adrs = get_func_start_adr(ea)
-            end_adrs = get_function_end_adr(ea)
+            start_adrs = get_function_start_address(ea)
+            end_adrs = get_function_end_address(ea)
 
             # Walk function and place breakpoints on every call instruction found.
             for head in idautils.Heads(start_adrs, end_adrs):

@@ -1,9 +1,12 @@
+import sark
+
 __author__ = 'yanivb'
 
 import idaapi
 import logging
+import DIE.Lib.DIE_Exceptions
 from DIE.Lib.IDAConnector import get_native_size, regOffsetToName,\
-    get_function_name, get_func_start_adr, get_function_end_adr
+    get_function_name, get_function_start_address, get_function_end_address
 
 #
 # This file contains several wrappers for common IDA data type such as Functions, Function Argument,
@@ -25,23 +28,19 @@ class Array():
 
     def __init__(self, type):
 
-        try:
-            self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
 
-            self.type_info = type
-            self.array_type_data = idaapi.array_type_data_t()
+        self.type_info = type
+        self.array_type_data = idaapi.array_type_data_t()
 
-            self.element_type = None
-            self.element_num = 0
-            self.element_size = 0
+        self.element_type = None
+        self.element_num = 0
+        self.element_size = 0
 
-            self.elements = []
+        self.elements = []
 
-            # Extract array data
-            self.get_array_data()
-
-        except Exception as ex:
-            self.logger.exception("Failed to initialize array object: %s", ex)
+        # Extract array data
+        self.get_array_data()
 
     def get_array_data(self):
         """
@@ -60,7 +59,7 @@ class Array():
             return False
 
         except Exception as ex:
-            self.logger.exception("Error while getting array data: %s", ex)
+            self.logger.exception("Array: Error while getting array data: %s", ex)
             return False
 
 #######################################################################################################################
@@ -90,109 +89,79 @@ class FuncArg():
         """
         Is a register based argument
         """
-        try:
-            if self.argloc.is_reg1():
-                return True
-            else:
-                return False
-        except Exception as ex:
-            self.logger.exception("Failed while checking if argument passed via register: %s", ex)
+        if self.argloc.is_reg1():
+            return True
+        else:
+            return False
 
     def isStack(self):
         """
         Is a stack based argument
         """
-        try:
-            if self.argloc.is_stkoff():
-                return True
-            else:
-                return False
-        except Exception as ex:
-            self.logger.exception("Failed while checking if argument passed via stack: %s", ex)
+        if self.argloc.is_stkoff():
+            return True
+        else:
+            return False
 
     def name(self):
         """
         Argument name
         """
-        try:
-            # If argument name was explicitly provided.
-            if self.argname:
-                return self.argname
+        # If argument name was explicitly provided.
+        if self.argname:
+            return self.argname
 
-            # If this is a return argument.
-            if self.argNum is -1:
-                return "Ret_Arg"
+        # If this is a return argument.
+        if self.argNum is -1:
+            return "Ret_Arg"
 
-            # Otherwise, generate name according to offset.
-            #native_size = self.inst_parser.get_native_size()/8
-            native_size = get_native_size()/8
-            return "Arg_%s" % hex(self.argNum * native_size)
-
-        except Exception as ex:
-            self.logger.exception("Failed getting arumnet name: %s", ex)
+        # Otherwise, generate name according to offset.
+        #native_size = self.inst_parser.get_native_size()/8
+        native_size = get_native_size()/8
+        return "Arg_%s" % hex(self.argNum * native_size)
 
     def getRegOffset(self):
         """
         Get register offset (into ph.regnames)
         """
-        try:
-            if self.argloc.is_reg1():
-                return self.argloc.reg1()
-        except Exception as ex:
-            self.logger.exception("Failed getting argument register offset (into ph.regnames): %s", ex)
+        if self.argloc.is_reg1():
+            return self.argloc.reg1()
 
     def offset(self):
         """
         Stack Offset for stack args, or ph.regnames offset for register args
         """
-        try:
-            if self.isStack():
-                return self.argloc.stkoff()
+        if self.isStack():
+            return self.argloc.stkoff()
 
-            if self.isReg():
-                return self.getRegOffset()
+        if self.isReg():
+            return self.getRegOffset()
 
-            self.logger.error("Argument is not defined either as stack or reg")
-            return False
-
-        except Exception as ex:
-            self.logger.exception("Failed to get argumnet stack offset: %s", ex)
+        self.logger.error("FuncArg: Failed to retrieve argument offset.")
+        return False
 
     def registerName(self):
         """
         Get register name for this arg
         """
-        try:
-            if self.isReg():
-                return regOffsetToName(self.offset())
+        if self.isReg():
+            return regOffsetToName(self.offset())
 
-            return None
-
-        except Exception as ex:
-            self.logger.exception("Failed while getting register name: %s", ex)
+        return None
 
     def type_str(self):
         """
         A string representation of the argument type
         """
-        try:
-            typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
-            if typeStr is None:
-                return None
+        typeStr = idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.argtype, '', '')
 
-            return typeStr
-
-        except Exception as ex:
-            self.logger.exception("Failed to get argument name: %s", ex)
+        return typeStr
 
     def isRetValue(self):
         """
         Is this argument a return value?
         """
-        if self.argNum is -1:
-            return True
-        else:
-            return False
+        return self.argNum is -1
 
     def getArgStr(self):
         """
@@ -232,32 +201,35 @@ class Function():
         """
         Ctor
         """
+        self.logger = logging.getLogger(__name__)
+
+        self.ea = ea        # Effective Address of the function
+        self.iatEA = iatEA  # If imported function, the address in the IAT
+
         try:
-            self.logger = logging.getLogger(__name__)
+            function = sark.Function(ea)
+        except sark.exceptions.SarkNoFunction:
+            raise DIE.Lib.DIE_Exceptions.DieNoFunction("No Function at 0x%08X" % (ea, ))
 
-            self.ea = ea        # Effective Address of the function
-            self.iatEA = iatEA  # If imported function, the address in the IAT
+        self.funcName = get_function_name(function.ea)
+        self.func_start = function.startEA
+        self.func_end = function.endEA
 
-            self.funcName = get_function_name(self.ea)     # Function name
-            self.func_start = get_func_start_adr(self.ea)  # Function start address
-            self.func_end = get_function_end_adr(self.ea)  # Function end address
+        self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
+        self.typeInfo = idaapi.tinfo_t()            # Function type info
+        self.funcInfo = idaapi.func_type_data_t()   # Function info
+        self.argNum = 0                             # Number of input arguments
 
-            self.proto_ea = self.getFuncProtoAdr()      # Address of function prototype
-            self.typeInfo = idaapi.tinfo_t()            # Function type info
-            self.funcInfo = idaapi.func_type_data_t()   # Function info
-            self.argNum = 0                             # Number of input arguments
+        self.args = []      # Function argument list
+        self.retArg = None  # Return argument
 
-            self.args = []      # Function argument list
-            self.retArg = None  # Return argument
+        self.library_name = library_name  # If library function, name of containing library
+        self.isLibFunc = False
+        if self.iatEA:
+            self.isLibFunc = True  # Is this a library function
 
-            self.library_name = library_name  # If library function, name of containing library
-            self.isLibFunc = False
-            if self.iatEA:
-                self.isLibFunc = True  # Is this a library function
-
-        except Exception as ex:
-            self.logger.exception("Failed to initialize Function object: %s", ex)
-            return
+        elif sark.Function(ea).flags & (idaapi.FUNC_LIB | idaapi.FUNC_THUNK):
+            self.isLibFunc = True
 
         try:
             self.getArguments()
@@ -287,8 +259,7 @@ class Function():
             isGuessed = True
 
         if self.typeInfo.empty():
-            self.logger.error("Failed to retrieve function type info for function %s at %s", self.funcName, hex(self.ea))
-            raise RuntimeError()
+            raise RuntimeError("Failed to retrieve function type info for function %s at %s" % (self.funcName, hex(self.ea)))
 
         # Get function detail
         self.typeInfo.get_func_details(self.funcInfo)
@@ -340,12 +311,12 @@ class StructElement():
     Struct Element
     """
 
-    def __init__(self, size, offset, type, name=None, comment=None):
+    def __init__(self, size, offset, type_, name=None, comment=None):
         """
         Struct element class
         @param size: Size of element
         @param offset: Element offset within the struct
-        @param type: Element type
+        @param type_: Element type
         @param name: Element name string
         @param comment: Element comment (Optional)
         """
@@ -356,7 +327,7 @@ class StructElement():
         self.offset = offset
         self.size = size
 
-        self.type = type
+        self.type = type_
 
     def get_name(self):
         """
@@ -373,7 +344,6 @@ class StructElement():
         """
         idaapi.print_tinfo('', 0, 0, idaapi.PRTYPE_1LINE, self.type, '', '')
 
-
 #######################################################################################################################
 #
 #  IDA Struct class wrapper
@@ -388,19 +358,16 @@ class Struct():
 
         self.logger = logging.getLogger(__name__)
 
-        try:
-            self.name = ""
-            self.size = 0
-            self.element_num = 0
-            self.is_union = False
+        self.name = ""
+        self.size = 0
+        self.element_num = 0
+        self.is_union = False
 
-            self.elements = []
+        self.elements = []
 
-            self.type_info = type
-            self.udt_type_data = idaapi.udt_type_data_t()
+        self.type_info = type
+        self.udt_type_data = idaapi.udt_type_data_t()
 
-        except Exception as ex:
-            self.logger.exception("Failed to initialize Struct object: %s", ex)
 
         try:
             if self.getStructData():

@@ -69,8 +69,7 @@ class FunctionParserBase(object):
 
             arg_values = []
 
-            for arg_index in xrange(0, len(parsed_arg_vector)):
-                parsed_arg = parsed_arg_vector[arg_index]
+            for arg_index, parsed_arg in enumerate(parsed_arg_vector):
                 if not isinstance(parsed_arg, DebugValue):
                     raise TypeError("Invalid parsed argument value")
 
@@ -88,6 +87,7 @@ class FunctionParserBase(object):
             return arg_values, ret_arg_value
 
         except Exception as ex:
+            # TODO: format all the exceptions to get the stacktrace and not just an error. If relevant...
             self.logger.error("Could not parse function %s return arguments: %s", self.function.funcName, ex)
             return None
 
@@ -226,38 +226,10 @@ class FunctionParserBase(object):
         # Lookup a specific argument parser for this argument
         lookup_res = self.lookup_custom_parser(arg_index)
         if lookup_res is not None:
-            [parser, parser_params] = lookup_res
+            parser, parser_params = lookup_res
 
         return DebugValue(store_type,
                           loc,
                           type,
                           name,
                           custom_parser=parser)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
