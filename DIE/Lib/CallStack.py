@@ -42,20 +42,17 @@ class CallStack():
             self.count_function(funcContext.function.funcName)
             funcContext.get_arg_values_call()
 
-            return self.function_counter[funcContext.function.funcName]
-
-
-        except Exception as ex:
-            self.logger.exception("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
-            return -1
-
-        finally:
             callTree_Indx = len(self.callTree)
 
             # Each callstack element is a tuple containing the index into the calltree, and the function context object.
             callStackTup = (callTree_Indx, funcContext)
             self.callStack.append(callStackTup)
 
+            return self.function_counter[funcContext.function.funcName]
+
+        except Exception as ex:
+            self.logger.error("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
+            return -1
 
     def pop(self):
         """
