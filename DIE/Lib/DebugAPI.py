@@ -20,7 +20,7 @@ import DIE.Lib.DataParser
 from DIE.Lib.DIE_Exceptions import FuncCallExceedMax, NewCodeSectionException
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
-from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present, analyze_code_area
+from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present, analyze_area
 import DIE.Lib.DIEDb
 
 ##########################
@@ -186,9 +186,6 @@ class DebugHooker(DBG_Hooks):
             if iatEA is None and self.is_dyn_breakpoints:
                 self.bp_handler.walk_function(ea)
 
-            # Clear debugger memory cache  TODO: Check effectiveness of this instruction.
-            idaapi.invalidate_dbgmem_contents(idaapi.BADADDR, 0)
-
             # Save CALL context
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
 
@@ -196,22 +193,41 @@ class DebugHooker(DBG_Hooks):
             if func_call_num > self.config.max_func_call:
                 raise FuncCallExceedMax()
 
-        except FuncCallExceedMax as ex:
-            self.make_exception_last_func()
-
-        except NewCodeSectionException as ex:
-            self.new_code_section_handler(ex.ea, ex.section_start, ex.section_end)
-
-        except Exception as ex:
-            self.logger.exception("Failed while stepping into breakpoint: %s", ex)
-            exit(1)
-
-        # Continue Debugging
-        finally:
+            # Continue Debugging
             request_step_until_ret()
             run_requests()
             return 0
 
+        except FuncCallExceedMax as ex:
+            self.make_exception_last_func()
+
+            # Continue Debugging
+            request_step_until_ret()
+            run_requests()
+            return 0
+
+        except NewCodeSectionException as ex:
+            self.logger.info("Found new code segment")
+            if ex.section_start is not None and ex.section_end is not None:
+                self.logger.info("New code segment scope is %s - %s" % (hex(ex.section_start), hex(ex.section_end)))
+
+            if not self.config.code_discovery:
+                print "New code section has been reached."
+                request_suspend_process()  # Suspend Execution
+                run_requests()
+                return 0
+
+            self.logger.info("Analyzing new segment.")
+            analyze_area(ex.section_start, ex.section_end)
+
+            # Continue Debugging
+            request_step_until_ret()
+            run_requests()
+            return 0
+
+        except Exception as ex:
+            self.logger.exception("Failed while stepping into breakpoint: %s", ex)
+            exit(1)
 
     def dbg_step_until_ret(self):
         """
@@ -229,13 +245,6 @@ class DebugHooker(DBG_Hooks):
 
         except Exception as ex:
             self.logger.exception("Failed while stepping until return: %s", ex)
-
-    # def dbg_library_load(self, pid, tid, ea, name, base, size):
-    #     """
-    #     A new library has been loaded.
-    #     @return:
-    #     """
-    #     return 0
 
     def dbg_thread_start(self, pid, tid, ea):
         """
@@ -287,55 +296,6 @@ class DebugHooker(DBG_Hooks):
 
 ###############################################
 # Convenience Function
-
-    def new_code_section_handler(self, ea, section_start, section_end):
-        """
-        Handles detection of a new codes section while debugging.
-        @param ea: The current ea
-        @param section_start: Start ea of the newly detected segment
-        @param section_end: End ea of the newly detected segment
-        @return: Retunrs True if section was successfully handled, otherwise returns False.
-        """
-        try:
-            self.logger.info("Found new code segment")
-            if section_start is not None and section_start is not None:
-                self.logger.info("New code segment scope is %s - %s" % (hex(section_start), hex(section_end)))
-
-            # If code discovery is not set, suspend the process and let user handle this code.
-            if not self.config.code_discovery:
-                #print "New code section has been reached."  #TODO: Debug Remove
-                request_suspend_process()  # Suspend Execution
-                run_requests()
-                return True
-
-            # If code discovery is set, try to auto analyze the code section
-            #print "Auto analyzing new code section" #TODO: Debug Remove
-            self.logger.info("Analyzing new segment.")
-            if not analyze_code_area(ea, section_start, section_end):
-                self.logger.error("Could not analyze new code section.")
-                return False
-
-            # Must also walk over new code, find new function calls and place breakpoints
-            self.bp_handler.walk_function(ea)
-
-            #TODO: Debug! remove.  Pause execution here.
-            #request_suspend_process()  # Suspend Execution
-            #run_requests()
-            #return True
-
-            # Save context of the function call in new section.
-            self.current_callstack.push(ea)
-
-            return True
-
-        # A new code exception can recursively occur within a new code exception handling routine
-        except NewCodeSectionException as ex:
-            self.new_code_section_handler(ex.ea, ex.section_start, ex.section_end)
-            return True
-
-        except Exception as ex:
-            self.logger.exception("Error while handling new code section: %s", ex)
-            return False
 
     def make_exception_last_func(self):
         """

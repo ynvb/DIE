@@ -1,7 +1,7 @@
 __author__ = 'yanivb'
 
 from DIE.Lib.FunctionContext import *
-from DIE.Lib.IDAConnector import check_new_code_area, is_ea_loaded_module
+from DIE.Lib.IDAConnector import check_new_code_area
 from DIE.Lib.DIE_Exceptions import NewCodeSectionException
 import idautils
 from collections import defaultdict
@@ -33,14 +33,13 @@ class CallStack():
         @param library_name: Name of containing library (for library functions)
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
+
         # Check if ea is in new code section.
         if iatEA is None:
-            # Verify we haven`t hit a loaded module
-            if not is_ea_loaded_module(ea):
-                new_area_t = check_new_code_area(ea)
-                if new_area_t is not None:
-                    (area_start, area_end) = new_area_t  # New code section scope
-                    raise NewCodeSectionException(ea, section_start=area_start, section_end=area_end)
+            new_area_t = check_new_code_area(ea)
+            if new_area_t is not None:
+                (area_start, area_end) = new_area_t  # New code section scope
+                raise NewCodeSectionException(section_start=area_start, section_end=area_end)
         try:
 
             is_new_func = self.check_if_new_func(ea, iatEA)

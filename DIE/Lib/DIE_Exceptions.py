@@ -10,13 +10,11 @@ class NewCodeSectionException(Exception):
     """
     New code section detected exception
     """
-    def __init__(self, ea, section_start=None, section_end=None):
+    def __init__(self, section_start=None, section_end=None):
         """
-        @param ea: The current ea
         @param section_start: New code section start address
         @param section_end: New code section end address
         """
-        self.ea = ea
         self.section_start = section_start
         self.section_end = section_end
 

@@ -424,10 +424,6 @@ class BpHandler():
                     if is_call(head):
                         self.addBP(head)
 
-                # If current ea is not code, quit.
-                else:
-                    break
-
             self.logger.debug("Function %s was successfully walked for breakpoints", function_name)
             return True
 

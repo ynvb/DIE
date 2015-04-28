@@ -6,7 +6,6 @@ import idc
 import idaapi
 import idautils
 import re
-import os
 
 ################################################################
 #
@@ -37,17 +36,13 @@ def get_function_name(ea):
         if funcName is None or funcName is "":
             funcName = idc.Name(ea)
 
-        # If we still have no function name, make one up. Format is - 'UNKN_FNC_4120000'
-        if funcName == "":
-            funcName = "UNKN_FNC_%s" % hex(ea)
-
         return funcName
 
 def get_func_start_adr(ea):
     """
     Get function start address
     @param ea: ea from within the function boundaries.
-    @return: The function start ea. If function start was not found return current ea.
+    @return: The function start ea. If no ea found returns None.
     """
     try:
         if ea is None:
@@ -57,7 +52,7 @@ def get_func_start_adr(ea):
         if start_adrs != idc.BADADDR:
             return start_adrs
 
-        return ea
+        return None
 
     except Exception as ex:
         raise RuntimeError("Count not locate start address for function %s: %s" % (hex(ea), ex))
@@ -263,48 +258,24 @@ def check_new_code_area(ea):
 
     return (idc.SegStart(ea), idc.SegEnd(ea))
 
-def analyze_code_area(ea, start_ea, end_ea):
+def analyze_area(start_ea, end_ea):
     """
     Analyze a code area while debugging
-    @param ea: Current EA
     @param start_ea: Area start address
     @param end_ea:  Area end address
     @return: True if area successfully analyzed, otherwise False.
     """
-    if not idc.AnalyzeArea(start_ea, end_ea):
-        return False
+    #TODO: Check with hex-rays why is it necessary to refresh memory.
+    refresh_debugger_memory()
 
-    if not idc.MakeCode(ea):
+    if idc.AnalyzeArea(start_ea, end_ea) !=1:
         return False
-
-    # Refresh the entire debugger memory config
-    idaapi.invalidate_dbgmem_config()
 
     return True
 
 def is_ida_debugger_present():
     """
     Check if IDA debugger is loaded and can be used
-    @return: True if IDA debugger has been set correctly, Otherwise returns False
+    @return: True if IDA debugger has been set correctly, Otherwise returns Fals
     """
     return idaapi.dbg_can_query()
-    #return idaapi.is_debugger_on()
-
-def is_ea_loaded_module(ea):
-    """
-    Check if the ea is in a segment belonging to a currently loaded module.
-    @param ea: current EA Effective Address
-    @return: Return True if ea is in a loaded module segment, Otherwise return False
-    """
-    cur_seg = idc.SegName(ea)
-
-    if cur_seg == "":
-        # Error: could not determine current segment name
-        # Returning True as default value.
-        return True
-
-    for module in idautils.Modules():
-        if cur_seg == os.path.basename(module.name):
-            return True
-
-    return False
