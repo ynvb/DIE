@@ -20,7 +20,7 @@ import DIE.Lib.DataParser
 from DIE.Lib.DIE_Exceptions import FuncCallExceedMax
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
-from DIE.Lib.IDAConnector import get_cur_ea, is_call
+from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present
 import DIE.Lib.DIEDb
 
 ##########################
@@ -80,6 +80,10 @@ class DebugHooker(DBG_Hooks):
             self.UnHook()
 
         try:
+            if not is_ida_debugger_present():
+                self.logger.error("DIE cannot be started with no debugger defined.")
+                return
+
             self.logger.info("Hooking to debugger.")
             self.hook()
             self.isHooked = True

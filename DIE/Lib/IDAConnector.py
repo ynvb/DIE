@@ -6,6 +6,7 @@ import idc
 import idaapi
 import idautils
 import re
+import os
 
 ################################################################
 #
@@ -36,13 +37,17 @@ def get_function_name(ea):
         if funcName is None or funcName is "":
             funcName = idc.Name(ea)
 
+        # If we still have no function name, make one up. Format is - 'UNKN_FNC_4120000'
+        if funcName == "":
+            funcName = "UNKN_FNC_%s" % hex(ea)
+
         return funcName
 
 def get_func_start_adr(ea):
     """
     Get function start address
     @param ea: ea from within the function boundaries.
-    @return: The function start ea. If no ea found returns None.
+    @return: The function start ea. If function start was not found return current ea.
     """
     try:
         if ea is None:
@@ -52,7 +57,7 @@ def get_func_start_adr(ea):
         if start_adrs != idc.BADADDR:
             return start_adrs
 
-        return None
+        return ea
 
     except Exception as ex:
         raise RuntimeError("Count not locate start address for function %s: %s" % (hex(ea), ex))
