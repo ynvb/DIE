@@ -12,7 +12,7 @@ class SettingsView(Form):
                              "Form Setup View\n"
                              "\n"
                              "Debbuging:\n"
-                             "<##Maximal function calls:   {iMaxFuncCall}>\n"
+                             "<##Maximal function calls:{iMaxFuncCall}>\n"
                              "<##Maximal dereference depth:{iDerefDepth}>\n"
                              "\n"
                              "\n"
