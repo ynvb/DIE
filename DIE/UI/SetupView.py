@@ -58,15 +58,15 @@ def Show(config_filename):
     ok = settings.Execute()
     if ok ==1 :
 
-        die_config.set_deref(settings.rDeref.checked)
-        die_config.set_raw(settings.rRaw.checked)
-        die_config.set_parse(settings.rParse.checked)
-        die_config.set_array(settings.rArray.checked)
-        die_config.set_container(settings.rContainer.checked)
-        die_config.set_func_args(settings.rArgs.checked)
+        die_config.is_deref = settings.rDeref.checked
+        die_config.is_raw = settings.rRaw.checked
+        die_config.is_parse = settings.rParse.checked
+        die_config.is_array = settings.rArray.checked
+        die_config.is_container = settings.rContainer.checked
+        die_config.is_func_args = settings.rArgs.checked
 
-        die_config.set_max_deref_depth(settings.iDerefDepth.value)
-        die_config.set_max_func_call(settings.iMaxFuncCall.value)
+        die_config.max_deref_depth = settings.iDerefDepth.value
+        die_config.max_func_call = settings.iMaxFuncCall.value
 
 
         print settings.iMaxFuncCall.value

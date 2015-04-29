@@ -159,7 +159,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_deref(self, value):
+    @is_deref.setter
+    def is_deref(self, value):
         try:
             if value:
                 self.config["DebugValues"]["is_deref"] = "1"
@@ -180,7 +181,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_container(self, value):
+    @is_container.setter
+    def is_container(self, value):
         try:
             if value:
                 self.config["DebugValues"]["is_container"] = "1"
@@ -201,7 +203,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_array(self, value):
+    @is_array.setter
+    def is_array(self, value):
         try:
             if value:
                 self.config["DebugValues"]["is_array"] = "1"
@@ -222,7 +225,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_parse(self, value):
+    @is_parse.setter
+    def is_parse(self, value):
         try:
             if value:
                 self.config["DebugValues"]["is_parse"] = "1"
@@ -243,7 +247,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_raw(self, value):
+    @is_raw.setter
+    def is_raw(self, value):
         try:
             if value:
                 self.config["DebugValues"]["is_raw"] = "1"
@@ -268,7 +273,8 @@ class DIE_Config():
         except:
             return True
 
-    def set_func_args(self, value):
+    @get_func_args.setter
+    def get_func_args(self, value):
         try:
             if value:
                 self.config["FunctionContext"]["get_func_args"] = "1"
@@ -292,7 +298,8 @@ class DIE_Config():
         except:
             return 100
 
-    def set_max_func_call(self, value):
+    @max_func_call.setter
+    def max_func_call(self, value):
         try:
             self.config["Debugging"]["max_func_call"] = value
 
@@ -307,7 +314,8 @@ class DIE_Config():
         except:
             return 3
 
-    def set_max_deref_depth(self, value):
+    @max_deref_depth.setter
+    def max_deref_depth(self, value):
         try:
             self.config["Debugging"]["max_deref_depth"] = value
 
