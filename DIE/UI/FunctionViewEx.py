@@ -1,8 +1,5 @@
 from awesome.context import ignored
 import sark
-
-
-
 import idaapi
 import idautils
 import idc

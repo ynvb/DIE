@@ -1,7 +1,4 @@
 import sark
-
-
-
 import idaapi
 import logging
 import DIE.Lib.DIE_Exceptions

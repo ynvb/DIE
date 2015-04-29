@@ -1,7 +1,4 @@
 from DIE.Lib import DataParser
-
-
-
 from idaapi import PluginForm
 from PySide import QtGui, QtCore
 

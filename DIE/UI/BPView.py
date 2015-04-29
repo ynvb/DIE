@@ -1,9 +1,8 @@
-from DIE.Lib import BpHandler
-
-
+from PySide import QtGui, QtCore
 
 from idaapi import PluginForm
-from PySide import QtGui, QtCore
+
+from DIE.Lib import BpHandler
 import DIE.UI.Die_Icons
 
 

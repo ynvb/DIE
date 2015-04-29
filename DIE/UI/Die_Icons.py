@@ -1,7 +1,4 @@
 from DIE.Lib import DieConfig
-
-
-
 import idaapi
 import os
 import DIE.Lib.DieConfig

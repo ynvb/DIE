@@ -38,7 +38,6 @@ class SettingsView(Form):
 
 
 def Show(config_filename):
-    global chooser
     die_config = DIE.Lib.DieConfig.get_config()
 
     settings = SettingsView()
