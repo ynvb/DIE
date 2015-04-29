@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 
 from DIE.Lib.DataPluginBase import DataPluginBase
 import idc

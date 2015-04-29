@@ -1,7 +1,7 @@
 from awesome.context import ignored
 import sark
 
-__author__ = 'yanivb'
+
 
 import idaapi
 import idautils

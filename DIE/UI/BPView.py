@@ -1,6 +1,6 @@
 from DIE.Lib import BpHandler
 
-__author__ = 'yanivb'
+
 
 from idaapi import PluginForm
 from PySide import QtGui, QtCore

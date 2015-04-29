@@ -1,6 +1,6 @@
 import sark
 
-__author__ = 'yanivb'
+
 
 import idaapi
 import logging

@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 
 import logging
 from DIE.Lib.IDATypeWrapers import Function, FuncArg

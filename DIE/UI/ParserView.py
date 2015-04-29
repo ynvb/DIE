@@ -1,6 +1,6 @@
 from DIE.Lib import DataParser
 
-__author__ = 'yanivb'
+
 
 from idaapi import PluginForm
 from PySide import QtGui, QtCore

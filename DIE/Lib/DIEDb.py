@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 
 MAX_SCORE = 10
 
-__author__ = 'yanivb'
+
 import logging
 import pickle
 import os

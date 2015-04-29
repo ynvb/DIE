@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 
 from PySide import QtGui, QtCore
 

@@ -1,6 +1,6 @@
 from DIE.Lib import DieConfig
 
-__author__ = 'yanivb'
+
 
 import idaapi
 import os

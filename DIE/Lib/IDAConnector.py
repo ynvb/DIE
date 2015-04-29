@@ -1,6 +1,6 @@
 import sark
 
-__author__ = 'yanivb'
+
 
 from idaapi import *
 from idc import *

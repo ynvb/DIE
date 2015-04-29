@@ -1,6 +1,6 @@
 from awesome.context import ignored
 
-__author__ = 'yanivb'
+
 
 import logging
 import logging.handlers as handlers

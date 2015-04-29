@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 
 from idaapi import Form
 import os
