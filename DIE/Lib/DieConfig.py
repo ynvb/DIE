@@ -355,10 +355,15 @@ class DIE_Config():
 #                              Singleton
 #############################################################################
 
-_config_parser = DIE_Config()
+_config_parser = None
 
 def get_config():
     """
     Return a singleton instance of the global configuration object
     """
     return _config_parser
+
+
+def initialize():
+    global _config_parser
+    _config_parser = DIE_Config()

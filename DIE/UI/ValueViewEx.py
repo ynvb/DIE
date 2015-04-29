@@ -289,7 +289,11 @@ class ValueView(PluginForm):
 
 
 # Singelton
-_value_view = ValueView()
+_value_view = None
+def initialize():
+    global _value_view
+    _value_view = ValueView()
+
 
 def get_view():
     return _value_view

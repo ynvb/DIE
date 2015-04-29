@@ -37,6 +37,7 @@ import DIE.UI.ValueViewEx
 import DIE.UI.ParserView
 import DIE.UI.BPView
 import DIE.UI.SetupView
+import DIE.UI.Die_Icons
 from DIE.UI.FuncScopeChooser import ScopeChooser
 from DIE.UI.AboutScreen import About
 
@@ -78,8 +79,11 @@ class DieManager():
 
         ### DIE Configuration ###
         self.config_file_name = os.path.join(os.getcwd(), "DIE.cfg")
+        DIE.Lib.DieConfig.initialize()
         config = DIE.Lib.DieConfig.get_config()
         config.load_configuration(self.config_file_name)
+        self.die_config = config
+
 
         self.addmenu_item_ctxs = []
         self.icon_list = {}
@@ -87,8 +91,12 @@ class DieManager():
         self.debugAPI = DebugAPI.DebugHooker(is_dbg=self.is_dbg)
         DIE.Lib.DIEDb.initialize_db()
         self.die_db = DIE.Lib.DIEDb.get_db()
-        self.die_config = DIE.Lib.DieConfig.get_config()
 
+        DIE.UI.FunctionViewEx.initialize()
+        DIE.UI.ValueViewEx.initialize()
+        DIE.UI.BPView.initialize()
+        DIE.UI.ParserView.initialize()
+        DIE.UI.Die_Icons.initlialize()
         self.function_view = DIE.UI.FunctionViewEx.get_view()
         self.value_view = DIE.UI.ValueViewEx.get_view()
         self.bp_view = DIE.UI.BPView.get_view()

@@ -1003,7 +1003,10 @@ class TreeViewDelegate(QtGui.QStyledItemDelegate):
 
 
 # Singelton
-function_view = FunctionView()
+function_view = None
+def initialize():
+    global function_view
+    function_view = FunctionView()
 
 def get_view():
     return function_view

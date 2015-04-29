@@ -78,7 +78,10 @@ class ParserView(PluginForm):
 
 
 
-_parser_view = ParserView()
+_parser_view = None
+def initialize():
+    global _parser_view
+    _parser_view = ParserView()
 
 def get_view():
     return _parser_view
