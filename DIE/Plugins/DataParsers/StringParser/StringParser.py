@@ -106,7 +106,7 @@ class StringParser(DataPluginBase):
 
         if value is not None:
             raw_value = "0x%s" % value.encode("hex")
-            value = "\'%s\'" % value
+            value = repr(value)
             return (value, raw_value)
 
         return (None, None)
