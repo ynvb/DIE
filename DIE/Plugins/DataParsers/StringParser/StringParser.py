@@ -89,13 +89,15 @@ class StringParser(DataPluginBase):
             value = idc.GetString(rawValue, strtype=idc.ASCSTR_C)
             description = "ASCII C-String"
 
-        if self.type_params == UNICODE_STR:
+        elif self.type_params == UNICODE_STR:
             value = idc.GetString(rawValue, strtype=idc.ASCSTR_UNICODE)
             description = "Unicode String"
 
-        if value is not None:
-            value, raw_value = self.normalize_raw_value(value)
-            self.addParsedvalue(value, 0, description, raw_value)
+        else:
+            return
+
+        value, raw_value = self.normalize_raw_value(value)
+        self.addParsedvalue(value, 0, description, raw_value)
 
     def normalize_raw_value(self, value):
         """
