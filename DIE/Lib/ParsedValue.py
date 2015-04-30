@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 MAX_SCORE = 10
 
 

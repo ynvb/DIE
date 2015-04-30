@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 
 MAX_SCORE = 10
 
-__author__ = 'yanivb'
+
 import logging
 import pickle
 import os
@@ -78,27 +78,19 @@ class DIE_DB():
         @param function: Get a list of function contexts for this function only.
         @return:
         """
-        try:
-            function_context_list = []
+        if function is None:
+            # Global function context list (for the entire db)
+            cur_context_list = self.function_contexts
+        else:
+            # Local function context list (for a specific function)
+            cur_context_list = function.function_contexts
 
-            if function is None:
-                # Global function context list (for the entire db)
-                cur_context_list = self.function_contexts
-            else:
-                # Local function context list (for a specific function)
-                cur_context_list = function.function_contexts
+        # No contexts found
+        if cur_context_list is None:
+            return []
 
-            # No contexts found
-            if cur_context_list is None:
-                return function_context_list
+        return self.function_contexts.values()
 
-            for function_context_id in cur_context_list:
-                function_context_list.append(self.function_contexts[function_context_id])
-
-            return function_context_list
-
-        except Exception as ex:
-            self.logger.exception("Failed to get function context list: %s", ex)
 
     def get_function_context_dict(self, function=None):
         """
@@ -289,13 +281,8 @@ class DIE_DB():
         Get all contained value types
         @return: a list of all of the contained value types
         """
-        type_list = []
-        for parsed_value_id in self.parsed_values:
-            cur_val = self.parsed_values[parsed_value_id]
-            if not cur_val.type in type_list:
-                type_list.append(cur_val.type)
 
-        return type_list
+        return list(set(self.parsed_values.values()))
 
     def get_parsed_value_contexts(self, value):
         """

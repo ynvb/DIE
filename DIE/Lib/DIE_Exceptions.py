@@ -1,4 +1,4 @@
-__author__ = 'yanivb'
+
 
 class DieException(Exception):
     pass

@@ -1,6 +1,6 @@
 from DIE.Lib import DieConfig, DataParser
 
-__author__ = 'yanivb'
+
 
 
 import idaapi

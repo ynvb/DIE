@@ -1,7 +1,4 @@
 from DIE.Lib import DieConfig
-
-__author__ = 'yanivb'
-
 import idaapi
 import os
 import DIE.Lib.DieConfig
@@ -159,7 +156,11 @@ class DieIcons():
             return None
 
 
-_die_icons = DieIcons()
+
+_die_icons = None
+def initlialize():
+    global _die_icons
+    _die_icons = DieIcons()
 
 
 def get_die_icons():

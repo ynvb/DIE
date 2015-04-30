@@ -1,2 +1,4 @@
+awesomelib
+PySide
 yapsy
 -e git+https://github.com/tmr232/Sark.git#egg=Sark

@@ -1,7 +1,7 @@
 from awesome import context
 
 
-__author__ = 'yanivb'
+
 
 import time
 

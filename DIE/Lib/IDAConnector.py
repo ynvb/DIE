@@ -1,14 +1,7 @@
 import sark
-
-__author__ = 'yanivb'
-
-from idaapi import *
-from idc import *
 import idc
 import idaapi
 import idautils
-import re
-import os
 from sark.debug import Registers
 
 ################################################################
@@ -141,7 +134,7 @@ def get_cur_ea():
     """
     Return the current effective address
     """
-    return GetRegValue(Registers().ip.name)
+    return idc.GetRegValue(Registers().ip.name)
 
 # TODO: Change this to be architecture independent
 def get_ret_adr():
@@ -150,12 +143,12 @@ def get_ret_adr():
     """
     sp = Registers().sp.name
 
-    sp_value = GetRegValue(sp)
+    sp_value = idc.GetRegValue(sp)
 
     value_getter = {
-        16:DbgWord,
-        32:DbgDword,
-        64:DbgQword
+        16:idc.DbgWord,
+        32:idc.DbgDword,
+        64:idc.DbgQword
     }[get_native_size()]
 
     pushed_ip = value_getter(sp_value)
@@ -166,7 +159,7 @@ def get_sp():
     """
     Get the current stack pointer address
     """
-    return GetRegValue(Registers().sp.name)
+    return idc.GetRegValue(Registers().sp.name)
 
 def get_adrs_mem(ea):
     """
@@ -179,13 +172,13 @@ def get_adrs_mem(ea):
     nativeSize = get_native_size()
 
     if nativeSize is 16:
-        return DbgWord(ea)
+        return idc.DbgWord(ea)
 
     if nativeSize is 32:
-        return DbgDword(ea)
+        return idc.DbgDword(ea)
 
     if nativeSize is 64:
-        return DbgQword(ea)
+        return idc.DbgQword(ea)
 
 # Ask hex-rays how can this be done a bit more gracefully..
 def regOffsetToName(offset):
@@ -213,7 +206,12 @@ def is_indirect(ea):
     @param ea: Effective address of the call instruction.
     @return:
     """
-    operand = sark.Line(ea).insn.operands[0]
+    try:
+        operand = sark.Line(ea).insn.operands[0]
+    except IndexError:
+        # If there is no operands, it cannot be indirect ;-)
+        return False
+
     # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
     if operand.type.is_phrase or operand.type.is_displ:
         return True

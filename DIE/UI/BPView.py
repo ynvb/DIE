@@ -1,9 +1,8 @@
-from DIE.Lib import BpHandler
-
-__author__ = 'yanivb'
+from PySide import QtGui, QtCore
 
 from idaapi import PluginForm
-from PySide import QtGui, QtCore
+
+from DIE.Lib import BpHandler
 import DIE.UI.Die_Icons
 
 
@@ -117,12 +116,11 @@ class BreakpointView(PluginForm):
             current_row += 1
 
 
-_bp_view = BreakpointView()
+_bp_view = None
 
 def get_view():
     return _bp_view
 
-
-
-
-
+def initialize():
+    global _bp_view
+    _bp_view = BreakpointView()
