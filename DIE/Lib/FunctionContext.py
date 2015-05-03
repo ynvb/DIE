@@ -1,10 +1,5 @@
 from awesome import context
-
-
-
-
 import time
-
 from idc import *
 from idaapi import *
 #from DIE.Lib.Function import *
@@ -56,8 +51,14 @@ class FunctionContext():
         self.total_proc_time = 0    # Total processing time in seconds.
 
         try:
-            ### Function Data
-            self.function = Function(ea, iatEA, library_name=library_name)  # This (The Callee) function
+            #self.function = self._getFunctionHelper(ea, iatEA, library_name=library_name)  # This (The Callee) function
+            self.function = Function(ea, iatEA, library_name=library_name)
+
+        except DIE.Lib.DIE_Exceptions.DieNoFunction:
+            self.logger.info("Could not retrieve function information at address: %s", hex(ea))
+            raise
+
+        try:
             self.callingEA = get_ret_adr()  # The ea of the CALL instruction
             self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
 
@@ -143,6 +144,26 @@ class FunctionContext():
         Get a list of registers\value tuples.
         """
         return idaapi.dbg_get_registers()
+
+    def _getFunctionHelper(self, ea, iatEA, library_name):
+        """
+        An helper class for getting function data. if function is not defines, tries to define it.
+        @param ea: Any address within the function boundaries
+        @return: Returns a Function object.
+        """
+        try:
+            return Function(ea, iatEA, library_name=library_name)
+
+        except DIE.Lib.DIE_Exceptions.DieNoFunction as ex:
+            self.logger.debug("Trying to define a new function at address: %s", hex(ea))
+            if MakeFunction(ea, BADADDR):
+                self.logger.info("New function was defined at: %s", hex(ea))
+                return Function(ea, iatEA, library_name=library_name)
+                 # If this second attempt fails again, the exception should be handled by the calling function.
+
+
+
+
 
 
 

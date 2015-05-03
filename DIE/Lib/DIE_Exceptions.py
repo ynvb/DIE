@@ -20,3 +20,15 @@ class DbFileMismatch(DieException):
 
 class DieNoFunction(DieException):
     pass
+
+class DieCallStackPushError(DieException):
+    """
+    Error pushing function to DIE callstack
+    """
+    pass
+
+class DieCallStackPopError(DieException):
+    """
+    Error poping function from DIE callstack
+    """
+    pass

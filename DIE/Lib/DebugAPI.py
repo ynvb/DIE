@@ -17,7 +17,7 @@ from idc import *
 ### DIE Imports###
 import DIE.Lib.DieConfig
 import DIE.Lib.DataParser
-from DIE.Lib.DIE_Exceptions import FuncCallExceedMax
+from DIE.Lib.DIE_Exceptions import FuncCallExceedMax, DieCallStackPopError
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
 from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present
@@ -200,23 +200,22 @@ class DebugHooker(DBG_Hooks):
             if func_call_num > self.config.max_func_call:
                 raise FuncCallExceedMax()
 
-            # Continue Debugging
-            request_step_until_ret()
-            run_requests()
-
-            return 0
-
         except FuncCallExceedMax as ex:
             self.make_exception_last_func()
 
-            # Continue Debugging
-            request_step_until_ret()
-            run_requests()
-            return 0
+        except DieCallStackPushError as ex:
+            self.logger.exception("Error while pushing function to call stack")
+            #TODO: Handle this exception
 
         except Exception as ex:
             self.logger.exception("failed while stepping into breakpoint: %s", ex)
             exit(1)
+
+        finally:
+            # Continue Debugging
+            request_step_until_ret()
+            run_requests()
+            return 0
 
     def dbg_step_until_ret(self):
         """
@@ -228,12 +227,17 @@ class DebugHooker(DBG_Hooks):
             # Save Return Context
             self.current_callstack.pop()
 
-            if not self.is_dbg_pause:
-                request_continue_process()
-                run_requests()
+        except DieCallStackPopError as ex:
+            self.logger.exception("Error while popping function from callstack:")
+            #TODO: Handle this exception
 
         except Exception as ex:
             self.logger.exception("Failed while stepping until return: %s", ex)
+
+        finally:
+            if not self.is_dbg_pause:
+                request_continue_process()
+                run_requests()
 
     def dbg_thread_start(self, pid, tid, ea):
         """
@@ -292,6 +296,12 @@ class DebugHooker(DBG_Hooks):
 
     def dbg_continue_process(self):
         return True
+
+    def dbg_last(self):
+        """
+        The last debugger notification code
+        """
+        self.logger.info("\n\n\n*****************************************DONEDONEDONEDONEONDE*********************************************************\n\n\n")
 
 ###############################################
 # Convenience Function

@@ -1,5 +1,4 @@
-
-
+from DIE.Lib.DIE_Exceptions import DieCallStackPushError, DieCallStackPopError
 from DIE.Lib.FunctionContext import *
 import idautils
 from collections import defaultdict
@@ -51,8 +50,8 @@ class CallStack():
             return self.function_counter[funcContext.function.funcName]
 
         except Exception as ex:
-            self.logger.exception("Error while pushing function at address %s to callstack: %s", hex(ea), ex)
-            return -1
+            self.logger.exception("Error while pushing function at address %s to callstack.", (hex(ea),))
+            raise DieCallStackPushError("Error while pushing function at address %s to callstack", (hex(ea),))
 
     def pop(self):
         """
@@ -76,8 +75,7 @@ class CallStack():
             return True
 
         except Exception as ex:
-           self.logger.exception("Error while poping function from callstack: %s", ex)
-           return False
+           raise DieCallStackPopError("Error while poping function from callstack")
 
     def check_if_new_func(self, ea, iatEA):
         """

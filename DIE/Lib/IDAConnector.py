@@ -115,9 +115,6 @@ def get_proc_type():
     except Exception as ex:
         raise RuntimeError("Could not retrieve processor type: %s" %ex)
 
-
-
-
 def is_call(ea):
     """
     Check if the current instruction a CALL instruction
@@ -225,3 +222,12 @@ def is_ida_debugger_present():
     @return: True if IDA debugger has been set correctly, Otherwise returns Fals
     """
     return idaapi.dbg_can_query()
+
+def is_import_or_lib_func(ea):
+    """
+    Is ea part of an imported function or a known library?
+    @param ea: any ea within the function scope
+    @return: True if function is either imported or a known library function.
+    """
+
+    return sark.Function(ea).flags & (idaapi.FUNC_LIB | idaapi.FUNC_THUNK)
