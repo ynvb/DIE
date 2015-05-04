@@ -61,17 +61,17 @@ def get_function_end_address(ea):
     """
     Get function end address
     @param ea: function start_ea.
-    @return: The function end ea. If no ea found returns None.
+    @return: The function end ea. If no function end ea found returns None.
     """
     try:
         if ea is None:
             return None
 
-        end_adrs = idc.PrevHead( idc.GetFunctionAttr(ea, idc.FUNCATTR_END), ea)
-        if end_adrs != idc.BADADDR:
-            return end_adrs
+        func_attr_end = idc.GetFunctionAttr(ea, idc.FUNCATTR_END)
+        if func_attr_end == idc.BADADDR:
+            return None
 
-        return None
+        return idc.PrevHead(func_attr_end, ea)
 
     except Exception as ex:
         raise RuntimeError("Count not locate end address for function %s: %s" % (hex(ea), ex))
@@ -209,12 +209,18 @@ def is_indirect(ea):
         # If there is no operands, it cannot be indirect ;-)
         return False
 
+    except sark.exceptions.SarkNoInstruction:
+        # If there is no instruction, it surely isn't indirect ;)
+        return False
+
+    except Exception:
+        return False
+
     # If the CALL instruction first operand is either of [Base + Index] or [Base + Index + Displacement] type.
     if operand.type.is_phrase or operand.type.is_displ:
         return True
 
     return False
-
 
 def is_ida_debugger_present():
     """

@@ -406,6 +406,8 @@ class BpHandler():
         """
         try:
             function_name = get_function_name(ea)
+            self.logger.debug("Walking function %s at address %s for breakpoints", function_name, hex(ea))
+
             if function_name in self.walked_functions:
                 self.logger.debug("No breakpoints will be set in function %s, "
                                   "since it was already walked before.", function_name)

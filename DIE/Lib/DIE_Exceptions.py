@@ -25,10 +25,28 @@ class DieCallStackPushError(DieException):
     """
     Error pushing function to DIE callstack
     """
-    pass
+
+    def __init__(self, ea, function_name=None):
+        """
+        @param ea: Function address
+        """
+        self.ea = ea
+        self.function_name = function_name
 
 class DieCallStackPopError(DieException):
     """
     Error poping function from DIE callstack
+    """
+    pass
+
+class DieMemNotLoaded(DieException):
+    """
+    An attempt was made to access an unloaded memory address
+    """
+    pass
+
+class DieLibraryPreviouslyLoaded(DieException):
+    """
+    Library was previously loaded
     """
     pass

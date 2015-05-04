@@ -50,8 +50,8 @@ class CallStack():
             return self.function_counter[funcContext.function.funcName]
 
         except Exception as ex:
-            self.logger.exception("Error while pushing function at address %s to callstack.", (hex(ea),))
-            raise DieCallStackPushError("Error while pushing function at address %s to callstack", (hex(ea),))
+            self.logger.exception("Error while pushing function at address %s to callstack", hex(ea))
+            raise DieCallStackPushError(ea)
 
     def pop(self):
         """

@@ -178,34 +178,38 @@ class DebugHooker(DBG_Hooks):
             library_name = None
 
             # Is this a library function or a native one?
-            if self.runtime_imports.is_func_imported(ea):
-                iatEA, library_name = self.runtime_imports.find_func_iat_adrs(ea)
+            #if self.runtime_imports.is_func_imported(ea):
+                #iatEA, library_name = self.runtime_imports.find_func_iat_adrs(ea)
+
+            # If function in IAT, retrieve IAT details
+            iatEA, library_name = self.runtime_imports.find_func_iat_adrs(ea)
 
             # If stepped into an excepted function, remove calling bp and skip over.
             if self.bp_handler.is_exception_func(ea, iatEA):
                 self.logger.debug("Removing breakpoint from %s", hex(self.prev_bp_ea))
                 self.bp_handler.removeBP(self.prev_bp_ea)
-                request_step_until_ret()
-                run_requests()
+                #request_step_until_ret()
+                #run_requests()
                 return 0
 
             # If this is a native function and dynamic break-pointing is set, add breakpoints to current function
-            if iatEA is None and self.is_dyn_breakpoints:
-                self.bp_handler.walk_function(ea)
+            # if (iatEA is None
+            #         and not self.runtime_imports.is_loaded_lib_section(ea)
+            #         and self.is_dyn_breakpoints):
 
-            # Save CALL context
+             # Save CALL context
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
+
+            #if not self.runtime_imports.is_func_imported_ex(ea) and self.is_dyn_breakpoints:
+            if not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:
+                self.bp_handler.walk_function(ea)
 
             # Check if total number of function calls exceeded the max configured value
             if func_call_num > self.config.max_func_call:
-                raise FuncCallExceedMax()
-
-        except FuncCallExceedMax as ex:
-            self.make_exception_last_func()
+                self.make_exception_last_func()
 
         except DieCallStackPushError as ex:
-            self.logger.exception("Error while pushing function to call stack")
-            #TODO: Handle this exception
+            self._callStackPushErrorHandler(ex.ea)
 
         except Exception as ex:
             self.logger.exception("failed while stepping into breakpoint: %s", ex)
@@ -258,6 +262,29 @@ class DebugHooker(DBG_Hooks):
 
     #def dbg_thread_exit(self, pid, tid, ea, exit_code):
 
+
+
+    # def dbg_library_load(self, pid, tid, ea, name, base, size):
+    #     """
+    #     New library loaded
+    #     """
+    #     try:
+    #         # If library is not in IAT, identify it by memory section.
+    #         if not self.runtime_imports.is_loaded_module(name):
+    #             self.runtime_imports.add_loaded_lib_section(base, base+size)
+    #
+    #     except DieLibraryPreviouslyLoaded:
+    #         pass
+    #
+    #     except Exception as ex:
+    #         self.logger.exception("Error while mapping loaded library")
+
+    # def dbg_exception(self, pid, tid, ea, code, can_cont, exc_ea, info):
+    #     """
+    #     Debug Exception Handler
+    #     """
+    #     pass
+
     def dbg_process_exit(self, pid, tid, ea, exit_code):
         """
         TODO: debugging, should be implemented fully.
@@ -297,15 +324,13 @@ class DebugHooker(DBG_Hooks):
     def dbg_continue_process(self):
         return True
 
-    def dbg_last(self):
-        """
-        The last debugger notification code
-        """
-        self.logger.info("\n\n\n*****************************************DONEDONEDONEDONEONDE*********************************************************\n\n\n")
+    # def dbg_last(self):
+    #     """
+    #     The last debugger notification code
+    #     """
 
 ###############################################
 # Convenience Function
-
 
     def make_exception_last_func(self):
         """
@@ -325,13 +350,29 @@ class DebugHooker(DBG_Hooks):
             self.logger.debug("Adding address %s to exception list", except_ea)
             self.bp_handler.add_bp_ea_exception(except_ea)
             self.logger.debug("Adding function name %s to exception list", except_name)
-            self.bp_handler.add_bp_funcname_exception(except_name, reload_bps=True)
+            #self.bp_handler.add_bp_funcname_exception(except_name, reload_bps=True)
+            self.bp_handler.add_bp_funcname_exception(except_name)
 
             return True
 
         except Exception as ex:
             self.logger.exception("Error while creating exception: %s", ex)
             return False
+
+    def _callStackPushErrorHandler(self, ea, function_name=None):
+        """
+        Handle a failed attempt to push function to callstack
+        @param ea: Function Address
+        @param function_name: Function Name
+        @return:
+        """
+        try:
+            self.logger.info("Trying to walk un-pushed function %s for breakpoints", hex(ea))
+            if not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:
+                self.bp_handler.walk_function(ea)
+
+        except Exception as ex:
+            self.logger.exception("Failed to handle callstack push error for function: %s", hex(ea))
 
 ###############################################
 #   Debugging

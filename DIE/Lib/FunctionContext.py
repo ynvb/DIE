@@ -5,7 +5,7 @@ from idaapi import *
 #from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
-from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect
+from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect, get_function_start_address, get_function_end_address
 import DIE.Lib.FunctionParsers
 import DIE.Lib.DIE_Exceptions
 
@@ -77,7 +77,6 @@ class FunctionContext():
             raise
 
         except Exception as ex:
-            logging.critical("Error while initializing function context: %s", ex)
             logging.exception("Error while initializing function context: %s", ex)
             raise
 
@@ -86,11 +85,16 @@ class FunctionContext():
         Check if this function is called indirectly
         @return: True if function was called indirectly, otherwise False
         """
-        if not self.callingEA:
-            self.logger.error("Error: could not locate the calling ea for function %s", self.function.funcName)
-            return False
+        try:
+            if not self.callingEA:
+                self.logger.error("Error: could not locate the calling ea for function %s", self.function.funcName)
+                return False
 
-        return is_indirect(self.callingEA)
+            return is_indirect(self.callingEA)
+
+        except Exception as ex:
+            self.logger.error("Failed while checking for indirect call: %s", ex)
+            return False
 
     def get_arg_values_call(self):
         """
@@ -158,6 +162,16 @@ class FunctionContext():
             self.logger.debug("Trying to define a new function at address: %s", hex(ea))
             if MakeFunction(ea, BADADDR):
                 self.logger.info("New function was defined at: %s", hex(ea))
+
+                func_start_adrs = get_function_start_address(ea)
+                func_end_adrs = get_function_end_address(ea)
+
+                self.logger.info("Analyzing new area.")
+                AnalyzeArea(func_start_adrs, func_end_adrs)
+
+                self.logger.info("Refresh debugger memory")
+                invalidate_dbgmem_contents(func_start_adrs, func_end_adrs)
+
                 return Function(ea, iatEA, library_name=library_name)
                  # If this second attempt fails again, the exception should be handled by the calling function.
 

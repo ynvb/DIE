@@ -1,11 +1,14 @@
 
 
 import logging
+import bisect
 
 from idaapi import *
 from idc import *
 from idautils import *
 from DIE.Lib.IDAConnector import get_adrs_mem
+from DIE_Exceptions import DieMemNotLoaded, DieLibraryPreviouslyLoaded
+
 
 class StaticImports():
     """
@@ -122,9 +125,8 @@ class DbgImports():
         self.current_module_name = None
 
         # Real-Time import table
-        # (Key -> Real func adrs.  Value -> (ea, name, ord)}
+        # (Key -> Real func adrs.  Value -> (module_name, ea, name, ord)}
         self.rt_import_table = {}
-
 
     def getImportTableData(self):
         """
@@ -169,6 +171,7 @@ class DbgImports():
         """
         Checks the given ea and returns True if the function is an imported function (loacted in IAT)
         """
+        # If address is located in IAT
         if ea in self.rt_import_table:
             return True
 
@@ -184,6 +187,19 @@ class DbgImports():
                 return True
 
         return False
+
+    def is_loaded_module(self, module_name):
+        """
+        Check if module has loaded functions in the IAT
+        @param module_name: Name of the module to search
+        @return: True if model name is found in IAT, otherwise False
+        """
+
+        for (module, ea, name, ord) in self.rt_import_table.values():
+            if module == module_name:
+                return True
+            return False
+
 
     def print_debug_imports(self):
         """
