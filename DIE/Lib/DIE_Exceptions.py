@@ -3,7 +3,6 @@
 class DieException(Exception):
     pass
 
-
 class FuncCallExceedMax(DieException):
     """
     Function call exceeded the mzx number of defined calls.
@@ -15,8 +14,6 @@ class DbFileMismatch(DieException):
     Database size has exceeded
     """
     pass
-
-
 
 class DieNoFunction(DieException):
     pass
@@ -48,5 +45,11 @@ class DieMemNotLoaded(DieException):
 class DieLibraryPreviouslyLoaded(DieException):
     """
     Library was previously loaded
+    """
+    pass
+
+class DieThunkFunctionDetected(DieException):
+    """
+    Thunk function detected
     """
     pass

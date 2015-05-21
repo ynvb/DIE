@@ -17,7 +17,7 @@ from idc import *
 ### DIE Imports###
 import DIE.Lib.DieConfig
 import DIE.Lib.DataParser
-from DIE.Lib.DIE_Exceptions import FuncCallExceedMax, DieCallStackPopError
+from DIE.Lib.DIE_Exceptions import FuncCallExceedMax, DieCallStackPopError, DieThunkFunctionDetected
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
 from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present
@@ -174,13 +174,6 @@ class DebugHooker(DBG_Hooks):
             refresh_debugger_memory()
             ea = get_cur_ea()
 
-            iatEA = None
-            library_name = None
-
-            # Is this a library function or a native one?
-            #if self.runtime_imports.is_func_imported(ea):
-                #iatEA, library_name = self.runtime_imports.find_func_iat_adrs(ea)
-
             # If function in IAT, retrieve IAT details
             iatEA, library_name = self.runtime_imports.find_func_iat_adrs(ea)
 
@@ -199,8 +192,11 @@ class DebugHooker(DBG_Hooks):
 
              # Save CALL context
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
+            (func_adr, func_name) = self.current_callstack.get_top_func_data()
 
-            #if not self.runtime_imports.is_func_imported_ex(ea) and self.is_dyn_breakpoints:
+            self.logger.debug("Stepped into function %s at address %s", func_adr, func_name)
+
+            # TODO: this should be redefined to a better condition + also need to check if module is excluded
             if not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:
                 self.bp_handler.walk_function(ea)
 
@@ -211,9 +207,13 @@ class DebugHooker(DBG_Hooks):
         except DieCallStackPushError as ex:
             self._callStackPushErrorHandler(ex.ea)
 
+        except DieThunkFunctionDetected as ex:
+            #TODO: Handle cases where a thunk function (jmp wrapper) has been encountered.
+            pass
+
         except Exception as ex:
             self.logger.exception("failed while stepping into breakpoint: %s", ex)
-            exit(1)
+            return 0
 
         finally:
             # Continue Debugging
@@ -260,31 +260,6 @@ class DebugHooker(DBG_Hooks):
         except Exception as ex:
             self.logger.exception("Failed while handling new thread: %s", ex)
 
-    #def dbg_thread_exit(self, pid, tid, ea, exit_code):
-
-
-
-    # def dbg_library_load(self, pid, tid, ea, name, base, size):
-    #     """
-    #     New library loaded
-    #     """
-    #     try:
-    #         # If library is not in IAT, identify it by memory section.
-    #         if not self.runtime_imports.is_loaded_module(name):
-    #             self.runtime_imports.add_loaded_lib_section(base, base+size)
-    #
-    #     except DieLibraryPreviouslyLoaded:
-    #         pass
-    #
-    #     except Exception as ex:
-    #         self.logger.exception("Error while mapping loaded library")
-
-    # def dbg_exception(self, pid, tid, ea, code, can_cont, exc_ea, info):
-    #     """
-    #     Debug Exception Handler
-    #     """
-    #     pass
-
     def dbg_process_exit(self, pid, tid, ea, exit_code):
         """
         TODO: debugging, should be implemented fully.
@@ -323,11 +298,6 @@ class DebugHooker(DBG_Hooks):
 
     def dbg_continue_process(self):
         return True
-
-    # def dbg_last(self):
-    #     """
-    #     The last debugger notification code
-    #     """
 
 ###############################################
 # Convenience Function

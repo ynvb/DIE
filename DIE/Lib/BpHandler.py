@@ -416,6 +416,10 @@ class BpHandler():
             # Add function to walked function list
             self.walked_functions[function_name] = ea
 
+            # function = sark.Function(ea)
+            # for line in function.lines:
+            #     if line.is_code and line.insn.is_call:
+            #         self.addBP(line.ea)
             start_adrs = get_function_start_address(ea)
             end_adrs = get_function_end_address(ea)
 
