@@ -201,7 +201,7 @@ class DebugHooker(DBG_Hooks):
                 self.bp_handler.walk_function(ea)
 
             # Check if total number of function calls exceeded the max configured value
-            if func_call_num > self.config.max_func_call:
+            if func_call_num > self.config.debugging.max_func_call:
                 self.make_exception_last_func()
 
         except DieCallStackPushError as ex:
@@ -311,7 +311,7 @@ class DebugHooker(DBG_Hooks):
             (except_ea, except_name) = self.current_callstack.get_top_func_data()
 
             self.logger.debug("Function %s was called more then %d times.",
-                              except_name, self.config.max_func_call)
+                              except_name, self.config.debugging.max_func_call)
 
             self.logger.debug("Removing breakpoint from %s", hex(self.prev_bp_ea))
             self.bp_handler.removeBP(self.prev_bp_ea)

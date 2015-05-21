@@ -59,7 +59,7 @@ class DebugValue():
 
         # Set current maximal dereference depth for this argument.
         if deref_depth is None:
-            self.derefrence_depth = self.config.max_deref_depth
+            self.derefrence_depth = self.config.debugging.max_deref_depth
         else:
             self.derefrence_depth = deref_depth     # de-reference depth
 
@@ -77,24 +77,24 @@ class DebugValue():
         The main idea here is to try and get the runtime values according to the specific object location and store type.
         """
         try:
-            if self.config.is_deref:
+            if self.config.debug_values.is_deref:
                 self.dereference()
 
             # If value is a container (Struct\Union, etc.)
-            if self.config.is_container:
+            if self.config.debug_values.is_container:
                 if self.is_container():
                     self.__get_container_values()
 
             # If value is an array
-            if self.config.is_array:
+            if self.config.debug_values.is_array:
                 if self.is_array():
                     self.__get_array_values()
 
             if self.loc and self.storetype:
-                if self.config.is_raw:
+                if self.config.debug_values.is_raw:
                     self.rawValue = self.getRawValue()
 
-                if self.config.is_parse:
+                if self.config.debug_values.is_parse:
                     self.parsedValues = self.parseValue()
 
                 return True

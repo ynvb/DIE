@@ -105,7 +105,7 @@ class FunctionContext():
             self.empty = False  # drop the empty flag
 
             # If no function arg retrieval is disabled in configuration - quit:
-            if not self.config.get_func_args:
+            if not self.config.function_context.get_func_args:
                 return True
 
             self.callRegState = self.getRegisters()  # Get registers state
@@ -131,7 +131,7 @@ class FunctionContext():
             return False
 
         # If no function arg retrieval is disabled in configuration - quit:
-        if not self.config.get_func_args:
+        if not self.config.function_context.get_func_args:
             return True
 
         with context.Timer() as timer:
