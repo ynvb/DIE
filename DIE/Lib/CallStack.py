@@ -49,6 +49,9 @@ class CallStack():
 
             return self.function_counter[funcContext.function.funcName]
 
+        except DIE.Lib.DIE_Exceptions.DieNoFunction:
+            raise DieCallStackPushError(ea)
+
         except Exception as ex:
             self.logger.exception("Error while pushing function at address %s to callstack", hex(ea))
             raise DieCallStackPushError(ea)
