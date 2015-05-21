@@ -75,7 +75,15 @@ class DieManager():
         self.config_file_name = os.path.join(os.getcwd(), "DIE.cfg")
         DIE.Lib.DieConfig.initialize()
         config = DIE.Lib.DieConfig.get_config()
-        config.load_configuration(self.config_file_name)
+        try:
+            config.load(self.config_file_name)
+        except IOError:
+            pass
+
+        except:
+            import traceback
+            idaapi.msg(traceback.format_exc())
+
         self.die_config = config
 
 

@@ -1,0 +1,14 @@
+debug_values:
+  is_raw: true
+  is_parse: true
+  is_array: true
+  is_container: true
+  is_deref: true
+
+function_context:
+  get_func_args: true
+
+debugging:
+  max_func_call: 20
+  max_deref_depth: 3
+  code_discovery: false

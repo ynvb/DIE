@@ -1,10 +1,8 @@
-
-
 from idaapi import Form
 import DIE.Lib.DieConfig
 
-class SettingsView(Form):
 
+class SettingsView(Form):
     def __init__(self):
         Form.__init__(self, ("STARTITEM 0\n"
                              "BUTTON YES* Save Settings\n"
@@ -24,17 +22,16 @@ class SettingsView(Form):
                              "<Dereference:{rDeref}>\n"
                              "<Arguments:{rArgs}>{cDebugValues}>\n"
                              "\n"
-        ), {
-            'cDebugValues': Form.ChkGroupControl(("rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
-            'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
-            'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),
-        })
+                             ), {
+                          'cDebugValues': Form.ChkGroupControl(
+                              ("rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
+                          'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
+                          'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),
+                      })
 
     def OnButtonNop(self, code=0):
         """Do nothing, we will handle events in the form callback"""
         pass
-
-
 
 
 def Show(config_filename):
@@ -43,34 +40,31 @@ def Show(config_filename):
     settings = SettingsView()
     settings.Compile()
 
-    settings.iMaxFuncCall.value = die_config.max_func_call
-    settings.iDerefDepth.value = die_config.max_deref_depth
+    settings.iMaxFuncCall.value = die_config.debugging.max_func_call
+    settings.iDerefDepth.value = die_config.debugging.max_deref_depth
 
-    settings.rDeref.checked = die_config.is_deref
-    settings.rRaw.checked = die_config.is_raw
-    settings.rParse.checked = die_config.is_parse
-    settings.rArray.checked = die_config.is_array
-    settings.rContainer.checked = die_config.is_container
-    settings.rArgs.checked = die_config.get_func_args
+    settings.rDeref.checked = die_config.debug_values.is_deref
+    settings.rRaw.checked = die_config.debug_values.is_raw
+    settings.rParse.checked = die_config.debug_values.is_parse
+    settings.rArray.checked = die_config.debug_values.is_array
+    settings.rContainer.checked = die_config.debug_values.is_container
 
+    settings.rArgs.checked = die_config.function_context.get_func_args
 
     ok = settings.Execute()
-    if ok ==1 :
+    if ok == 1:
+        die_config.debugging.max_deref_depth = settings.iDerefDepth.value
+        die_config.debugging.max_func_call = settings.iMaxFuncCall.value
 
-        die_config.is_deref = settings.rDeref.checked
-        die_config.is_raw = settings.rRaw.checked
-        die_config.is_parse = settings.rParse.checked
-        die_config.is_array = settings.rArray.checked
-        die_config.is_container = settings.rContainer.checked
-        die_config.is_func_args = settings.rArgs.checked
+        die_config.debug_values.is_deref = settings.rDeref.checked
+        die_config.debug_values.is_raw = settings.rRaw.checked
+        die_config.debug_values.is_parse = settings.rParse.checked
+        die_config.debug_values.is_array = settings.rArray.checked
+        die_config.debug_values.is_container = settings.rContainer.checked
 
-        die_config.max_deref_depth = settings.iDerefDepth.value
-        die_config.max_func_call = settings.iMaxFuncCall.value
-
+        die_config.function_context.get_func_args = settings.rArgs.checked
 
         print settings.iMaxFuncCall.value
         print settings.iDerefDepth.value
 
-        die_config.save_configuration(config_filename)
-
-
+        die_config.save(config_filename)
