@@ -53,3 +53,9 @@ class DieThunkFunctionDetected(DieException):
     Thunk function detected
     """
     pass
+
+class UnrecognizedCallInstruction(DieException):
+    """
+    The instruction is not recongnized as a call instruction
+    """
+    pass

@@ -122,7 +122,6 @@ class DebugHooker(DBG_Hooks):
 ######################################################################
 # Debugger Hooking Callback Routines
 
-
     def dbg_bpt(self, tid, ea):
         """
         'Hit Debug Breakpoint' Callback -
@@ -150,9 +149,22 @@ class DebugHooker(DBG_Hooks):
 
             self.current_callstack = self.callStack[tid]
 
+            # Did we just return from a function call?
+            if self.bp_handler.isRetBP(ea):
+                try:
+                    self.current_callstack.pop()
+                except DieCallStackPopError:
+                    self.logger.exception("Error while popping function from callstack")
+
+                self.bp_handler.removeRetBP(ea)
+                if not is_call(ea):
+                    request_continue_process()
+                    run_requests()
+
             # Is this a CALL instruction?
             if is_call(ea):
                 self.prev_bp_ea = ea  # Set prev ea
+                self.bp_handler.addRetBP(ea)
                 if not self.is_dbg_pause:
                     request_step_into()  # Great, step into the called function
                     run_requests()  # Execute dbg_step_into callback.
@@ -217,7 +229,7 @@ class DebugHooker(DBG_Hooks):
 
         finally:
             # Continue Debugging
-            request_step_until_ret()
+            request_continue_process()
             run_requests()
             return 0
 
@@ -232,7 +244,7 @@ class DebugHooker(DBG_Hooks):
             self.current_callstack.pop()
 
         except DieCallStackPopError as ex:
-            self.logger.exception("Error while popping function from callstack:")
+            self.logger.exception("Error while popping function from callstack")
             #TODO: Handle this exception
 
         except Exception as ex:

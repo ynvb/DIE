@@ -9,7 +9,9 @@ import idautils
 
 from DIE.Lib.DbgImports import StaticImports
 from DIE.Lib.IDAConnector import *
+from DIE.Lib.DIE_Exceptions import UnrecognizedCallInstruction
 import DIE.Lib.DIEDb
+
 
 
 # Was user breakpoint flag definition
@@ -33,6 +35,8 @@ class BpHandler():
 
         self.iat = StaticImports()              # Static IAT
         self.die_db = DIE.Lib.DIEDb.get_db()    # DIE DB
+
+        self.ret_bps = {}   # Return breakpoint list
 
         # Walked function list is used with dynamic (runtime) breakpointing
         # it keeps track of previously walked functions in order to avoid walking them again.
@@ -147,6 +151,50 @@ class BpHandler():
         except Exception as ex:
             self.logger.exception("Could not remove breakpoint: %s", ex)
             return -1
+
+    def addRetBP(self, ea):
+        """
+        Add a breakpoint for a return instruction.
+        This will place a breakpoint on the next instruction,
+        e.g - the instruction that will be hit after the function returns.
+        @param ea: effective address of a CALL instruction
+        @return: True if breakpoint was successfully added, otherwise return False
+        """
+        if not is_call(ea):
+            self.logger.error("The instruction at address %s is not recognized as a CALL instruction", hex(ea))
+            raise UnrecognizedCallInstruction()
+
+        next_inst = idc.NextHead(ea)
+
+        # Add breakpoint on next instruction
+        if next_inst not in self.ret_bps:
+            idc.AddBpt(next_inst)
+            self.ret_bps[next_inst] = 0
+            return True
+
+        return False
+
+    def removeRetBP(self, ea):
+        """
+        Remove a breakpoint for a return instruction
+        @param ea: effective address of a previously placed Return Breakpoint
+        @return: True if breakpoint was successfully removed, otherwise return False
+        """
+        if ea in self.ret_bps:
+            idc.DelBpt(ea)
+            del self.ret_bps[ea]
+            return True
+
+        return False
+
+    def isRetBP(self, ea):
+        """
+        Check if the current Breakpoint marks a Return Breakpoint,
+        e.g - was a function just returned from
+        @param ea: effective address
+        @return: True if this is a return BP, otherwise False
+        """
+        return ea in self.ret_bps
 
     ###############################################################################################
     #   Breakpoint exception handling functions
