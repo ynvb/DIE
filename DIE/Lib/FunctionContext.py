@@ -51,8 +51,11 @@ class FunctionContext():
         self.total_proc_time = 0    # Total processing time in seconds.
 
         try:
-            #self.function = self._getFunctionHelper(ea, iatEA, library_name=library_name)  # This (The Callee) function
-            self.function = Function(ea, iatEA, library_name=library_name)
+             # Get this function (The Callee)
+            if self.config.function_context.new_func_analysis:
+                self.function = self._getFunctionHelper(ea, iatEA, library_name=library_name)
+            else:
+                self.function = Function(ea, iatEA, library_name=library_name)
 
         except DIE.Lib.DIE_Exceptions.DieNoFunction:
             self.logger.info("Could not retrieve function information at address: %s", hex(ea))

@@ -15,6 +15,7 @@ class SettingsView(Form):
                              "\n"
                              "\n"
                              "Debug Values:\n"
+                             "<New Function Analysis:{rFuncAnalysis}>\n"
                              "<Raw:{rRaw}>\n"
                              "<Parse:{rParse}>\n"
                              "<Array:{rArray}>\n"
@@ -24,7 +25,7 @@ class SettingsView(Form):
                              "\n"
                              ), {
                           'cDebugValues': Form.ChkGroupControl(
-                              ("rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
+                              ("rFuncAnalysis", "rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
                           'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
                           'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),
                       })
@@ -48,6 +49,7 @@ def Show(config_filename):
     settings.rParse.checked = die_config.debug_values.is_parse
     settings.rArray.checked = die_config.debug_values.is_array
     settings.rContainer.checked = die_config.debug_values.is_container
+    settings.rFuncAnalysis.checked = die_config.function_context.new_func_analysis
 
     settings.rArgs.checked = die_config.function_context.get_func_args
 
@@ -61,6 +63,7 @@ def Show(config_filename):
         die_config.debug_values.is_parse = settings.rParse.checked
         die_config.debug_values.is_array = settings.rArray.checked
         die_config.debug_values.is_container = settings.rContainer.checked
+        die_config.function_context.new_func_analysis = settings.rFuncAnalysis.checked
 
         die_config.function_context.get_func_args = settings.rArgs.checked
 
