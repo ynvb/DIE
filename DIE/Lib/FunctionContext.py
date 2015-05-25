@@ -166,20 +166,12 @@ class FunctionContext():
                 func_start_adrs = get_function_start_address(ea)
                 func_end_adrs = get_function_end_address(ea)
 
-                self.logger.info("Analyzing new area.")
-                AnalyzeArea(func_start_adrs, func_end_adrs)
+                self.logger.debug("Analyzing new area.")
+                func_t = idaapi.get_func(ea)
+                idaapi.reanalyze_function(func_t)
 
-                self.logger.info("Refresh debugger memory")
+                self.logger.debug("Refresh debugger memory")
                 invalidate_dbgmem_contents(func_start_adrs, func_end_adrs)
 
                 return Function(ea, iatEA, library_name=library_name)
                  # If this second attempt fails again, the exception should be handled by the calling function.
-
-
-
-
-
-
-
-
-
