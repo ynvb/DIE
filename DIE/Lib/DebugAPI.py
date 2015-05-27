@@ -129,7 +129,6 @@ class DebugHooker(DBG_Hooks):
          this means we can either be in a CALL or a RET instruction.
         """
         try:
-
             # If final breakpoint has been reached. skip all further breakpoints.
             if self.end_bp is not None and ea == self.end_bp:
                 self.logger.info("Final breakpoint reached at %s. context logging is stopped.", hex(ea))
@@ -193,20 +192,14 @@ class DebugHooker(DBG_Hooks):
             if self.bp_handler.is_exception_func(ea, iatEA):
                 self.logger.debug("Removing breakpoint from %s", hex(self.prev_bp_ea))
                 self.bp_handler.removeBP(self.prev_bp_ea)
-                #request_step_until_ret()
-                #run_requests()
                 return 0
-
-            # If this is a native function and dynamic break-pointing is set, add breakpoints to current function
-            # if (iatEA is None
-            #         and not self.runtime_imports.is_loaded_lib_section(ea)
-            #         and self.is_dyn_breakpoints):
 
              # Save CALL context
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
-            (func_adr, func_name) = self.current_callstack.get_top_func_data()
 
-            self.logger.debug("Stepped into function %s at address %s", func_adr, func_name)
+            (func_adr, func_name) = self.current_callstack.get_top_func_data()
+            if func_adr is not None and func_name is not None:
+                self.logger.debug("Stepped into function %s at address %s", func_adr, func_name)
 
             # TODO: this should be redefined to a better condition + also need to check if module is excluded
             if not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:

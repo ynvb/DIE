@@ -62,8 +62,9 @@ class dbFunction_Context():
     """
     Function Runtime Context
     """
-    def __init__(self, call_reg_state, ret_reg_state, calling_ea, is_indirect, is_new_func, calling_func_name, total_proccess_time, thread_id):
+    def __init__(self, id, call_reg_state, ret_reg_state, calling_ea, parent_func_ctxt_id, is_indirect, is_new_func, calling_func_name, total_proccess_time, thread_id):
 
+        self.id = id
         self.function = None
 
         self.call_values = []
@@ -76,12 +77,17 @@ class dbFunction_Context():
         self.calling_ea = calling_ea
         self.calling_func_name = calling_func_name
 
+        self.parent_func_ctxt_id = parent_func_ctxt_id
+
         self.is_indirect = is_indirect
         self.is_new_func = is_new_func
 
         self.thread_id = thread_id
 
         self.total_process_time = total_proccess_time
+
+    def __repr__(self):
+        return "<dbFunction_Context(id=%s, parent_id=%s)>" % (self.id, self.parent_func_ctxt_id)
 
 
 class dbDebug_Values():

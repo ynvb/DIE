@@ -25,6 +25,8 @@ from idaapi import plugin_t
 import idaapi
 import idautils
 import idc
+import sark.ui
+
 
 from DIE.Lib.IDAConnector import *
 import DIE.Lib.DieConfig
@@ -93,6 +95,8 @@ class DieManager():
         self.debugAPI = DebugAPI.DebugHooker(is_dbg_pause, is_dbg_profile)
         DIE.Lib.DIEDb.initialize_db()
         self.die_db = DIE.Lib.DIEDb.get_db()
+
+        self.is_marked = False
 
         DIE.UI.FunctionViewEx.initialize()
         DIE.UI.ValueViewEx.initialize()
@@ -193,6 +197,8 @@ class DieManager():
         # About DIE
         self.add_menu_item_helper("Help/About program..", "DIE: About", "", self.show_about)
         idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
+        # Mark\Unmark Execution Flow
+        self.add_menu_item_helper("Help/About program..", "DIE: Mark\Unmark Execution Flow", "", self.mark_exec_flow)
 
     def del_menu_items(self):
         for addmenu_item_ctx in self.addmenu_item_ctxs:
@@ -291,6 +297,9 @@ class DieManager():
     def show_settings(self):
         DIE.UI.SetupView.Show(self.config_file_name)
 
+    ###########################################################################
+    # Show DB Details
+
     def show_db_details(self):
         """
         Print DB details
@@ -307,6 +316,24 @@ class DieManager():
         idaapi.msg("Functions: %d, Threads: %d\n" % (num_of_functions, num_of_threads))
         idaapi.msg("Parsed Values: %d\n" % numof_parsed_val)
 
+    ###########################################################################
+    # Mark\Unmark Execution Flow
+
+    def mark_exec_flow(self):
+        """
+        Mark \ Unmark execution flow
+        """
+        color = 0x123456
+        if self.is_marked:
+            color = None
+
+        with sark.ui.Update():
+            for func_ea in self.die_db.get_function_counter():
+                for line in sark.Function(func_ea).lines:
+                    line.color = color
+
+        # Swap is_marked value
+        self.is_marked = not self.is_marked
 
     def show_logo(self):
         """

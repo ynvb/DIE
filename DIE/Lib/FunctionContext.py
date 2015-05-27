@@ -26,16 +26,23 @@ class FunctionContext():
      4. "how much time did it take to process this function"
     """
 
-    def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None):
+    ID = 0
+
+    def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None, parent_func_context=None):
         """
         Ctor
         @param ea: Effective address of the function
         @param iatEA: Effective address of IAT element (For library functions)
         @param is_indirect: Was this function called indirectly?
         @param is_new_func: Is this function missing from initial function analysis?
+        @param parent_func_context: FunctionContext object of the calling function
         """
         self.logger = logging.getLogger(__name__)
         self.config = DieConfig.get_config()
+
+        # Get a unique function context ID
+        self.id = FunctionContext.ID
+        FunctionContext.ID += 1
 
         ################################################################################
         ### Context Stuff
@@ -50,6 +57,22 @@ class FunctionContext():
         self.retRegState = None     # Register state at function return
         self.total_proc_time = 0    # Total processing time in seconds.
 
+        self.parent_func_context = parent_func_context
+
+        try:
+            self.callingEA = get_ret_adr()  # The ea of the CALL instruction
+            self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
+
+            ### Flags
+            self.no_ret_context = True  # empty flag is dropped when first call context is retrieved.
+            self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
+            self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
+            self._empty = False
+
+        except Exception as ex:
+            logging.exception("Error while initializing function context: %s", ex)
+            self._make_default_instance()
+
         try:
              # Get this function (The Callee)
             if self.config.function_context.new_func_analysis:
@@ -57,31 +80,18 @@ class FunctionContext():
             else:
                 self.function = Function(ea, iatEA, library_name=library_name)
 
-        except DIE.Lib.DIE_Exceptions.DieNoFunction:
-            self.logger.info("Could not retrieve function information at address: %s", hex(ea))
-            raise
-
-        try:
-            self.callingEA = get_ret_adr()  # The ea of the CALL instruction
-            self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
-
-            ### Flags
-            self.empty = True  # empty flag is dropped when first call context is retrieved.
-            self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
-            self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
-
-            # TODO: if this is a new function, try to define it.
-
             # Get a function parser for this function
             # (currently only GenericFunctionParser exist, and this is used to enable future extensions)
             self.function_parser = GenericFunctionParser(self.function)
 
         except DIE.Lib.DIE_Exceptions.DieNoFunction:
-            raise
+            self.logger.info("Could not retrieve function information at address: %s", hex(ea))
+            self.function = None
 
-        except Exception as ex:
-            logging.exception("Error while initializing function context: %s", ex)
-            raise
+    @property
+    def empty(self):
+        """ This flag is set if function was not defined. """
+        return self.function is None
 
     def check_if_indirect(self):
         """
@@ -105,7 +115,7 @@ class FunctionContext():
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
         with context.Timer() as timer:
-            self.empty = False  # drop the empty flag
+            self.no_ret_context = False  # drop the empty flag
 
             # If no function arg retrieval is disabled in configuration - quit:
             if not self.config.function_context.get_func_args:
@@ -116,7 +126,7 @@ class FunctionContext():
 
             if self.callValues is None:
                 self.logger.error("Failed parsing function arguments")
-                self.empty = True
+                self.no_ret_context = True
                 return False
 
         self.total_proc_time += timer.elapsed  # Add to total elapsed time
@@ -129,7 +139,7 @@ class FunctionContext():
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
 
-        if self.empty:
+        if self.no_ret_context:
             self.logger.error("Call values must be retrieved prior to return values.")
             return False
 
@@ -178,3 +188,13 @@ class FunctionContext():
 
                 return Function(ea, iatEA, library_name=library_name)
                  # If this second attempt fails again, the exception should be handled by the calling function.
+
+    def _make_default_instance(self):
+        """ Return a default (empty) instance """
+        self.function = None
+        self.callingEA = None
+        self.calling_function_name = None
+        self.no_ret_context = True
+        self.is_indirect = False
+        self.is_new_func = False
+        self.function_parser = None

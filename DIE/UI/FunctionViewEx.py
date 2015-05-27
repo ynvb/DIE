@@ -1,3 +1,5 @@
+import networkx as nx
+
 from awesome.context import ignored
 import sark
 import idaapi
@@ -14,6 +16,8 @@ import DIE.UI.BPView
 import DIE.Lib.IDAConnector
 import DIE.Lib.DIEDb
 import DIE.Lib.BpHandler
+
+import sark.ui
 
 class FunctionView(PluginForm):
     """
@@ -85,6 +89,8 @@ class FunctionView(PluginForm):
         action_exclude_library = QtGui.QAction("Exclude Library", self.functionTreeView, triggered=lambda: self.on_exclude_library(self.context_menu_param))
         action_value_detail = QtGui.QAction("Inspect Value Details", self.functionTreeView, triggered=lambda: self.on_value_detail(self.context_menu_param))
 
+        action_show_callgraph = QtGui.QAction("Show Call-Graph", self.functionTreeView, triggered=lambda: self.on_show_callgraph(self.context_menu_param))
+
         # Function ContextMenu
         self.function_context_menu = QtGui.QMenu(self.functionTreeView)
         self.function_context_menu.addAction(action_exclude_func)
@@ -94,6 +100,7 @@ class FunctionView(PluginForm):
         # Function ea ContextMenu
         self.ea_context_menu = QtGui.QMenu(self.functionTreeView)
         self.ea_context_menu.addAction(action_exclude_ea)
+        self.ea_context_menu.addAction(action_show_callgraph)
 
         # Argument value ContextMenu
         self.value_context_menu = QtGui.QMenu(self.functionTreeView)
@@ -848,6 +855,32 @@ class FunctionView(PluginForm):
         return
 
     @QtCore.Slot(str)
+    def on_show_callgraph(self, function_context):
+
+        if not isinstance(function_context, DIE.Lib.DIEDb.dbFunction_Context):
+            if function_context is not None:
+                raise ValueError("Wrong value sent to 'on_show_callgraph': %s. excpected dbFunction_Context" % function_context.__class__)
+            else:
+                raise ValueError("Wrong value sent to 'on_show_callgraph'")
+
+        graph = nx.DiGraph()
+
+        call_graph = self.die_db.get_call_graph(function_context)
+        if not call_graph:
+            idaapi.msg("No Execution Graph")
+            return
+
+        for ctxt_node in call_graph:
+            (from_address, to_address) = ctxt_node
+            graph.add_edge(from_address, to_address)
+
+        function_name = self.die_db.get_function_name(function_context.function)
+        viewer = sark.ui.NXGraph(graph, "Callgraph for {}".format(function_name), handler=sark.ui.AddressNodeHandler())
+        viewer.Show()
+
+        return
+
+    @QtCore.Slot(str)
     def on_exclude_library(self, function):
 
         if not isinstance(function, DIE.Lib.DIEDb.dbFunction):
@@ -901,31 +934,8 @@ class FunctionView(PluginForm):
         bp_view = DIE.UI.BPView.get_view()
         bp_view.Show()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ###############################################################################################
 #  View Delegates.
-#
-###############################################################################################
 
 class TreeViewDelegate(QtGui.QStyledItemDelegate):
     """
@@ -958,52 +968,14 @@ class TreeViewDelegate(QtGui.QStyledItemDelegate):
             editor.setCurrentIndex(int(index.model().data(index)))
             editor.blockSignals(False)
 
-    #
-    # This does not seem to work, working on that with some weird guys that actually understand QT.
-    #
-
-    # def paint(self, painter, option, index):
-    #
-    #     parsed_val_list = index.data(role=UI.ParsedValuesRole)
-    #     if parsed_val_list is not None and len(parsed_val_list) > 0:
-    #         combo_opt = QtGui.QStyleOptionComboBox()
-    #         combo_opt.rect = option.rect
-    #         combo_opt.state = QtGui.QStyle.State_Enabled
-    #         combo_opt.frame = True
-    #         combo_opt.currentText = parsed_val_list[0].data
-    #
-    #         QtCore.QApplication.style().drawComplexControl(QtGui.Qstyle.CC_ComboBox, combo_opt, painter, QtGui.QTreview())
-    #
-    #         #QtCore.QApplication.style().drawControl(QtGui.Qstyle.CC_ComboBox, combo_opt, painter)
-    #         #QtGui.QStyle.drawComplexControl(QtGui.Qstyle.CC_ComboBox, combo_opt, painter)
-    #
-    #     else:
-    #         QtGui.QStyledItemDelegate.paint(self, painter, option, index)
-    #
-    # def sizeHint(self, option, index):
-    #
-    #     parsed_val_list = index.data(role=UI.ParsedValuesRole)
-    #     max_str = ""
-    #     if parsed_val_list is not None and len(parsed_val_list) > 0:
-    #         for parsed_val in parsed_val_list:
-    #             if len(parsed_val.data) > len(max_str):
-    #                 max_str = parsed_val.data
-    #
-    #     nameFont = QtGui.QFont(option.font)
-    #     nameFM = QtGui.QFontMetrics(nameFont)
-    #     name_width = nameFM.width(max_str)
-    #     name_height = nameFM.height()
-    #
-    #     return QtCore.QSize(name_width, name_height)
-
-
-
-
 # Singelton
 function_view = None
 def initialize():
     global function_view
     function_view = FunctionView()
 
+
 def get_view():
     return function_view
+
+

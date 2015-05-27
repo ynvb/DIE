@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 
 MAX_SCORE = 10
 
@@ -126,6 +126,25 @@ class DIE_DB():
         """
         return self.function_contexts.get(func_context_id, None)
 
+    def get_function_name(self, function_id):
+        """
+        Get function  by function id
+        @param function_id: a dbFunction object ID
+        @return: Name of function or None on error
+        """
+
+        if not function_id in self.functions:
+            return "UNKN_FUNCTION"
+
+        function = self.functions[function_id]
+
+        if function.function_name:
+            return function.function_name
+
+        if function.function_start:
+            return "sub_%s" % hex(function.function_start)
+
+        return "UNKN_FUNCTION"
 
     def get_call_values(self, function_context):
         """
@@ -332,6 +351,48 @@ class DIE_DB():
                        num_of_threads,
                        num_of_parsed_vals)
 
+    #############################################################################
+    # DB Utils
+
+    def get_function_counter(self):
+        """
+        Get a Counter object representing the program executed function count
+        @return: Counter object with function_start_address as the key value
+        """
+        func_counter = Counter()
+        for func_context in self.get_function_context_list():
+            if func_context.function is not None:
+                func_counter[self.functions[func_context.function].function_start] += 1
+
+        return func_counter
+
+
+    def get_call_graph(self, function_context=None):
+        """
+        Get a execution call graph leading to a function.
+        @param function_context: dbFunction_Context to start the call-graph from
+        @return: A tuple array, where each tuple represents (FromAdr, ToAdr), e.g: (Calee_Func_EA , Called Func_EA)
+        """
+        cur_context = function_context
+        call_graph_list = []
+
+        if cur_context is None:
+            return call_graph_list
+
+        while True:
+            if cur_context.parent_func_ctxt_id in self.function_contexts:
+                prev_context = self.function_contexts[cur_context.parent_func_ctxt_id]
+                if prev_context.function is not None and prev_context.function in self.functions:
+                    prev_func_ea = self.functions[prev_context.function].function_start
+                if cur_context.function is not None and cur_context.function in self.functions:
+                    cur_func_ea = self.functions[cur_context.function].function_start
+
+                call_graph_list.append((prev_func_ea, cur_func_ea))
+                cur_context = prev_context
+            else:
+                break
+
+        return call_graph_list
 
     #############################################################################
     # Add data base items
@@ -390,36 +451,40 @@ class DIE_DB():
         @return:
         """
         try:
-            cur_func_context = dbFunction_Context(function_context.callRegState,
+            parent_func_context_id = None
+            if function_context.parent_func_context is not None:
+                parent_func_context_id = function_context.parent_func_context.id
+
+            cur_func_context = dbFunction_Context(function_context.id,
+                                                  function_context.callRegState,
                                                   function_context.retRegState,
                                                   function_context.callingEA,
+                                                  parent_func_context_id,
                                                   function_context.is_indirect,
                                                   function_context.is_new_func,
                                                   function_context.calling_function_name,
                                                   function_context.total_proc_time,
                                                   thread_id)
+            if not function_context.empty:
+                cur_func_context.function = self.add_function(function_context.function, function_context.id)
 
-            func_context_id = id(cur_func_context)
+                for call_value in function_context.callValues:
+                    dbg_val_id = self.add_debug_value(call_value, function_context.id)
+                    cur_func_context.call_values.append(dbg_val_id)
 
-            cur_func_context.function = self.add_function(function_context.function, func_context_id)
+                for ret_value in function_context.retValues:
+                    dbg_val_id = self.add_debug_value(ret_value, function_context.id)
+                    cur_func_context.ret_values.append(dbg_val_id)
 
-            for call_value in function_context.callValues:
-                dbg_val_id = self.add_debug_value(call_value, func_context_id)
-                cur_func_context.call_values.append(dbg_val_id)
+                # If return argument exist, add its value to DB.
+                if function_context.retArgValue is not None:
+                    dbg_val_id = self.add_debug_value(function_context.retArgValue, function_context.id)
+                    cur_func_context.ret_arg_value = dbg_val_id
 
-            for ret_value in function_context.retValues:
-                dbg_val_id = self.add_debug_value(ret_value, func_context_id)
-                cur_func_context.ret_values.append(dbg_val_id)
-
-            # If return argument exist, add its value to DB.
-            if function_context.retArgValue is not None:
-                dbg_val_id = self.add_debug_value(function_context.retArgValue, func_context_id)
-                cur_func_context.ret_arg_value = dbg_val_id
-
-            self.function_contexts[func_context_id] = cur_func_context
+            self.function_contexts[function_context.id] = cur_func_context
 
             self.is_saved = False  # Un-check the saved flag
-            return func_context_id
+            return function_context.id
 
         except Exception as ex:
             self.logger.exception("Error while adding function %s to DieDB: %s", function_context.function.funcName, ex)

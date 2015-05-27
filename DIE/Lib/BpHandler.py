@@ -92,7 +92,12 @@ class BpHandler():
 
                 idc.DelBpt(ea)  # Remove breakpoint
 
+            # Remove all return breakpoints
+            for ea in self.ret_bps:
+                idc.DelBpt(ea)
+
             self.die_db.bp_list.clear()  # Clear the breakpoint list.
+            self.ret_bps.clear()         # Clear the return breakpoint list
 
             # Clear walked function list if necessary.
             if self.walked_functions is not None:

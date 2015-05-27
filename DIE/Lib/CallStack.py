@@ -22,7 +22,7 @@ class CallStack():
         # Function counter counts the number of time a specific function have been called (pushed to the call-stack)
         self.function_counter = defaultdict(int)
 
-    def push(self, ea, iatEA = None, library_name=None):
+    def push(self, ea, iatEA=None, library_name=None):
         """
         Push a function into the callsatck and get call context
         @param ea: The function start address
@@ -31,17 +31,27 @@ class CallStack():
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
         try:
+            callTree_Indx = len(self.callTree)
             is_new_func = self.check_if_new_func(ea, iatEA)
-            funcContext = FunctionContext(ea, iatEA, is_new_func, library_name=library_name)
 
-            if funcContext is None:
+            # Get calling function context
+            parent_func_context = None
+            if self.callStack:
+                parent_func_context = self.callStack[-1][1]
+
+            funcContext = FunctionContext(ea,
+                                          iatEA,
+                                          is_new_func, library_name=library_name,
+                                          parent_func_context=parent_func_context)
+
+            if funcContext.empty:
                 self.logger.error("Could not generate function context for ea: %s", hex(ea))
+                callStackTup = (callTree_Indx, funcContext)
+                self.callStack.append(callStackTup)
                 return -1
 
             self.count_function(funcContext.function.funcName)
             funcContext.get_arg_values_call()
-
-            callTree_Indx = len(self.callTree)
 
             # Each callstack element is a tuple containing the index into the calltree, and the function context object.
             callStackTup = (callTree_Indx, funcContext)
@@ -117,10 +127,14 @@ class CallStack():
         @return: Returns a tuple of (Function Adress, Function Name) for the topmost function. returns None on failure.
         """
         try:
+            func_ea = None
+            func_name = None
+
             if self.callStack is not None:
                 (callTree_Indx, funcContext) = self.callStack[-1]
-                func_name = funcContext.function.funcName
-                func_ea = funcContext.function.ea
+                if not funcContext.empty:
+                    func_name = funcContext.function.funcName
+                    func_ea = funcContext.function.ea
 
                 return (func_ea, func_name)
 
