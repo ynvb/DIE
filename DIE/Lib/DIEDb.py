@@ -367,7 +367,7 @@ class DIE_DB():
         return func_counter
 
 
-    def get_call_graph(self, function_context=None):
+    def get_call_graph_to(self, function_context=None):
         """
         Get a execution call graph leading to a function.
         @param function_context: dbFunction_Context to start the call-graph from
@@ -375,6 +375,8 @@ class DIE_DB():
         """
         cur_context = function_context
         call_graph_list = []
+        prev_func_ea = None
+        cur_func_ea = None
 
         if cur_context is None:
             return call_graph_list
@@ -387,10 +389,45 @@ class DIE_DB():
                 if cur_context.function is not None and cur_context.function in self.functions:
                     cur_func_ea = self.functions[cur_context.function].function_start
 
-                call_graph_list.append((prev_func_ea, cur_func_ea))
+                if prev_func_ea and cur_func_ea:
+                    call_graph_list.append((prev_func_ea, cur_func_ea))
+
                 cur_context = prev_context
             else:
                 break
+
+        return call_graph_list
+
+    def get_call_graph_from(self, function_context=None):
+        """
+        Get a execution call graph from a function
+        @param function_context: dbFunction_Context to start the call-graph from
+        @return: A tuple array, where each tuple represents (FromAdr, ToAdr), e.g: (Calee_Func_EA , Called Func_EA)
+        """
+        cur_context = function_context
+        call_graph_list = []
+        prev_func_ea = None
+        next_func_ea = None
+
+        if cur_context is None:
+            return call_graph_list
+
+        if cur_context.function in self.functions:
+            prev_func_ea = self.functions[cur_context.function].function_start
+
+        for next_func_ctxt_id in cur_context.child_func_ctxt_id_list:
+            if next_func_ctxt_id not in self.function_contexts:
+                continue
+
+            next_context = self.function_contexts[next_func_ctxt_id]
+
+            if next_context.function in self.functions:
+                next_func_ea = self.functions[next_context.function].function_start
+
+            if prev_func_ea and next_func_ea:
+                call_graph_list.append((prev_func_ea, next_func_ea))
+
+            call_graph_list += self.get_call_graph_from(next_context)
 
         return call_graph_list
 
@@ -466,6 +503,10 @@ class DIE_DB():
                                                   function_context.total_proc_time,
                                                   thread_id)
             if not function_context.empty:
+
+                for func_ctxt in function_context.child_func_context:
+                    cur_func_context.child_func_ctxt_id_list.append(func_ctxt.id)
+
                 cur_func_context.function = self.add_function(function_context.function, function_context.id)
 
                 for call_value in function_context.callValues:

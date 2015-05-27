@@ -78,6 +78,7 @@ class dbFunction_Context():
         self.calling_func_name = calling_func_name
 
         self.parent_func_ctxt_id = parent_func_ctxt_id
+        self.child_func_ctxt_id_list = []
 
         self.is_indirect = is_indirect
         self.is_new_func = is_new_func

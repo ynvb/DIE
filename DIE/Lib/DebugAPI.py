@@ -195,7 +195,7 @@ class DebugHooker(DBG_Hooks):
                 return 0
 
              # Save CALL context
-            func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name)
+            func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name, calling_ea=self.prev_bp_ea)
 
             (func_adr, func_name) = self.current_callstack.get_top_func_data()
             if func_adr is not None and func_name is not None:

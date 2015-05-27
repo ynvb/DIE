@@ -5,7 +5,7 @@ from idaapi import *
 #from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
-from DIE.Lib.IDAConnector import get_function_name, get_ret_adr, is_indirect, get_function_start_address, get_function_end_address
+from DIE.Lib.IDAConnector import get_function_name, is_indirect, get_function_start_address, get_function_end_address
 import DIE.Lib.FunctionParsers
 import DIE.Lib.DIE_Exceptions
 
@@ -28,7 +28,7 @@ class FunctionContext():
 
     ID = 0
 
-    def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None, parent_func_context=None):
+    def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None, parent_func_context=None, calling_ea=None):
         """
         Ctor
         @param ea: Effective address of the function
@@ -36,6 +36,7 @@ class FunctionContext():
         @param is_indirect: Was this function called indirectly?
         @param is_new_func: Is this function missing from initial function analysis?
         @param parent_func_context: FunctionContext object of the calling function
+        @param calling_ea: The ea of the call instruction used to call this function
         """
         self.logger = logging.getLogger(__name__)
         self.config = DieConfig.get_config()
@@ -57,10 +58,13 @@ class FunctionContext():
         self.retRegState = None     # Register state at function return
         self.total_proc_time = 0    # Total processing time in seconds.
 
-        self.parent_func_context = parent_func_context
+        self.callingEA = calling_ea                     # The ea of the CALL instruction
+        self.parent_func_context = parent_func_context  # Function context of the calling function
+        self.child_func_context = []                    # Array of function contexts called bu this function
 
         try:
-            self.callingEA = get_ret_adr()  # The ea of the CALL instruction
+            #self.callingEA = get_ret_adr()  # The ea of the CALL instruction
+
             self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
 
             ### Flags

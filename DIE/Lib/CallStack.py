@@ -22,12 +22,13 @@ class CallStack():
         # Function counter counts the number of time a specific function have been called (pushed to the call-stack)
         self.function_counter = defaultdict(int)
 
-    def push(self, ea, iatEA=None, library_name=None):
+    def push(self, ea, iatEA=None, library_name=None, calling_ea=None):
         """
         Push a function into the callsatck and get call context
         @param ea: The function start address
         @param iatEA: If the function is imported, the address of the function IAT entry.
         @param library_name: Name of containing library (for library functions)
+        @param: calling_ea: The calling function ea
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
         try:
@@ -42,10 +43,15 @@ class CallStack():
             funcContext = FunctionContext(ea,
                                           iatEA,
                                           is_new_func, library_name=library_name,
-                                          parent_func_context=parent_func_context)
+                                          parent_func_context=parent_func_context,
+                                          calling_ea=calling_ea)
+
+            # Add flink for this function in parent function context
+            if parent_func_context:
+                parent_func_context.child_func_context.append(funcContext)
 
             if funcContext.empty:
-                self.logger.error("Could not generate function context for ea: %s", hex(ea))
+                self.logger.info("Could not generate function context for ea: %s", hex(ea))
                 callStackTup = (callTree_Indx, funcContext)
                 self.callStack.append(callStackTup)
                 return -1

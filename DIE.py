@@ -1,7 +1,6 @@
+import networkx as nx
 from awesome.context import ignored
-
-
-
+import sark
 import logging
 import logging.handlers as handlers
 
@@ -199,6 +198,8 @@ class DieManager():
         idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
         # Mark\Unmark Execution Flow
         self.add_menu_item_helper("Help/About program..", "DIE: Mark\Unmark Execution Flow", "", self.mark_exec_flow)
+        # Show complete execution CFG
+        self.add_menu_item_helper("Help/About program..", "DIE: Show CFG", "", self.show_cfg)
 
     def del_menu_items(self):
         for addmenu_item_ctx in self.addmenu_item_ctxs:
@@ -334,6 +335,31 @@ class DieManager():
 
         # Swap is_marked value
         self.is_marked = not self.is_marked
+
+    ###########################################################################
+    # Show CFG
+
+    def show_cfg(self):
+        """
+        Show execution Call flow graph
+        """
+        start_node = self.die_db.function_contexts[0]
+        cfg = self.die_db.get_call_graph_from(start_node)
+
+        graph = nx.DiGraph()
+
+        if not cfg:
+            idaapi.msg("No CFG to display")
+            return
+
+        for ctxt_node in cfg:
+            (from_address, to_address) = ctxt_node
+            graph.add_edge(from_address, to_address)
+            #graph.node[from_address][sark.ui.NXGraph.BG_COLOR] = 0x33FFAA
+            #graph.node[to_address][sark.ui.NXGraph.BG_COLOR] = 0x33FFAA
+
+        viewer = sark.ui.NXGraph(graph, "Callgraph for {}".format("Exection CFG"), handler=sark.ui.AddressNodeHandler())
+        viewer.Show()
 
     def show_logo(self):
         """

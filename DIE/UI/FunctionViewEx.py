@@ -865,7 +865,7 @@ class FunctionView(PluginForm):
 
         graph = nx.DiGraph()
 
-        call_graph = self.die_db.get_call_graph(function_context)
+        call_graph = self.die_db.get_call_graph_to(function_context)
         if not call_graph:
             idaapi.msg("No Execution Graph")
             return
