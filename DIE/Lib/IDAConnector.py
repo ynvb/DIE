@@ -133,25 +133,6 @@ def get_cur_ea():
     """
     return idc.GetRegValue(Registers().ip.name)
 
-# TODO: Change this to be architecture independent
-def get_ret_adr():
-    """
-    Get the return address for the current function
-    """
-    sp = Registers().sp.name
-
-    sp_value = idc.GetRegValue(sp)
-
-    value_getter = {
-        16:idc.DbgWord,
-        32:idc.DbgDword,
-        64:idc.DbgQword
-    }[get_native_size()]
-
-    pushed_ip = value_getter(sp_value)
-
-    return sark.Line(pushed_ip).next.ea
-
 def get_sp():
     """
     Get the current stack pointer address

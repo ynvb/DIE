@@ -344,8 +344,7 @@ class DieManager():
         Show execution Call flow graph
         """
         start_node = self.die_db.function_contexts[0]
-        cfg = self.die_db.get_call_graph_from(start_node)
-
+        cfg = self.die_db.get_call_graph_complete()
         graph = nx.DiGraph()
 
         if not cfg:
@@ -355,8 +354,6 @@ class DieManager():
         for ctxt_node in cfg:
             (from_address, to_address) = ctxt_node
             graph.add_edge(from_address, to_address)
-            #graph.node[from_address][sark.ui.NXGraph.BG_COLOR] = 0x33FFAA
-            #graph.node[to_address][sark.ui.NXGraph.BG_COLOR] = 0x33FFAA
 
         viewer = sark.ui.NXGraph(graph, "Callgraph for {}".format("Exection CFG"), handler=sark.ui.AddressNodeHandler())
         viewer.Show()

@@ -431,6 +431,32 @@ class DIE_DB():
 
         return call_graph_list
 
+    def get_call_graph_complete(self):
+        """
+        Get an execution call graph for the entire execution
+        @return: A tuple array, where each tuple represents (FromAdr, ToAdr), e.g: (Calee_Func_EA , Called Func_EA)
+        """
+        call_graph_list = []
+        prev_func_ea = None
+        next_func_ea = None
+
+        for cur_context_id in self.function_contexts:
+            cur_context = self.function_contexts[cur_context_id]
+            if cur_context.function in self.functions:
+                prev_func_ea = self.functions[cur_context.function].function_start
+
+            for next_context_id in cur_context.child_func_ctxt_id_list:
+                if next_context_id in self.function_contexts:
+                    next_context = self.function_contexts[next_context_id]
+
+                    if next_context.function in self.functions:
+                        next_func_ea = self.functions[next_context.function].function_start
+
+                if prev_func_ea and next_func_ea:
+                    call_graph_list.append((prev_func_ea, next_func_ea))
+
+        return call_graph_list
+
     #############################################################################
     # Add data base items
     #############################################################################
