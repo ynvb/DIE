@@ -5,7 +5,8 @@ from idaapi import *
 #from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
-from DIE.Lib.IDAConnector import get_function_name, is_indirect, get_function_start_address, get_function_end_address
+from DIE.Lib.IDAConnector import get_function_name, is_indirect, get_function_start_address, \
+    get_function_end_address, add_call_xref, is_call_xref
 import DIE.Lib.FunctionParsers
 import DIE.Lib.DIE_Exceptions
 
@@ -72,6 +73,9 @@ class FunctionContext():
             self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
             self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
             self._empty = False
+
+            if self.config.function_context.add_xref:
+                self.add_call_xrefs(ea, iatEA)
 
         except Exception as ex:
             logging.exception("Error while initializing function context: %s", ex)
@@ -192,6 +196,20 @@ class FunctionContext():
 
                 return Function(ea, iatEA, library_name=library_name)
                  # If this second attempt fails again, the exception should be handled by the calling function.
+
+    def add_call_xrefs(self, ea, iatEA):
+        """
+        If docent already exist, Add call XREFs from the calling function.
+        @param ea: Effective address of this function context
+        @param iatEA: Effective address of IAT address
+        @return: True if XREF was added, otherwise False
+        """
+        if not is_call_xref(self.callingEA, ea):
+            # This is just to verify we are not xrefing a loaded library
+            if not iatEA:
+                return add_call_xref(self.callingEA, ea)
+
+        return False
 
     def _make_default_instance(self):
         """ Return a default (empty) instance """

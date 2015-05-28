@@ -8,6 +8,7 @@ debug_values:
 function_context:
   get_func_args: true
   new_func_analysis: false
+  add_xref: false
 
 debugging:
   max_func_call: 20

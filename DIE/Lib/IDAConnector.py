@@ -218,3 +218,26 @@ def is_import_or_lib_func(ea):
     """
 
     return sark.Function(ea).flags & (idaapi.FUNC_LIB | idaapi.FUNC_THUNK)
+
+def add_call_xref(frm, to):
+    """
+    Add XREF to a call function
+    @param frm: EA of From address (The CALL instruction address)
+    @param to: EA of To Address (The called funciton address)
+    @return: True if XREF was added successfully, otherwise False
+    """
+    return idc.AddCodeXref(frm, to, 0x31)
+
+def is_call_xref(frm, to):
+    """
+    Check the existence of a call XREF in a CALL instruction.
+    @param frm: EA of From address (The CALL instruction address)
+    @param to: EA of To Address (The called funciton address)
+    @return: True if call XREF exist, otherwise False
+    """
+    for xref in sark.Line(frm).xrefs_from:
+        if xref.to == to:
+            return True
+
+    return False
+

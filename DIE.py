@@ -330,8 +330,11 @@ class DieManager():
 
         with sark.ui.Update():
             for func_ea in self.die_db.get_function_counter():
-                for line in sark.Function(func_ea).lines:
-                    line.color = color
+                try:
+                    for line in sark.Function(func_ea).lines:
+                        line.color = color
+                except sark.exceptions.SarkNoFunction:
+                    pass
 
         # Swap is_marked value
         self.is_marked = not self.is_marked
@@ -343,7 +346,6 @@ class DieManager():
         """
         Show execution Call flow graph
         """
-        start_node = self.die_db.function_contexts[0]
         cfg = self.die_db.get_call_graph_complete()
         graph = nx.DiGraph()
 
