@@ -25,7 +25,6 @@ class StringParser(DataPluginBase):
         self.addSuportedType("CHAR *", ASCII_STR)
         self.addSuportedType("CONST CHAR *", ASCII_STR)
         self.addSuportedType("LPSTR", ASCII_STR)
-        self.addSuportedType("CSTRING *", ASCII_STR)
         self.addSuportedType("LPCWSTR", UNICODE_STR)
         self.addSuportedType("LPWSTR", UNICODE_STR)
 
@@ -38,37 +37,37 @@ class StringParser(DataPluginBase):
         minLength = 5  # The minimal string length
 
         value = idc.GetString(rawValue, strtype=idc.ASCSTR_C)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "ASCII C-String", raw_value)
 
         value = idc.GetString(rawValue, strtype=idc.ASCSTR_UNICODE)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii Unicode String", raw_value)
 
         value = idc.GetString(rawValue, strtype=idaapi.ASCSTR_PASCAL)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii Pascal string", raw_value)
 
         value = idc.GetString(rawValue, strtype=idaapi.ASCSTR_LEN2)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii String (Len2)", raw_value)
 
         value = idc.GetString(rawValue, strtype=idaapi.ASCSTR_LEN4)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii String (Len4)", raw_value)
 
         value = idc.GetString(rawValue, strtype=idaapi.ASCSTR_ULEN2)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii String (ULen2)", raw_value)
 
         value = idc.GetString(rawValue, strtype=idaapi.ASCSTR_ULEN4)
-        if value is not None and len(value) >= minLength:
+        if value and len(value) >= minLength:
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "Ascii String (ULen4)", raw_value)
 
