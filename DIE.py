@@ -70,6 +70,7 @@ class DieManager():
                     level=logging.INFO,
                     format='[%(asctime)s] [%(levelname)s] [%(name)s][%(filename)s:%(lineno)s] : %(message)s')
 
+        idaapi.msg("Logfile created at %s\n" % log_filename)
         self.logger = logging.getLogger(__name__)
 
         ### DIE Configuration ###

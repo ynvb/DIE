@@ -375,7 +375,8 @@ class DebugHooker(DBG_Hooks):
 
                 # If end function address was not explicitly defined, set to end of current function
                 if end_func_ea is None:
-                    self.end_bp = DIE.Lib.IDAConnector.get_function_end_address(start_func_ea)
+                    self.address = DIE.Lib.IDAConnector.get_function_end_address(start_func_ea)
+                    self.end_bp = self.address
                     self.bp_handler.addBP(self.end_bp, "FINAL_BP")
 
                 # Walk current function
