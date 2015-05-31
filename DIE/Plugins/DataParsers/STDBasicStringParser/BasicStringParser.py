@@ -2,21 +2,21 @@ from DIE.Lib.DataPluginBase import DataPluginBase
 import idc
 import idaapi
 
-class STDBasicString(DataPluginBase):
+class BasicStringParser(DataPluginBase):
     """
     A parser for std::basic_string
     """
 
     def __init__(self):
-        super(STDBasicString, self).__init__()
-        self.setPluginType("std::basic_string")
+        super(BasicStringParser, self).__init__()
+        self.setPluginType("basicstring")
 
     def registerSupportedTypes(self):
         """
         Register string types
         @return:
         """
-        self.addSuportedType("std::basic_string", 0)
+        self.addSuportedType("basicstring", 0)
 
     def guessValues(self, rawValue):
         """
@@ -35,6 +35,10 @@ class STDBasicString(DataPluginBase):
             return True
 
         if not value:
+            # If this is not an ASCII string, check for the string value at offset +0x04
+            tmp = idc.GetString(rawValue, strtype=idc.ASCSTR_C)
+            if tmp:
+                return False
             value = idc.GetString(rawValue+4, strtype=idc.ASCSTR_C)
             if value and len(value) >= minLength:
                 value, raw_value = self.normalize_raw_value(value)
@@ -68,6 +72,10 @@ class STDBasicString(DataPluginBase):
             return True
 
         else:
+            # If this is not an ASCII string, check for the string value at offset +0x04
+            tmp = idc.GetString(rawValue, strtype=idc.ASCSTR_C)
+            if tmp:
+                return False
             value = idc.GetString(rawValue+4, strtype=idc.ASCSTR_C)
             value, raw_value = self.normalize_raw_value(value)
             self.addParsedvalue(value, 1, "std::basic_string", raw_value)

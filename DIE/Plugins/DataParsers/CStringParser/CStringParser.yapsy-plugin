@@ -1,7 +1,0 @@
-[Core]
-Name = CStringParser
-Module = CStringParser
-
-[Documentation]
-Author = Yaniv Balmas
-Description = CString Parser

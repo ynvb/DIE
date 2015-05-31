@@ -1,0 +1,7 @@
+[Core]
+Name = BasicStringParser
+Module = BasicStringParser
+
+[Documentation]
+Author = Yaniv Balmas
+Description = STD basic_string Parser
