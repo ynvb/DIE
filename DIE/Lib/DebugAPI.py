@@ -254,6 +254,9 @@ class DebugHooker(DBG_Hooks):
         @return:
         """
         try:
+            # Walk thread entry point for breakpoints
+            self.bp_handler.walk_function(ea)
+
             # If no call-stack exist for this thread, create one.
             if not tid in self.callStack:
                 self.callStack[tid] = CallStack()
