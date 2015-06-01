@@ -27,7 +27,7 @@ class FunctionContext():
      4. "how much time did it take to process this function"
     """
 
-    ID = 0
+    ID = 1
 
     def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None, parent_func_context=None, calling_ea=None):
         """
@@ -64,8 +64,6 @@ class FunctionContext():
         self.child_func_context = []                    # Array of function contexts called bu this function
 
         try:
-            #self.callingEA = get_ret_adr()  # The ea of the CALL instruction
-
             self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
 
             ### Flags
@@ -93,7 +91,11 @@ class FunctionContext():
             self.function_parser = GenericFunctionParser(self.function)
 
         except DIE.Lib.DIE_Exceptions.DieNoFunction:
-            self.logger.info("Could not retrieve function information at address: %s", hex(ea))
+            if self.config.function_context.new_func_analysis:
+                self.logger.info("Could not retrieve function information at address: %s", hex(ea))
+            else:
+                self.logger.debug("Could not retrieve function information at address: %s", hex(ea))
+
             self.function = None
 
     @property
@@ -146,6 +148,9 @@ class FunctionContext():
         Get the function argument values upon function return
         @return: True if function argument values were successfully retrieved, otherwise false.
         """
+        # Is this an empty function context object?
+        if self.empty:
+            return False
 
         if self.no_ret_context:
             self.logger.error("Call values must be retrieved prior to return values.")

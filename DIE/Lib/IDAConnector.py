@@ -241,3 +241,28 @@ def is_call_xref(frm, to):
 
     return False
 
+def is_system_lib(name):
+    """
+    Returns true if a segment belongs to a system library, in which case we don't want to recursively hook calls.
+    Covers Windows, Linux, Mac, Android, iOS
+    @param name: segment name
+    """
+
+    # the below is for Windows kernel debugging
+    if name == 'nt':
+        return True
+
+    sysfolders = [re.compile("\\\\windows\\\\", re.I), re.compile("\\\\Program Files ", re.I), re.compile("/usr/", re.I), \
+                  re.compile("/system/", re.I), re.compile("/lib/", re.I)]
+    m = GetFirstModule()
+    while m:
+        path = GetModuleName(m)
+        if re.search(name, path):
+            if any(regex.search(path) for regex in sysfolders):
+                return True
+            else:
+                return False
+        m = GetNextModule(m)
+
+    return False
+

@@ -51,7 +51,7 @@ class CallStack():
                 parent_func_context.child_func_context.append(funcContext)
 
             if funcContext.empty:
-                self.logger.info("Could not generate function context for ea: %s", hex(ea))
+                self.logger.debug("Could not generate function context for ea: %s", hex(ea))
                 callStackTup = (callTree_Indx, funcContext)
                 self.callStack.append(callStackTup)
                 return -1
