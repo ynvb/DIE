@@ -398,7 +398,9 @@ class die_plugin_t(plugin_t):
 
     def init(self):
         try:
-            self.die_manager = DieManager(is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=True)
+            # For Debugging:
+            #self.die_manager = DieManager(is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=True)
+            self.die_manager = DieManager()
             self.die_manager.add_menu_items()
             self.die_manager.show_logo()
             return idaapi.PLUGIN_KEEP
@@ -416,7 +418,7 @@ class die_plugin_t(plugin_t):
     def term(self):
         with ignored(AttributeError):
             if not self.die_manager.die_db.is_saved:
-                response = idc.AskYN(1, "One more thing before you go... DIE DB was not saved, Would you like to save it now?")
+                response = idc.AskYN(1, "DIE DB was not saved, Would you like to save it now?")
                 if response == 1:
                     self.die_manager.save_db()
 
