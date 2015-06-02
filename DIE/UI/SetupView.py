@@ -15,6 +15,7 @@ class SettingsView(Form):
                              "\n"
                              "\n"
                              "Debug Values:\n"
+                             "<Step Into System Libraries:{rStepInSysLibs}>\n"
                              "<New Function Analysis:{rFuncAnalysis}>\n"
                              "<Add xrefs:{rAddXref}>\n"
                              "<Raw:{rRaw}>\n"
@@ -26,7 +27,7 @@ class SettingsView(Form):
                              "\n"
                              ), {
                           'cDebugValues': Form.ChkGroupControl(
-                              ("rAddXref", "rFuncAnalysis", "rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
+                              ("rStepInSysLibs", "rAddXref", "rFuncAnalysis", "rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
                           'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
                           'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),
                       })
@@ -52,6 +53,7 @@ def Show(config_filename):
     settings.rContainer.checked = die_config.debug_values.is_container
     settings.rFuncAnalysis.checked = die_config.function_context.new_func_analysis
     settings.rAddXref.checked = die_config.function_context.add_xref
+    settings.rStepInSysLibs.checked = die_config.debugging.step_into_syslibs
 
     settings.rArgs.checked = die_config.function_context.get_func_args
 
@@ -67,6 +69,7 @@ def Show(config_filename):
         die_config.debug_values.is_container = settings.rContainer.checked
         die_config.function_context.new_func_analysis = settings.rFuncAnalysis.checked
         die_config.function_context.add_xref = settings.rAddXref.checked
+        die_config.debugging.step_into_syslibs = settings.rStepInSysLibs.checked
 
         die_config.function_context.get_func_args = settings.rArgs.checked
 

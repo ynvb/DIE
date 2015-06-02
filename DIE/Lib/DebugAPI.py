@@ -20,7 +20,7 @@ import DIE.Lib.DataParser
 from DIE.Lib.DIE_Exceptions import FuncCallExceedMax, DieCallStackPopError, DieThunkFunctionDetected
 from DIE.Lib.CallStack import *
 from DIE.Lib.DbgImports import *
-from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present
+from DIE.Lib.IDAConnector import get_cur_ea, is_call, is_ida_debugger_present, is_system_lib
 import DIE.Lib.DIEDb
 
 ##########################
@@ -198,15 +198,19 @@ class DebugHooker(DBG_Hooks):
             func_call_num = self.current_callstack.push(ea, iatEA, library_name=library_name, calling_ea=self.prev_bp_ea)
 
             (func_adr, func_name) = self.current_callstack.get_top_func_data()
-            if func_adr is not None and func_name is not None:
-                self.logger.debug("Stepped into function %s at address %s", func_adr, func_name)
+            if not func_name:
+                self.logger.debug("Stepped into function %s at address %s", func_name, hex(ea))
 
-            # TODO: this should be redefined to a better condition + also need to check if module is excluded
-            if not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:
+            # If "Step-Into System Libraries" option is set, walk function for breakpoints
+            if self.config.debugging.step_into_syslibs:
                 self.bp_handler.walk_function(ea)
 
-            # Check if total number of function calls exceeded the max configured value
-            if func_call_num > self.config.debugging.max_func_call:
+            # If "Step-Into System Libraries" option is not set, check for syslib first first.
+            elif not self.runtime_imports.is_func_imported(ea) and self.is_dyn_breakpoints:
+                self.bp_handler.walk_function(ea)
+
+            # Check if total number of function calls exceeded the max configured value (0 = Disabled)
+            if self.config.debugging.max_func_call != 0 and func_call_num > self.config.debugging.max_func_call:
                 self.make_exception_last_func()
 
         except DieCallStackPushError as ex:

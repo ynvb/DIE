@@ -2,6 +2,7 @@ import sark
 import idc
 import idaapi
 import idautils
+import re
 from sark.debug import Registers
 
 ################################################################
@@ -241,12 +242,17 @@ def is_call_xref(frm, to):
 
     return False
 
-def is_system_lib(name):
+def is_system_lib(ea):
     """
     Returns true if a segment belongs to a system library, in which case we don't want to recursively hook calls.
     Covers Windows, Linux, Mac, Android, iOS
-    @param name: segment name
+    @param ea: an effective address within a function
     """
+
+    name = idc.SegName(ea)
+
+    if not name:
+        return False
 
     # the below is for Windows kernel debugging
     if name == 'nt':
@@ -254,15 +260,16 @@ def is_system_lib(name):
 
     sysfolders = [re.compile("\\\\windows\\\\", re.I), re.compile("\\\\Program Files ", re.I), re.compile("/usr/", re.I), \
                   re.compile("/system/", re.I), re.compile("/lib/", re.I)]
-    m = GetFirstModule()
+
+    m = idc.GetFirstModule()
     while m:
-        path = GetModuleName(m)
+        path = idc.GetModuleName(m)
         if re.search(name, path):
             if any(regex.search(path) for regex in sysfolders):
                 return True
             else:
                 return False
-        m = GetNextModule(m)
+        m = idc.GetNextModule(m)
 
     return False
 

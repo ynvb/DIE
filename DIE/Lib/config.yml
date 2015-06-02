@@ -14,3 +14,4 @@ debugging:
   max_func_call: 20
   max_deref_depth: 3
   code_discovery: false
+  step_into_syslibs: false

@@ -14,8 +14,8 @@ class CallStack():
         """
         self.logger = logging.getLogger(__name__)
 
-        self.callStack = []  # A basic call stack
-        self.callTree = []   # A call tree listing the entire function CFG
+        self.callStack = []  # A basic dynamic call stack
+        self.callTree = []   # A global function context list (e.g the entire CFG)
 
         self.function_list = list(idautils.Functions())
 
@@ -32,7 +32,6 @@ class CallStack():
         @return: Total number of occurrences of this function in the call-stack, or -1 on failure
         """
         try:
-            callTree_Indx = len(self.callTree)
             is_new_func = self.check_if_new_func(ea, iatEA)
 
             # Get calling function context
@@ -45,6 +44,10 @@ class CallStack():
                                           is_new_func, library_name=library_name,
                                           parent_func_context=parent_func_context,
                                           calling_ea=calling_ea)
+
+            # Add function context to the global function_context list
+            callTree_Indx = len(self.callTree)
+            self.callTree.append(funcContext)
 
             # Add flink for this function in parent function context
             if parent_func_context:
@@ -64,9 +67,6 @@ class CallStack():
             self.callStack.append(callStackTup)
 
             return self.function_counter[funcContext.function.funcName]
-
-        except DIE.Lib.DIE_Exceptions.DieNoFunction:
-            raise DieCallStackPushError(ea)
 
         except Exception as ex:
             self.logger.exception("Error while pushing function at address %s to callstack", hex(ea))
@@ -90,7 +90,7 @@ class CallStack():
                 return False
 
             funcContext.get_arg_values_ret()  # Update the call-tree context
-            self.callTree.append(funcContext)
+            #self.callTree.append(funcContext)
             return True
 
         except Exception as ex:
