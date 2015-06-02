@@ -300,8 +300,15 @@ class DIE_DB():
         Get all contained value types
         @return: a list of all of the contained value types
         """
+        type_list = []
 
-        return list(set(self.parsed_values.values()))
+        p = self.parsed_values.values()
+        for parsed_value in p:
+            if parsed_value.type not in type_list:
+                type_list.append(parsed_value.type)
+
+        return type_list
+
 
     def get_parsed_value_contexts(self, value):
         """

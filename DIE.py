@@ -33,6 +33,13 @@ from DIE.UI.AboutScreen import About
 
 from DIE.Lib.DIE_Exceptions import DbFileMismatch
 
+import ptvsd
+try:
+    # Enable the debugger. Raises exception if called more than once.
+    ptvsd.enable_attach(secret="IDA")
+except:
+    pass
+
 
 class MenuHelperException(Exception):
     pass
@@ -390,8 +397,8 @@ class die_plugin_t(plugin_t):
     wanted_hotkey = ""
 
     def init(self):
-        self.die_manager = DieManager(is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=True)
         try:
+            self.die_manager = DieManager(is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=True)
             self.die_manager.add_menu_items()
             self.die_manager.show_logo()
             return idaapi.PLUGIN_KEEP
