@@ -33,14 +33,6 @@ from DIE.UI.AboutScreen import About
 
 from DIE.Lib.DIE_Exceptions import DbFileMismatch
 
-import ptvsd
-try:
-    # Enable the debugger. Raises exception if called more than once.
-    ptvsd.enable_attach(secret="IDA")
-except:
-    pass
-
-
 class MenuHelperException(Exception):
     pass
 
