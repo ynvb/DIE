@@ -332,8 +332,7 @@ class DieManager():
         with sark.ui.Update():
             for func_ea in self.die_db.get_function_counter():
                 try:
-                    for line in sark.Function(func_ea).lines:
-                        line.color = color
+                    sark.Function(func_ea).color = color
                 except sark.exceptions.SarkNoFunction:
                     pass
 
