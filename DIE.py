@@ -1,24 +1,13 @@
 import networkx as nx
 from awesome.context import ignored
 import sark
+import sark.qt
+from sark.qt import QtGui, QtCore
 import logging
 import logging.handlers as handlers
 
 import os
 from time import ctime
-
-# This nasty piece of code is here to force the loading of IDA's PySide.
-# Without it, Python attempts to load PySide from the site-packages directory,
-# and failing, as it does not play nicely with IDA.
-import sys
-old_path = sys.path[:]
-try:
-    import idaapi
-    ida_python_path = os.path.dirname(idaapi.__file__)
-    sys.path.insert(0, ida_python_path)
-    from PySide import QtGui, QtCore
-finally:
-    sys.path = old_path
 
 from idaapi import plugin_t
 import idaapi
@@ -59,6 +48,8 @@ class DieManager():
         ### Logging ###
 
         log_filename = os.path.join(os.getcwd(), "DIE.log")
+
+        self._menu = sark.qt.MenuManager()
 
         #TODO: Fix logging to include rotating_file_handler \ console_logging
         if is_dbg_log:
@@ -163,48 +154,53 @@ class DieManager():
         self.addmenu_item_ctxs.append(addmenu_item_ctx)
 
     def add_menu_items(self):
+        # Add root level menu
+        self._menu.add_menu("&DIE")
+
         # Load DieDB
-        self.add_menu_item_helper("Help/About program..", "DIE: Load DieDB", "", self.load_db)
-        idaapi.set_menu_item_icon("Help/DIE: Load DieDB", self.icon_list["load"])
+        self.add_menu_item_helper("DIE/", "Load DieDB", "", self.load_db)
+        idaapi.set_menu_item_icon("DIE/Load DieDB", self.icon_list["load"])
         # Save DieDB
-        self.add_menu_item_helper("Help/About program..", "DIE: Save DieDB", "", self.save_db)
-        idaapi.set_menu_item_icon("Help/DIE: Save DieDB", self.icon_list["save"])
+        self.add_menu_item_helper("DIE/", "Save DieDB", "", self.save_db)
+        idaapi.set_menu_item_icon("DIE/Save DieDB", self.icon_list["save"])
         # Debug Here
-        self.add_menu_item_helper("Help/About program..", "DIE: Go from current location", "Alt+f", self.go_here)
-        idaapi.set_menu_item_icon("Help/DIE: Go from current location", self.icon_list["debug"])
+        self.add_menu_item_helper("DIE/", "Go from current location", "Alt+f", self.go_here)
+        idaapi.set_menu_item_icon("DIE/Go from current location", self.icon_list["debug"])
         # Debug All
-        self.add_menu_item_helper("Help/About program..", "DIE: Debug entire code", "Alt+g", self.go_all)
-        idaapi.set_menu_item_icon("Help/DIE: Debug entire code", self.icon_list["debug_all"])
+        self.add_menu_item_helper("DIE/", "Debug entire code", "Alt+g", self.go_all)
+        idaapi.set_menu_item_icon("DIE/Debug entire code", self.icon_list["debug_all"])
         # Debug Custom
-        self.add_menu_item_helper("Help/About program..", "DIE: Debug a custom scope", "Alt+c",
+        self.add_menu_item_helper("DIE/", "Debug a custom scope", "Alt+c",
                                   self.show_scope_chooser)
-        idaapi.set_menu_item_icon("Help/DIE: Debug a custom scope", self.icon_list["debug_scope"])
+        idaapi.set_menu_item_icon("DIE/Debug a custom scope", self.icon_list["debug_scope"])
         # Function View
-        self.add_menu_item_helper("Help/About program..", "DIE: Function View", "", self.show_function_view)
-        idaapi.set_menu_item_icon("Help/DIE: Function View", self.icon_list["function_view"])
+        self.add_menu_item_helper("DIE/", "Function View", "", self.show_function_view)
+        idaapi.set_menu_item_icon("DIE/Function View", self.icon_list["function_view"])
         # Value View
-        self.add_menu_item_helper("Help/About program..", "DIE: Value View", "", self.show_value_view)
-        idaapi.set_menu_item_icon("Help/DIE: Value View", self.icon_list["value_view"])
+        self.add_menu_item_helper("DIE/", "Value View", "", self.show_value_view)
+        idaapi.set_menu_item_icon("DIE/Value View", self.icon_list["value_view"])
         # Exception View
-        self.add_menu_item_helper("Help/About program..", "DIE: Exceptions View", "", self.show_breakpoint_view)
-        idaapi.set_menu_item_icon("Help/DIE: Exceptions View", self.icon_list["exception_view"])
+        self.add_menu_item_helper("DIE/", "Exceptions View", "", self.show_breakpoint_view)
+        idaapi.set_menu_item_icon("DIE/Exceptions View", self.icon_list["exception_view"])
         # Parsers View
-        self.add_menu_item_helper("Help/About program..", "DIE: Parsers View", "", self.show_parser_view)
-        idaapi.set_menu_item_icon("Help/DIE: Parsers View", self.icon_list["plugins"])
+        self.add_menu_item_helper("DIE/", "Parsers View", "", self.show_parser_view)
+        idaapi.set_menu_item_icon("DIE/Parsers View", self.icon_list["plugins"])
         # Parsers View
-        self.add_menu_item_helper("Help/About program..", "DIE: Settings", "", self.show_settings)
-        idaapi.set_menu_item_icon("Help/DIE: Settings", self.icon_list["settings"])
+        self.add_menu_item_helper("DIE/", "Settings", "", self.show_settings)
+        idaapi.set_menu_item_icon("DIE/Settings", self.icon_list["settings"])
         # About DIE
-        self.add_menu_item_helper("Help/About program..", "DIE: About", "", self.show_about)
-        idaapi.set_menu_item_icon("Help/DIE: About", self.icon_list["die"])
+        self.add_menu_item_helper("DIE/", "About", "", self.show_about)
+        idaapi.set_menu_item_icon("DIE/About", self.icon_list["die"])
         # Mark\Unmark Execution Flow
-        self.add_menu_item_helper("Help/About program..", "DIE: Mark\Unmark Execution Flow", "", self.mark_exec_flow)
+        self.add_menu_item_helper("DIE/", "Mark\Unmark Execution Flow", "", self.mark_exec_flow)
         # Show complete execution CFG
-        self.add_menu_item_helper("Help/About program..", "DIE: Show CFG", "", self.show_cfg)
+        self.add_menu_item_helper("DIE/", "Show CFG", "", self.show_cfg)
 
     def del_menu_items(self):
         for addmenu_item_ctx in self.addmenu_item_ctxs:
             idaapi.del_menu_item(addmenu_item_ctx)
+
+        self._menu.clear()
 
     def doNothing(self):
         """
