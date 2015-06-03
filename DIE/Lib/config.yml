@@ -4,6 +4,7 @@ debug_values:
   is_array: true
   is_container: true
   is_deref: true
+  is_enum: true
 
 function_context:
   get_func_args: true

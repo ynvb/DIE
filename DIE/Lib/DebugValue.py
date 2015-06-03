@@ -1,16 +1,16 @@
+import sark
 from DIE.Lib import DieConfig, DataParser
-
-
-
 
 import idaapi
 from idc import *
 from DIE.Lib.IDATypeWrapers import Array, Struct
 from DIE.Lib.IDAConnector import get_adrs_mem
 import logging
+from DIE.Lib.ParsedValue import ParsedValue, MAX_SCORE
 
-MEM_VAL = 0x01       # Memory based value
-REG_VAL = 0x02       # Register based value
+MEM_VAL = 0x01  # Memory based value
+REG_VAL = 0x02  # Register based value
+
 
 class DebugValue():
     """
@@ -32,7 +32,7 @@ class DebugValue():
                  loc,
                  type="",
                  name="",
-                 referringValue = None,
+                 referringValue=None,
                  deref_depth=None,
                  custom_parser=None):
         """
@@ -41,27 +41,27 @@ class DebugValue():
         self.logger = logging.getLogger(__name__)
         self.config = DieConfig.get_config()
 
-        self.storetype = storeType          # Value store location (memory\register)
-        self.type = type                    # tinfo_t object.
-        self.name = name                    # Value name
-        self.loc = loc                      # Value location (if REG_VAL - register name, if MEM_VAL - memory address)
-        self.rawValue = None                # Raw value at address
+        self.storetype = storeType  # Value store location (memory\register)
+        self.type = type  # tinfo_t object.
+        self.name = name  # Value name
+        self.loc = loc  # Value location (if REG_VAL - register name, if MEM_VAL - memory address)
+        self.rawValue = None  # Raw value at address
 
-        self.parsedValues = []              # Possible value data list
-        self.nestedValues = []              # Nested DebugValue(s) (if struct/union etc.)
+        self.parsedValues = []  # Possible value data list
+        self.nestedValues = []  # Nested DebugValue(s) (if struct/union etc.)
 
         # Custom parser plugin for this value - if this value is set, no other parser will be attempted to parse
         # this value.
         self.custom_parser = custom_parser
 
-        self.reference_flink = None             # For reference values, a pointer to the referred value.
-        self.reference_blink = referringValue   # For reference values, a pointer to the referring value.
+        self.reference_flink = None  # For reference values, a pointer to the referred value.
+        self.reference_blink = referringValue  # For reference values, a pointer to the referring value.
 
         # Set current maximal dereference depth for this argument.
         if deref_depth is None:
             self.derefrence_depth = self.config.debugging.max_deref_depth
         else:
-            self.derefrence_depth = deref_depth     # de-reference depth
+            self.derefrence_depth = deref_depth  # de-reference depth
 
         try:
             # Collect runtime values!
@@ -85,6 +85,7 @@ class DebugValue():
                 if self.is_container():
                     self.__get_container_values()
 
+
             # If value is an array
             if self.config.debug_values.is_array:
                 if self.is_array():
@@ -94,15 +95,20 @@ class DebugValue():
                 if self.config.debug_values.is_raw:
                     self.rawValue = self.getRawValue()
 
+                    if self.config.debug_values.is_enum:
+                        if self.is_enum():
+                            if self.__get_enum_values():
+                                return True
+
                 if self.config.debug_values.is_parse:
                     self.parsedValues = self.parseValue()
 
                 return True
 
-            else:
-                #TODO: This is noisy. why? maybe this happens when value is NULL?
-                #self.logger.error("Could not get runtime values for %s. no location\storetype information found", self.typeName())
-                return False
+
+            # TODO: This is noisy. why? maybe this happens when value is NULL?
+            # self.logger.error("Could not get runtime values for %s. no location\storetype information found", self.typeName())
+            return False
 
 
         except Exception as ex:
@@ -125,7 +131,7 @@ class DebugValue():
                     ref_type = self.type.get_pointed_object()
                     ref_loc = self.getRawValue()
                     ref_blink = self
-                    new_deref_depth = (self.derefrence_depth -1)
+                    new_deref_depth = (self.derefrence_depth - 1)
 
                     self.reference_flink = DebugValue(MEM_VAL,
                                                       ref_loc,
@@ -153,7 +159,7 @@ class DebugValue():
                 prev_element = self
                 for element_index in xrange(0, array.element_num):  # TODO: maybe element_num -1 ?!
                     element_val = DebugValue(MEM_VAL,
-                                             array_base_adrs + (element_index*array.element_size),
+                                             array_base_adrs + (element_index * array.element_size),
                                              array.element_type,
                                              "[%d]" % element_index)
 
@@ -230,7 +236,6 @@ class DebugValue():
             self.logger.exception("Error while parsing value: %s" % ex)
             return None
 
-
     ####################################################################################################
     # Convenience Functions
 
@@ -264,6 +269,12 @@ class DebugValue():
         """
         if self.type is not None:
             return self.type.is_array()
+
+        return False
+
+    def is_enum(self):
+        if self.type is not None:
+            return self.type.is_enum()
 
         return False
 
@@ -302,17 +313,18 @@ class DebugValue():
 
         return False
 
+    def __get_enum_values(self):
+        try:
+            enum_name = idaapi.print_tinfo("", 0, 0, idaapi.PRTYPE_1LINE, self.type, "", "")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+            enum = sark.Enum(name=enum_name)
+            for member in enum.members:
+                if member.value == self.rawValue:
+                    self.parsedValues.append(
+                        ParsedValue("{}.{}".format(enum_name, member.name), "Enum", MAX_SCORE, hex(self.rawValue))
+                    )
+                    return True
+            return False
+        except Exception as ex:
+            self.logger.exception("Error while retrieving enum values: %s", ex)
+            return False
