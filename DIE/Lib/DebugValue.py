@@ -321,7 +321,9 @@ class DebugValue():
             for member in enum.members:
                 if member.value == self.rawValue:
                     self.parsedValues.append(
-                        ParsedValue("{}.{}".format(enum_name, member.name), "Enum", MAX_SCORE, hex(self.rawValue))
+                        ParsedValue("{}.{}".format(
+                            enum_name, member.name), "Enum", MAX_SCORE, hex(self.rawValue), "enum"
+                        )
                     )
                     return True
             return False
