@@ -1,0 +1,7 @@
+[Core]
+Name = FunctionParser
+Module = FunctionParser
+
+[Documentation]
+Author = Yaniv Balmas
+Description = This parser checks if the value points to a valid function
