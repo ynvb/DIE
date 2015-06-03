@@ -21,13 +21,15 @@ class SettingsView(Form):
                              "<Raw:{rRaw}>\n"
                              "<Parse:{rParse}>\n"
                              "<Array:{rArray}>\n"
+                             "<Enum:{rEnum}>\n"
                              "<Containers:{rContainer}>\n"
                              "<Dereference:{rDeref}>\n"
                              "<Arguments:{rArgs}>{cDebugValues}>\n"
                              "\n"
                              ), {
                           'cDebugValues': Form.ChkGroupControl(
-                              ("rStepInSysLibs", "rAddXref", "rFuncAnalysis", "rRaw", "rParse", "rArray", "rContainer", "rDeref", "rArgs")),
+                              ("rStepInSysLibs", "rAddXref", "rFuncAnalysis", "rRaw", "rParse", "rArray", "rContainer",
+                               "rDeref", "rArgs", "rEnum")),
                           'iMaxFuncCall': Form.NumericInput(tp=Form.FT_DEC),
                           'iDerefDepth': Form.NumericInput(tp=Form.FT_DEC),
                       })
@@ -48,6 +50,7 @@ def Show(config_filename):
 
     settings.rDeref.checked = die_config.debug_values.is_deref
     settings.rRaw.checked = die_config.debug_values.is_raw
+    settings.rEnum.checked = die_config.debug_values.is_enum
     settings.rParse.checked = die_config.debug_values.is_parse
     settings.rArray.checked = die_config.debug_values.is_array
     settings.rContainer.checked = die_config.debug_values.is_container
@@ -63,6 +66,7 @@ def Show(config_filename):
         die_config.debugging.max_func_call = settings.iMaxFuncCall.value
 
         die_config.debug_values.is_deref = settings.rDeref.checked
+        die_config.debug_values.is_enum = settings.rEnum.checked
         die_config.debug_values.is_raw = settings.rRaw.checked
         die_config.debug_values.is_parse = settings.rParse.checked
         die_config.debug_values.is_array = settings.rArray.checked
