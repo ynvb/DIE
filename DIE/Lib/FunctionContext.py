@@ -210,8 +210,12 @@ class FunctionContext():
         @return: True if XREF was added, otherwise False
         """
         if not is_call_xref(self.callingEA, ea):
-            # This is just to verify we are not xrefing a loaded library
-            if not iatEA:
+
+            # Only segments loaded by the loader should get xrefed
+            calling_seg = idaapi.getseg(self.callingEA)
+            callee_seg = idaapi.getseg(ea)
+            if callee_seg.is_loader_segm() and calling_seg.is_loader_segm():
+                self.logger.info("Adding XREF from: %s to: %s", hex(self.callingEA), hex(ea))
                 return add_call_xref(self.callingEA, ea)
 
         return False

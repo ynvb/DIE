@@ -298,8 +298,6 @@ class DebugHooker(DBG_Hooks):
 
             self.bp_handler.save_exceptions(die_db)
 
-            print die_db.get_all_value_types()
-
         except Exception as ex:
             self.logger.exception("Failed while finalizing DIE run: %s", ex)
 
