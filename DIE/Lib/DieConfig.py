@@ -33,7 +33,12 @@ class DIEConfig(object):
         with open(path, "rb") as f:
             custom = yaml.safe_load(f)
 
-        self._config.update(custom)
+        custom = AttrMap(custom)
+
+        for attr in self._config:
+            if attr in custom:
+                self._config[attr].update(custom[attr])
+
 
     def save(self, path):
         with open(path, "wb") as f:
