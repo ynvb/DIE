@@ -29,7 +29,7 @@ import DIE.UI.BPView
 import DIE.UI.SetupView
 import DIE.UI.Die_Icons
 from DIE.UI.FuncScopeChooser import ScopeChooser
-from DIE.UI.AboutScreen import About
+from DIE.UI.AboutScreen import AboutWindow
 
 from DIE.Lib.DIE_Exceptions import DbFileMismatch
 
@@ -285,9 +285,7 @@ class DieManager():
     ###########################################################################
     # About
     def show_about(self):
-        about_screen = About()
-        ok = about_screen.Execute()
-        about_screen.Free()
+        AboutWindow().exec_()
 
     ###########################################################################
     # Settings View
