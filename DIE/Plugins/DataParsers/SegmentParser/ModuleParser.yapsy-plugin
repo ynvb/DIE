@@ -1,0 +1,7 @@
+[Core]
+Name = ModuleParser
+Module = ModuleParser
+
+[Documentation]
+Author = Yaniv Balmas
+Description = This parser get the name of a referenced module
