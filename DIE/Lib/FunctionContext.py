@@ -9,7 +9,6 @@ import DIE.Lib.FunctionParsers
 import DIE.Lib.DIE_Exceptions
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
 
-
 class FunctionContext():
     """
     Function context stores all runtime context of a given function call.
@@ -24,7 +23,7 @@ class FunctionContext():
      4. "how much time did it take to process this function"
     """
 
-    ID = 1
+    ID = 1  # Global function context ID (Used for indexing in DieDB)
 
     def __init__(self, ea, iatEA=None, is_new_func=False, library_name=None, parent_func_context=None, calling_ea=None):
         """
