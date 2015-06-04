@@ -24,6 +24,9 @@ class FunctionParser(DataPluginBase):
         Guess string values
         """
         func = idaapi.get_func(rawValue)
+        if func is None:
+            return False
+
         if func.startEA == rawValue:
             func_name = idc.GetFunctionName(rawValue)
             self.addParsedvalue(func_name, 5, "Function", hex(rawValue))
@@ -45,6 +48,8 @@ class FunctionParser(DataPluginBase):
         @return:
         """
         func = idaapi.get_func(rawValue)
+        if func is None:
+            return False
 
         if func.startEA == rawValue:
             func_name = idc.GetFunctionName(rawValue)
