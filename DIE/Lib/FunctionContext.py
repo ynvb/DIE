@@ -1,15 +1,12 @@
 from awesome import context
-import time
 from idc import *
 from idaapi import *
-#from DIE.Lib.Function import *
 from DIE.Lib.IDATypeWrapers import Function
 from DIE.Lib.DebugValue import *
 from DIE.Lib.IDAConnector import get_function_name, is_indirect, get_function_start_address, \
     get_function_end_address, add_call_xref, is_call_xref
 import DIE.Lib.FunctionParsers
 import DIE.Lib.DIE_Exceptions
-
 from DIE.Lib.FunctionParsers.GenFuncParser import GenericFunctionParser
 
 
@@ -63,21 +60,15 @@ class FunctionContext():
         self.parent_func_context = parent_func_context  # Function context of the calling function
         self.child_func_context = []                    # Array of function contexts called bu this function
 
-        try:
-            self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
+        self.calling_function_name = get_function_name(self.callingEA)  # Calling function name
 
-            ### Flags
-            self.no_ret_context = True  # empty flag is dropped when first call context is retrieved.
-            self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
-            self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
-            self._empty = False
+        ### Flags
+        self.no_ret_context = True  # empty flag is dropped when first call context is retrieved.
+        self.is_indirect = self.check_if_indirect()  # Flag indicating whether this function was called indirectly
+        self.is_new_func = is_new_func  # Flag indicating whether this function did not exist in initial analysis
 
-            if self.config.function_context.add_xref:
-                self.add_call_xrefs(ea, iatEA)
-
-        except Exception as ex:
-            logging.exception("Error while initializing function context: %s", ex)
-            self._make_default_instance()
+        if self.config.function_context.add_xref:
+            self.add_call_xrefs(ea, iatEA)
 
         try:
              # Get this function (The Callee)
@@ -100,7 +91,7 @@ class FunctionContext():
 
     @property
     def empty(self):
-        """ This flag is set if function was not defined. """
+        """ This flag is set when this object is not associated with any function."""
         return self.function is None
 
     def check_if_indirect(self):
@@ -199,8 +190,8 @@ class FunctionContext():
                 self.logger.debug("Refresh debugger memory")
                 invalidate_dbgmem_contents(func_start_adrs, func_end_adrs)
 
+                # If this second attempt fails again, the exception should be handled by the calling function.
                 return Function(ea, iatEA, library_name=library_name)
-                 # If this second attempt fails again, the exception should be handled by the calling function.
 
     def add_call_xrefs(self, ea, iatEA):
         """
@@ -219,13 +210,3 @@ class FunctionContext():
                 return add_call_xref(self.callingEA, ea)
 
         return False
-
-    def _make_default_instance(self):
-        """ Return a default (empty) instance """
-        self.function = None
-        self.callingEA = None
-        self.calling_function_name = None
-        self.no_ret_context = True
-        self.is_indirect = False
-        self.is_new_func = False
-        self.function_parser = None
