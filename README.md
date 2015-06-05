@@ -28,7 +28,7 @@ Installation
 3. Yapsy     - install using `pip install yapsy` or your favorite package manager
 4. Pywin32   - install via [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/)
 5. Sark      - install using `pip install -e git+https://github.com/tmr232/Sark.git#egg=Sark`
-6. yaml      - install using 'pip install yaml'
+6. yaml      - install using `pip install yaml`
 
 Both `sark` and `yapsy` can be installed using `pip install -r requirements.txt`.
 
