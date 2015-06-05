@@ -29,6 +29,7 @@ Installation
 4. Pywin32   - install via [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/)
 5. Sark      - install using `pip install -e git+https://github.com/tmr232/Sark.git#egg=Sark`
 6. yaml      - install using `pip install pyyaml`
+7. attrdict  - install using `pip install attrdict`
 
 Both `sark` and `yapsy` can be installed using `pip install -r requirements.txt`.
 
