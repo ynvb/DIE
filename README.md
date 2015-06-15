@@ -48,6 +48,12 @@ Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/mas
 
 Installation
 ------------
+
+#### Prerequists
+1. IDA >= 6.8 (for versions 6.6 and 6.7 check out the issues page)
+2. Python 2.7
+
+#### How to install
 1. Simply download DIE and run `pip install -r requirments.txt` from DIE's directory.
 2. Copy the file `die_proxy.py` into IDA plugin directory
 3. Create an enviorment variable named DIEDIR and set it's value to DIE directory.
