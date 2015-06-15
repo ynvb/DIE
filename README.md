@@ -38,6 +38,11 @@ In which we will show you how running DIE before even looking at the static anly
 ** Example Video III **
 In which we will show you how to use DIEDB to quickly locate the Explosive trojan de-obfuscation fuction.
 
+### I want to write my own value parser plugin
+
+Great, Value parser plugins are the heart of DIE. Without them DIE is practically usless.
+Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/master/ValueParserWritingManual.md) and if your plugin turns out good, share it with the community!
+
 Installation
 ------------
 **Installation Prerequists:**
