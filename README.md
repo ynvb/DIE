@@ -24,6 +24,13 @@ This parser framework is the real power behind DIE, parser plugins can parse any
 
 The resault is a dynamic databse that holds parsed runtime arguments, which are avilable to the user during static analysis.
 
+### Ok, Im not sure I got it, do you have an example?
+
+Well, yes. I'm glad you asked!
+These viedos shows DIE in action, check them out if you want to understand a little bit more about how it works.
+
+
+
 Installation
 ------------
 **Installation Prerequists:**
