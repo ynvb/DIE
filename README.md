@@ -29,7 +29,14 @@ The resault is a dynamic databse that holds parsed runtime arguments, which are 
 Well, yes. I'm glad you asked!
 These viedos shows DIE in action, check them out if you want to understand a little bit more about how it works.
 
+** Example Video I **
+In which we are going to demonstrate how DIE can be used in order to bypass a (very) simple password protection scheme.
 
+** Example Video II **
+In which we will show you how running DIE before even looking at the static anlysis helps with code coverage, indirect calls, and function defenitions.
+
+** Example Video III **
+In which we will show you how to use DIEDB to quickly locate the Explosive trojan de-obfuscation fuction.
 
 Installation
 ------------
