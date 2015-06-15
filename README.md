@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
+</p>
+
 Dynamic IDA Enrichment Framework (aka. DIE)
 ====
 
