@@ -1,8 +1,5 @@
-<p align="center">
-<h1>
 Dynamic IDA Enrichment (aka. DIE)
-</h1>
-</p>
+=================================
 
 <p align="center">
 <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
