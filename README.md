@@ -48,31 +48,16 @@ Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/mas
 
 Installation
 ------------
-**Installation Prerequists:**
+1. Simply download DIE and run `pip install -r requirments.txt` from DIE's directory.
+2. Copy `DIE.py` and the `DIE` dir into your IDA plugin directory.
 
-1. IDA > 6.6
-2. Python 2.7
+For the Windows Handle parser plugin, you will also need to install [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/) (manually :( )
+
+
+If for some reason you want to install all the dependencies manually:
+
 3. Yapsy     - install using `pip install yapsy` or your favorite package manager
-4. Pywin32   - install via [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/)
+4. Pywin32   - install via 
 5. Sark      - install using `pip install -e git+https://github.com/tmr232/Sark.git#egg=Sark`
 6. yaml      - install using `pip install pyyaml`
 7. attrdict  - install using `pip install attrdict`
-
-Both `sark` and `yapsy` can be installed using `pip install -r requirements.txt`.
-
-**Install ida-python patch:**
-
-1. If running under IDA 6.6:
-   Extract the content of the `ida-python-patch.zip` file into your IDA directory.
-
-2. If running under IDA 6.7:
-   Replace the binaries found in `ida67_patch.zip` file with the original IDA binaries
-   
-3. If tunning under IDA 6.8:
-    Everything works. Have fun.
-
-Note that both of this patches are official patches compiled by hex-rays, and were created due to a bug in the relevant version.
-
-**Install Plugin:**
-
-1. Copy `DIE.py` and the `DIE` dir into your IDA plugin directory.
