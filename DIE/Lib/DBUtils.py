@@ -1,3 +1,13 @@
+#############################################################################
+# This file is mainly designed to provide examples on how to preform smart
+# searches over DIEDB.
+# This file is being used in the video demo: 
+# You better take a look at the video to get a better understanding of what
+# exactly is going on here
+#
+#############################################################################
+
+
 import sark
 from DIE.Lib import DIEDb
 
