@@ -1,5 +1,5 @@
-Dynamic IDA Enrichment Framework (aka. DIE)
-===========================================
+Dynamic IDA Enrichment (aka. DIE)
+=================================
 
 <p align="center">
   <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
