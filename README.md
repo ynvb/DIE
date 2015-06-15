@@ -49,7 +49,7 @@ Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/mas
 Installation
 ------------
 
-#### Prerequists
+#### Prerequisits
 1. IDA >= 6.8 (for versions 6.6 and 6.7 check out the issues page)
 2. Python 2.7
 
