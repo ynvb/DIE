@@ -27,7 +27,7 @@ The resault is a dynamic databse that holds parsed runtime arguments, which are 
 ### I'm not sure I got it, do you have an example?
 
 Well, yes. I'm glad you asked!
-These viedos shows DIE in action, check them out if you want to understand a little bit more about how it works.
+These videos show DIE in action, check them out if you want to understand a little bit more about how DIE works.
 
 #### Example Video I
 [Bypass Password Protection](https://vimeo.com/130815897)
@@ -35,7 +35,7 @@ In which we are going to demonstrate how DIE can be used in order to bypass a (v
 
 #### Example Video II
 [Code Coverage](https://vimeo.com/130815898)
-In which we will show you how running DIE before even looking at the static anlysis helps with code coverage, indirect calls, and function defenitions.
+In which we will show you how running DIE before even looking at the static analysis helps with code coverage, indirect calls, and function defenitions.
 
 #### Example Video III
 [Querying DieDB](https://vimeo.com/130815899)
