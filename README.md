@@ -1,7 +1,6 @@
-Dynamic IDA Enrichment (aka. DIE)
-=================================
-
 <p align="center">
+  Dynamic IDA Enrichment (aka. DIE)
+  =================================
   <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
 </p>
 
