@@ -49,7 +49,8 @@ Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/mas
 Installation
 ------------
 1. Simply download DIE and run `pip install -r requirments.txt` from DIE's directory.
-2. Copy `DIE.py` and the `DIE` dir into your IDA plugin directory.
+2. Copy the file `die_proxy.py` into IDA plugin directory
+3. Create an enviorment variable named DIEDIR and set it's value to DIE directory.
 
 For the Windows Handle parser plugin, you will also need to install [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/) (manually :( )
 
