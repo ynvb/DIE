@@ -5,6 +5,8 @@ Dynamic IDA Enrichment (aka. DIE)
 <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
 </p>
 
+Contributed By Check Point Software Technologies LTD.
+
 ### What is it?
 
 DIE is an IDA python plugin designed to enrich IDA`s static analysis with dynamic data.
