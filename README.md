@@ -1,7 +1,6 @@
-Contributed By Check Point Software Technologies LTD.
-
 Dynamic IDA Enrichment (aka. DIE)
 =================================
+Contributed By Check Point Software Technologies LTD.
 
 <p align="center">
 <img src="https://github.com/ynvb/DIE/blob/master/DIE/icons/logo.png" alt="DIE Logo"/>
