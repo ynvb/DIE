@@ -51,7 +51,7 @@ class AboutWindow(QtGui.QDialog):
         version.setFixedWidth(400)
         version.move(0, subtitle.height() + subtitle.y() + 30)
 
-        author = QtGui.QLabel("Written by Yaniv Balmas @ynvb",self)
+        author = QtGui.QLabel("Written by Yaniv Balmas @ynvb - Check Point Software Technologies",self)
         font = subtitle.font()
         font.setPointSize(12)
         author.setFont(font)
