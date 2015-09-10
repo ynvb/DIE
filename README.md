@@ -52,7 +52,7 @@ Installation
 ------------
 
 #### Prerequisits
-1. IDA >= 6.8 (for versions 6.6 and 6.7 check out the issues page)
+1. IDA >= 6.8 (Only Windows version is currently supported)
 2. Python 2.7
 
 #### How to install
