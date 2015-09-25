@@ -24,7 +24,7 @@ If the current context holds a argument with unknown value, DIE will not give up
 
 This parser framework is the real power behind DIE, parser plugins can parse anything from BOOL values to image files to injected code.
 
-The resault is a dynamic databse that holds parsed runtime arguments, which are avilable to the user during static analysis.
+The result is a dynamic databse that holds parsed runtime arguments, which are avilable to the user during static analysis.
 
 ### I'm not sure I got it, do you have an example?
 
@@ -51,14 +51,14 @@ Check out the [value parser writing manual](https://github.com/ynvb/DIE/blob/mas
 Installation
 ------------
 
-#### Prerequisits
+#### Prerequisites
 1. IDA >= 6.8 (Only Windows version is currently supported)
 2. Python 2.7
 
 #### How to install
-1. Simply download DIE and run `pip install -r requirments.txt` from DIE's directory.
+1. Simply download DIE and run `pip install -r requirements.txt` from DIE's directory.
 2. Copy the file `die_proxy.py` into IDA plugin directory
-3. Create an enviorment variable named DIEDIR and set it's value to DIE directory.
+3. Create an environment variable named DIEDIR and set it's value to DIE directory.
 
 For the Windows Handle parser plugin, you will also need to install [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/) (manually :( )
 
