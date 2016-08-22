@@ -4,9 +4,9 @@ from idaapi import Form
 import os
 import DIE.Lib.DieConfig
 
-from sark.qt import QtGui, QtCore
+from cute import QtCore, QtWidgets, QtGui
 
-class AboutWindow(QtGui.QDialog):
+class AboutWindow(QtWidgets.QDialog):
     def __init__(self):
         super(AboutWindow, self).__init__()
 
@@ -21,12 +21,12 @@ class AboutWindow(QtGui.QDialog):
         pixmap = QtGui.QPixmap.fromImage(image)
 
 
-        logo = QtGui.QLabel(self)
+        logo = QtWidgets.QLabel(self)
         logo.setFixedSize(pixmap.size())
         logo.move(0.5*(self.width() - logo.width()), 20)
         logo.setPixmap(pixmap)
 
-        title = QtGui.QLabel("DIE",self)
+        title = QtWidgets.QLabel("DIE",self)
         title.setAlignment(QtCore.Qt.AlignCenter)
         font = title.font()
         font.setPointSize(16)
@@ -35,7 +35,7 @@ class AboutWindow(QtGui.QDialog):
         title.setFixedWidth(400)
         title.move(0, logo.height() + logo.y() + 20)
 
-        subtitle = QtGui.QLabel("Dynamic IDA Enrichment framework",self)
+        subtitle = QtWidgets.QLabel("Dynamic IDA Enrichment framework",self)
         font = subtitle.font()
         font.setPointSize(14)
         subtitle.setFont(font)
@@ -43,7 +43,7 @@ class AboutWindow(QtGui.QDialog):
         subtitle.setFixedWidth(400)
         subtitle.move(0, title.height() + title.y() + 10)
 
-        version = QtGui.QLabel("Version 0.1",self)
+        version = QtWidgets.QLabel("Version 0.1",self)
         font = subtitle.font()
         font.setPointSize(12)
         version.setFont(font)
@@ -51,7 +51,7 @@ class AboutWindow(QtGui.QDialog):
         version.setFixedWidth(400)
         version.move(0, subtitle.height() + subtitle.y() + 30)
 
-        author = QtGui.QLabel("Written by Yaniv Balmas @ynvb - Check Point Software Technologies",self)
+        author = QtWidgets.QLabel("Written by Yaniv Balmas @ynvb - Check Point Software Technologies",self)
         font = subtitle.font()
         font.setPointSize(12)
         author.setFont(font)
