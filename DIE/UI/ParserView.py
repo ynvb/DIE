@@ -1,6 +1,6 @@
 from DIE.Lib import DataParser
 from idaapi import PluginForm
-from PySide import QtGui, QtCore
+from cute import QtGui, QtCore, QtWidgets, form_to_widget
 
 
 class ParserView(PluginForm):
@@ -23,14 +23,14 @@ class ParserView(PluginForm):
         Called when the view is created
         """
         self.data_parser = DataParser.getParser()
-        self.ptable_widget = QtGui.QTreeWidget()
+        self.ptable_widget = QtWidgets.QTreeWidget()
 
         # Get parent widget
-        self.parent = self.FormToPySideWidget(form)
+        self.parent = form_to_widget(form) 
 
         self._add_parser_data()
 
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(self.ptable_widget)
 
         self.parent.setLayout(layout)
@@ -61,7 +61,7 @@ class ParserView(PluginForm):
         root_item = self.ptable_widget.invisibleRootItem()
 
         for parser in parser_list:
-            current_row_item = QtGui.QTreeWidgetItem()
+            current_row_item = QtWidgets.QTreeWidgetItem()
             current_row_item.setFlags(QtCore.Qt.ItemIsEnabled)
             current_row_item.setText(0, parser)
 
