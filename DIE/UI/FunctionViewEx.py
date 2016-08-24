@@ -6,7 +6,15 @@ import idaapi
 import idautils
 import idc
 from idaapi import PluginForm
-from PySide import QtGui, QtCore
+from cute import QtGui, QtCore, QtWidgets, form_to_widget, use_qt5
+if use_qt5:
+    # should be done in cute.py
+    QtCore.Slot = QtCore.pyqtSlot
+    QtCore.Qt.MatchFlag.MatchRecursive = QtCore.Qt.MatchRecursive
+    QtCore.Qt.MatchFlag.MatchExactly = QtCore.Qt.MatchExactly
+    QtWidgets.QAbstractItemView.ScrollHint.PositionAtTop = QtWidgets.QAbstractItemView.PositionAtTop
+    QtCore.Qt.GlobalColor.yellow = QtCore.Qt.yellow
+    QtCore.Qt.GlobalColor.white = QtCore.Qt.white
 
 import DIE.UI.Die_Icons
 import DIE.UI.ValueViewEx
@@ -50,10 +58,10 @@ class FunctionView(PluginForm):
         self.die_db = DIE.Lib.DIEDb.get_db()
 
         # Get parent widget
-        self.parent = self.FormToPySideWidget(form)
+        self.parent = form_to_widget(form) 
 
         self.functionModel = QtGui.QStandardItemModel()
-        self.functionTreeView = QtGui.QTreeView()
+        self.functionTreeView = QtWidgets.QTreeView()
         self.functionTreeView.setExpandsOnDoubleClick(False)
         #self.functionTreeView.setSortingEnabled(True)
 
@@ -83,27 +91,27 @@ class FunctionView(PluginForm):
         # Actions
         self.context_menu_param = None  # Parameter to be passed to context menu slots
 
-        action_exclude_func = QtGui.QAction("Exclude Function", self.functionTreeView, triggered=lambda: self.on_exclude_func(self.context_menu_param))
-        action_exclude_func_adrs = QtGui.QAction("Exclude All Function Calls", self.functionTreeView, triggered=lambda: self.on_exclude_func_adrs(self.context_menu_param))
-        action_exclude_ea = QtGui.QAction("Exclude Address", self.functionTreeView, triggered=lambda: self.on_exclude_ea(self.context_menu_param))
-        action_exclude_library = QtGui.QAction("Exclude Library", self.functionTreeView, triggered=lambda: self.on_exclude_library(self.context_menu_param))
-        action_value_detail = QtGui.QAction("Inspect Value Details", self.functionTreeView, triggered=lambda: self.on_value_detail(self.context_menu_param))
+        action_exclude_func = QtWidgets.QAction("Exclude Function", self.functionTreeView, triggered=lambda: self.on_exclude_func(self.context_menu_param))
+        action_exclude_func_adrs = QtWidgets.QAction("Exclude All Function Calls", self.functionTreeView, triggered=lambda: self.on_exclude_func_adrs(self.context_menu_param))
+        action_exclude_ea = QtWidgets.QAction("Exclude Address", self.functionTreeView, triggered=lambda: self.on_exclude_ea(self.context_menu_param))
+        action_exclude_library = QtWidgets.QAction("Exclude Library", self.functionTreeView, triggered=lambda: self.on_exclude_library(self.context_menu_param))
+        action_value_detail = QtWidgets.QAction("Inspect Value Details", self.functionTreeView, triggered=lambda: self.on_value_detail(self.context_menu_param))
 
-        action_show_callgraph = QtGui.QAction("Show Call-Graph", self.functionTreeView, triggered=lambda: self.on_show_callgraph(self.context_menu_param))
+        action_show_callgraph = QtWidgets.QAction("Show Call-Graph", self.functionTreeView, triggered=lambda: self.on_show_callgraph(self.context_menu_param))
 
         # Function ContextMenu
-        self.function_context_menu = QtGui.QMenu(self.functionTreeView)
+        self.function_context_menu = QtWidgets.QMenu(self.functionTreeView)
         self.function_context_menu.addAction(action_exclude_func)
         self.function_context_menu.addAction(action_exclude_library)
         self.function_context_menu.addAction(action_exclude_func_adrs)
 
         # Function ea ContextMenu
-        self.ea_context_menu = QtGui.QMenu(self.functionTreeView)
+        self.ea_context_menu = QtWidgets.QMenu(self.functionTreeView)
         self.ea_context_menu.addAction(action_exclude_ea)
         self.ea_context_menu.addAction(action_show_callgraph)
 
         # Argument value ContextMenu
-        self.value_context_menu = QtGui.QMenu(self.functionTreeView)
+        self.value_context_menu = QtWidgets.QMenu(self.functionTreeView)
         self.value_context_menu.addAction(action_value_detail)
 
         # Therad ComboBox
@@ -116,19 +124,19 @@ class FunctionView(PluginForm):
         for thread in threads:
             thread_id_list.append(str(thread.thread_num))
 
-        self.thread_id_combo = QtGui.QComboBox()
+        self.thread_id_combo = QtWidgets.QComboBox()
         self.thread_id_combo.addItems(thread_id_list)
         self.thread_id_combo.activated[str].connect(self.on_thread_combobox_change)
 
-        self.thread_id_label = QtGui.QLabel("Thread:  ")
+        self.thread_id_label = QtWidgets.QLabel("Thread:  ")
 
         # Toolbar
-        self.function_toolbar = QtGui.QToolBar()
+        self.function_toolbar = QtWidgets.QToolBar()
         self.function_toolbar.addWidget(self.thread_id_label)
         self.function_toolbar.addWidget(self.thread_id_combo)
 
         # Grid
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(self.function_toolbar)
         layout.addWidget(self.functionTreeView)
 
@@ -732,7 +740,7 @@ class FunctionView(PluginForm):
 
         for item in matched_items:
             self.functionTreeView.expand(item.index())
-            self.functionTreeView.scrollTo(item.index(), QtGui.QAbstractItemView.ScrollHint.PositionAtTop)
+            self.functionTreeView.scrollTo(item.index(), QtWidgets.QAbstractItemView.ScrollHint.PositionAtTop)
             self.highlight_item_row(item)
 
     def find_context_list(self, context_list):
@@ -759,7 +767,7 @@ class FunctionView(PluginForm):
 
                     item = self.functionModel.itemFromIndex(index)
                     self.functionTreeView.expand(index)
-                    self.functionTreeView.scrollTo(index, QtGui.QAbstractItemView.ScrollHint.PositionAtTop)
+                    self.functionTreeView.scrollTo(index, QtWidgets.QAbstractItemView.ScrollHint.PositionAtTop)
                     self.highlight_item_row(item)
 
             return True
@@ -912,7 +920,7 @@ class FunctionView(PluginForm):
 
         hidden_threads = ".*" + self._make_thread_id_data(thread_id) + ".*"
 
-        threadProxyModel = QtGui.QSortFilterProxyModel()
+        threadProxyModel = QtCore.QSortFilterProxyModel()
         threadProxyModel.setFilterRole(DIE.UI.ThreadId_Role)
         threadProxyModel.setFilterRegExp(hidden_threads)
 
@@ -937,13 +945,13 @@ class FunctionView(PluginForm):
 ###############################################################################################
 #  View Delegates.
 
-class TreeViewDelegate(QtGui.QStyledItemDelegate):
+class TreeViewDelegate(QtWidgets.QStyledItemDelegate):
     """
     Delegate for parsed value viewing in the tree view
     """
 
     def __init__(self, parent):
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
         self.parent = parent
 
     def createEditor(self, parent, option, index):
@@ -957,7 +965,7 @@ class TreeViewDelegate(QtGui.QStyledItemDelegate):
                 line_txt = "%d, %s, %s" % (parsed_val.score, parsed_val.data, parsed_val.description)
                 lines.append(line_txt)
 
-            combo_box = QtGui.QComboBox(parent)
+            combo_box = QtWidgets.QComboBox(parent)
             combo_box.addItems(lines)
 
             return combo_box
