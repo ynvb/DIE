@@ -1,7 +1,7 @@
 from DIE.Lib import DataParser
 from idaapi import PluginForm
-from PySide import QtGui, QtCore
-
+#from PySide import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 class ParserView(PluginForm):
     """

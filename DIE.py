@@ -21,7 +21,7 @@ import DIE.Lib.DieConfig
 import DIE.Lib.DIEDb
 from DIE.Lib import DebugAPI
 
-import DIE.UI.BPView
+#import DIE.UI.BPView
 import DIE.UI.FunctionViewEx
 import DIE.UI.ValueViewEx
 import DIE.UI.ParserView
@@ -36,13 +36,13 @@ from DIE.Lib.DIE_Exceptions import DbFileMismatch
 class MenuHelperException(Exception):
     pass
 
-
+  
 class DieManager():
     """
     Manage the DIE framework
     """
 
-    def __init__(self, is_dbg_log=False, is_dbg_pause=False, is_dbg_profile=False):
+    def __init__(self, is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=False):
 
         ### Logging ###
 
@@ -142,6 +142,113 @@ class DieManager():
 
     ###########################################################################
     # Menu Items
+
+    class DIE_gohere_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+             idaapi.action_handler_t.__init__(self)
+             self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.go_here()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_goall_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.go_all()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+    
+    class DIE_show_funcview_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_function_view()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_show_valview_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_value_view()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+    
+    def add_menu_items(self):
+        DIE_gohere_description = idaapi.action_desc_t(
+                'DIE:go',
+                'Go from current location',
+                self.DIE_gohere_Handler(self),
+                'Ctrl+Alt+f',
+                'DIE go from here',
+                -1)
+        
+        DIE_goall_description = idaapi.action_desc_t(
+                'DIE:goall',
+                'Debug entire program',
+                self.DIE_goall_Handler(self),
+                'Ctrl+Alt+g',
+                'DIE debug entire application',
+                -1)
+        
+        DIE_show_funcview_dsecription = idaapi.action_desc_t(
+                'DIE:funcview',
+                'Show DIE function view',
+                self.DIE_show_funcview_Handler(self),
+                '',
+                'Show DIE function view',
+                -1)
+
+        
+        DIE_show_valview_description = idaapi.action_desc_t(
+                'DIE:valueview',
+                'Show DIE value view',
+                self.DIE_show_valview_Handler(self),
+                '',
+                'Show DIE value view',
+                -1)
+    
+        idaapi.register_action(DIE_gohere_description)
+        idaapi.attach_action_to_menu(
+                'Edit/DIE/Go',
+                'DIE:go',
+                idaapi.SETMENU_APP)
+
+        idaapi.register_action(DIE_goall_description)
+        idaapi.attach_action_to_menu(
+                'Edit/DIE/Go All',
+                'DIE:goall',
+                idaapi.SETMENU_APP)
+
+        idaapi.register_action( DIE_show_funcview_dsecription )
+        idaapi.attach_action_to_menu(
+                'Edit/DIE/Function View',
+                'DIE:funcview',
+                idaapi.SETMENU_APP)
+
+        idaapi.register_action(DIE_show_valview_description)
+        idaapi.attach_action_to_menu(
+                'Edit/DIE/Value View',
+                'DIE:valueview',
+                idaapi.SETMENU_APP)
+
     def add_menu_item_helper(self, menupath, name, hotkey, pyfunc, flags=1, args=None):
 
         # add menu item and report on errors
@@ -151,8 +258,8 @@ class DieManager():
             raise MenuHelperException("Failed adding menu item.")
 
         self.addmenu_item_ctxs.append(addmenu_item_ctx)
-
-    def add_menu_items(self):
+    
+    def ___add_menu_items(self):
         # Add root level menu
         self._menu.add_menu("&DIE")
 
@@ -395,8 +502,8 @@ class die_plugin_t(plugin_t):
             self.die_manager.show_logo()
             return idaapi.PLUGIN_KEEP
 
-        except:
-            idaapi.msg("Failed to initialize DIE.\n")
+        except Exception as ex:
+            idaapi.msg("Failed to initialize DIE. {}\n".format(ex))
             self.die_manager.del_menu_items()
             del self.die_manager
             idaapi.msg("Errors and fun!\n")

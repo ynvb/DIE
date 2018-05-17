@@ -2,8 +2,9 @@ from DIE.Lib import DieConfig
 import idaapi
 import os
 import DIE.Lib.DieConfig
-from PySide import QtGui
 
+#from PySide import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 class DieIcons():
     """

@@ -4,9 +4,9 @@ from idaapi import Form
 import os
 import DIE.Lib.DieConfig
 
-from sark.qt import QtGui, QtCore
+from sark.qt import QtGui, QtCore, QtWidgets
 
-class AboutWindow(QtGui.QDialog):
+class AboutWindow(QtWidgets.QDialog):
     def __init__(self):
         super(AboutWindow, self).__init__()
 

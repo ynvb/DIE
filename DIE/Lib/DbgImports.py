@@ -1,9 +1,8 @@
-
-
 import logging
 import bisect
 
-from idaapi import *
+#from idaapi import *
+import idaapi
 from idc import *
 from idautils import *
 from DIE.Lib.IDAConnector import get_adrs_mem

@@ -1,17 +1,15 @@
-
-
-from PySide import QtGui, QtCore
+#from PySide import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 import idaapi
 import idautils
 import idc
-from idaapi import PluginForm
 
 import DIE.Lib.DIEDb
 import DIE.UI.FunctionViewEx
 
 
-class ValueView(PluginForm):
+class ValueView(idaapi.PluginForm):
     """
     DIE Value View
     """
@@ -25,9 +23,9 @@ class ValueView(PluginForm):
 
     def Show(self):
 
-        return PluginForm.Show(self,
+        return idaapi.PluginForm.Show(self,
                                "Value View",
-                               options=PluginForm.FORM_PERSIST)
+                               options=idaapi.PluginForm.FORM_PERSIST)
 
     def OnCreate(self, form):
         """
@@ -37,10 +35,10 @@ class ValueView(PluginForm):
         self.function_view = DIE.UI.FunctionViewEx.get_view()
 
         # Get parent widget
-        self.parent = self.FormToPySideWidget(form)
+        self.parent = self.FormToPyQtWidget(form)
 
         self.valueModel = QtGui.QStandardItemModel()
-        self.valueTreeView = QtGui.QTreeView()
+        self.valueTreeView = QtWidgets.QTreeView()
         self.valueTreeView.setExpandsOnDoubleClick(False)
 
         self.valueTreeView.doubleClicked.connect(self.itemDoubleClickSlot)
@@ -49,7 +47,7 @@ class ValueView(PluginForm):
         self.valueTreeView.setModel(self.valueModel)
 
         # Toolbar
-        self.value_toolbar = QtGui.QToolBar()
+        self.value_toolbar = QtWidgets.QToolBar()
 
         # Value type combobox
         type_list = []
@@ -57,16 +55,16 @@ class ValueView(PluginForm):
             type_list = self.die_db.get_all_value_types()
             type_list.insert(0, "All Values")
 
-        self.value_type_combo = QtGui.QComboBox()
+        self.value_type_combo = QtWidgets.QComboBox()
         self.value_type_combo.addItems(type_list)
         self.value_type_combo.activated[str].connect(self.on_value_type_combobox_change)
 
-        self.value_type_label = QtGui.QLabel("Value Type:  ")
+        self.value_type_label = QtWidgets.QLabel("Value Type:  ")
         self.value_toolbar.addWidget(self.value_type_label)
         self.value_toolbar.addWidget(self.value_type_combo)
 
         # Layout
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(self.value_toolbar)
         layout.addWidget(self.valueTreeView)
 
@@ -249,7 +247,8 @@ class ValueView(PluginForm):
 ###############################################################################################
 
 
-    @QtCore.Slot(QtCore.QModelIndex)
+    #@QtCore.Slot(QtCore.QModelIndex)
+    @QtCore.pyqtSlot(QtCore.QModelIndex)
     def itemDoubleClickSlot(self, index):
         """
         TreeView DoubleClicked Slot.
@@ -280,7 +279,7 @@ class ValueView(PluginForm):
                 self.valueTreeView.setModel(self.valueModel)
             return
 
-        valuetypeProxyModel = QtGui.QSortFilterProxyModel()
+        valuetypeProxyModel = QtCore.QSortFilterProxyModel()
         valuetypeProxyModel.setFilterRole(DIE.UI.ValueType_Role)
         valuetypeProxyModel.setFilterRegExp(value_type)
 

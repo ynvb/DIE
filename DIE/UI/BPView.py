@@ -1,4 +1,4 @@
-from PySide import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 from idaapi import PluginForm
 
