@@ -37,18 +37,17 @@ class MenuHelperException(Exception):
     pass
 
   
-class DieManager():
+class DieManager:
     """
     Manage the DIE framework
     """
 
     def __init__(self, is_dbg_log=True, is_dbg_pause=False, is_dbg_profile=False):
-
         ### Logging ###
 
         log_filename = os.path.join(os.getcwd(), "DIE.log")
 
-        self._menu = sark.qt.MenuManager()
+        self._menus_names = []
 
         #TODO: Fix logging to include rotating_file_handler \ console_logging
         if is_dbg_log:
@@ -78,8 +77,6 @@ class DieManager():
 
         self.die_config = config
 
-
-        self.addmenu_item_ctxs = []
         self.icon_list = {}
 
         self.debugAPI = DebugAPI.DebugHooker(is_dbg_pause, is_dbg_profile)
@@ -143,6 +140,7 @@ class DieManager():
     ###########################################################################
     # Menu Items
 
+    # Handlers
     class DIE_gohere_Handler(idaapi.action_handler_t):
         def __init__(self, outer_instance):
              idaapi.action_handler_t.__init__(self)
@@ -166,7 +164,19 @@ class DieManager():
 
         def update(self, ctx):
             return idaapi.AST_ENABLE_ALWAYS
-    
+
+    class DIE_goscope_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_scope_chooser()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
     class DIE_show_funcview_Handler(idaapi.action_handler_t):
         def __init__(self, outer_instance):
             idaapi.action_handler_t.__init__(self)
@@ -190,129 +200,174 @@ class DieManager():
 
         def update(self, ctx):
             return idaapi.AST_ENABLE_ALWAYS
-    
+
+    class DIE_show_parsersview_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_parser_view()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_show_exceptionsview_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_breakpoint_view()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_load_db_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.load_db()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_save_db_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.save_db()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_show_cfg_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_cfg()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_mark_execflow_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.mark_exec_flow()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_show_about_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_about()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+    class DIE_show_settings_Handler(idaapi.action_handler_t):
+        def __init__(self, outer_instance):
+            idaapi.action_handler_t.__init__(self)
+            self.outer_instance = outer_instance
+
+        def activate(self, ctx):
+            self.outer_instance.show_settings()
+            return True
+
+        def update(self, ctx):
+            return idaapi.AST_ENABLE_ALWAYS
+
+
+    def add_menu_item_helper(self, name, text, tooltip, handler, icon, shortcut):
+        description = idaapi.action_desc_t(name, text, handler, shortcut, tooltip, icon)
+        idaapi.register_action(description)
+        idaapi.attach_action_to_menu("DIE/" + text, name, idaapi.SETMENU_APP)
+
+        self._menus_names.append(name)
+
+
     def add_menu_items(self):
-        DIE_gohere_description = idaapi.action_desc_t(
-                'DIE:go',
-                'Go from current location',
-                self.DIE_gohere_Handler(self),
-                'Ctrl+Alt+f',
-                'DIE go from here',
-                -1)
-        
-        DIE_goall_description = idaapi.action_desc_t(
-                'DIE:goall',
-                'Debug entire program',
-                self.DIE_goall_Handler(self),
-                'Ctrl+Alt+g',
-                'DIE debug entire application',
-                -1)
-        
-        DIE_show_funcview_dsecription = idaapi.action_desc_t(
-                'DIE:funcview',
-                'Show DIE function view',
-                self.DIE_show_funcview_Handler(self),
-                '',
-                'Show DIE function view',
-                -1)
-
-        
-        DIE_show_valview_description = idaapi.action_desc_t(
-                'DIE:valueview',
-                'Show DIE value view',
-                self.DIE_show_valview_Handler(self),
-                '',
-                'Show DIE value view',
-                -1)
-    
-        idaapi.register_action(DIE_gohere_description)
-        idaapi.attach_action_to_menu(
-                'Edit/DIE/Go',
-                'DIE:go',
-                idaapi.SETMENU_APP)
-
-        idaapi.register_action(DIE_goall_description)
-        idaapi.attach_action_to_menu(
-                'Edit/DIE/Go All',
-                'DIE:goall',
-                idaapi.SETMENU_APP)
-
-        idaapi.register_action( DIE_show_funcview_dsecription )
-        idaapi.attach_action_to_menu(
-                'Edit/DIE/Function View',
-                'DIE:funcview',
-                idaapi.SETMENU_APP)
-
-        idaapi.register_action(DIE_show_valview_description)
-        idaapi.attach_action_to_menu(
-                'Edit/DIE/Value View',
-                'DIE:valueview',
-                idaapi.SETMENU_APP)
-
-    def add_menu_item_helper(self, menupath, name, hotkey, pyfunc, flags=1, args=None):
-
-        # add menu item and report on errors
-        addmenu_item_ctx = idaapi.add_menu_item(menupath, name, hotkey, flags, pyfunc, args)
-
-        if addmenu_item_ctx is None:
-            raise MenuHelperException("Failed adding menu item.")
-
-        self.addmenu_item_ctxs.append(addmenu_item_ctx)
-    
-    def ___add_menu_items(self):
         # Add root level menu
-        self._menu.add_menu("&DIE")
+        idaapi.create_menu("DIE", "DIE")
+
+        # Save DieDB
+        self.add_menu_item_helper("DIE:savedb", "Save DieDB", 'DIE Save DieDB',
+                                  self.DIE_save_db_Handler(self), self.icon_list["save"], '')
 
         # Load DieDB
-        self.add_menu_item_helper("DIE/", "Load DieDB", "", self.load_db)
-        idaapi.set_menu_item_icon("DIE/Load DieDB", self.icon_list["load"])
-        # Save DieDB
-        self.add_menu_item_helper("DIE/", "Save DieDB", "", self.save_db)
-        idaapi.set_menu_item_icon("DIE/Save DieDB", self.icon_list["save"])
-        # Debug Here
-        self.add_menu_item_helper("DIE/", "Go from current location", "Alt+f", self.go_here)
-        idaapi.set_menu_item_icon("DIE/Go from current location", self.icon_list["debug"])
-        # Debug All
-        self.add_menu_item_helper("DIE/", "Debug entire code", "Alt+g", self.go_all)
-        idaapi.set_menu_item_icon("DIE/Debug entire code", self.icon_list["debug_all"])
-        # Debug Custom
-        self.add_menu_item_helper("DIE/", "Debug a custom scope", "Alt+c",
-                                  self.show_scope_chooser)
-        idaapi.set_menu_item_icon("DIE/Debug a custom scope", self.icon_list["debug_scope"])
-        # Function View
-        self.add_menu_item_helper("DIE/", "Function View", "", self.show_function_view)
-        idaapi.set_menu_item_icon("DIE/Function View", self.icon_list["function_view"])
-        # Value View
-        self.add_menu_item_helper("DIE/", "Value View", "", self.show_value_view)
-        idaapi.set_menu_item_icon("DIE/Value View", self.icon_list["value_view"])
-        # Exception View
-        self.add_menu_item_helper("DIE/", "Exceptions View", "", self.show_breakpoint_view)
-        idaapi.set_menu_item_icon("DIE/Exceptions View", self.icon_list["exception_view"])
-        # Parsers View
-        self.add_menu_item_helper("DIE/", "Parsers View", "", self.show_parser_view)
-        idaapi.set_menu_item_icon("DIE/Parsers View", self.icon_list["plugins"])
-        # Parsers View
-        self.add_menu_item_helper("DIE/", "Settings", "", self.show_settings)
-        idaapi.set_menu_item_icon("DIE/Settings", self.icon_list["settings"])
-        # About DIE
-        self.add_menu_item_helper("DIE/", "About", "", self.show_about)
-        idaapi.set_menu_item_icon("DIE/About", self.icon_list["die"])
-        # Mark\Unmark Execution Flow
-        self.add_menu_item_helper("DIE/", "Mark\Unmark Execution Flow", "", self.mark_exec_flow)
+        self.add_menu_item_helper("DIE:loaddb", "Load DieDB", 'DIE Load DieDB',
+                                  self.DIE_load_db_Handler(self), self.icon_list["load"], '')
+
         # Show complete execution CFG
-        self.add_menu_item_helper("DIE/", "Show CFG", "", self.show_cfg)
+        self.add_menu_item_helper("DIE:showcfg", "Show CFG", 'DIE Show CFG',
+                                  self.DIE_show_cfg_Handler(self), -1, '')
+
+        # Mark\Unmark Execution Flow
+        self.add_menu_item_helper("DIE:markexecutionflow", "Mark\Unmark Execution Flow",
+                                  'DIE Mark\Unmark Execution Flow', self.DIE_mark_execflow_Handler(self), -1, '')
+
+        # Parser View
+        self.add_menu_item_helper("DIE:parsersview", "Parsers View", 'DIE Parsers View',
+                                  self.DIE_show_parsersview_Handler(self), self.icon_list["plugins"], '')  # todo crash
+
+        # Exceptions View
+        self.add_menu_item_helper("DIE:exceptionsview", "Exceptions View", 'DIE Exceptions View',
+                                  self.DIE_show_exceptionsview_Handler(self), self.icon_list["exception_view"], '')  # todo crash
+
+        # Value View
+        self.add_menu_item_helper("DIE:valueview", "Value View", 'DIE Value View',
+                                  self.DIE_show_valview_Handler(self), self.icon_list["value_view"], '')
+
+        # Function View
+        self.add_menu_item_helper("DIE:functionview", "Function View", 'DIE Function View',
+                                  self.DIE_show_funcview_Handler(self), self.icon_list["function_view"], '')
+
+        # Debug a custom scope
+        self.add_menu_item_helper("DIE:debugcustomscope", "Debug a custom scope", 'DIE Debug a custom scope',
+                                  self.DIE_goscope_Handler(self), self.icon_list["debug_scope"], 'Ctrl+Alt+c')
+
+        # Debug entire code
+        self.add_menu_item_helper("DIE:debugentirecode", "Debug entire code", 'DIE Debug entire code',
+                                  self.DIE_goall_Handler(self), self.icon_list["debug_scope"], 'Ctrl+Alt+g')
+
+        # Debug from current location
+        self.add_menu_item_helper("DIE:gofromcurrentlocation", "Debug from current location", 'DIE from current location',
+                                  self.DIE_gohere_Handler(self), self.icon_list["debug"], 'Ctrl+Alt+f')
+
+        # Settings
+        self.add_menu_item_helper("DIE:settings", "Settings", 'DIE Settings',
+                                  self.DIE_show_settings_Handler(self), self.icon_list["settings"], '')
+
+        # About
+        self.add_menu_item_helper("DIE:about", "About", 'DIE About',
+                                  self.DIE_show_about_Handler(self), -1, '')  # todo crash
+
 
     def del_menu_items(self):
-        for addmenu_item_ctx in self.addmenu_item_ctxs:
-            idaapi.del_menu_item(addmenu_item_ctx)
+        for menu_name in self._menus_names:
+            idaapi.unregister_action(menu_name)
+        idaapi.delete_menu("DIE")
 
-        self._menu.clear()
-
-    def doNothing(self):
-        """
-        Do Nothing
-        """
-        return
 
     ###########################################################################
     # Debugging
@@ -489,7 +544,7 @@ class DieManager():
 class die_plugin_t(plugin_t):
     flags = idaapi.PLUGIN_PROC
     comment = "Dynamic IDA Enrichment plugin (aka. DIE)"
-    help = "Help if a matter of trust."
+    help = "Help is a matter of trust."
     wanted_name = "DIE"
     wanted_hotkey = ""
 
@@ -524,9 +579,4 @@ class die_plugin_t(plugin_t):
 
 def PLUGIN_ENTRY():
     return die_plugin_t()
-
-
-
-
-
 
