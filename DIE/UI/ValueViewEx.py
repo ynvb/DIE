@@ -1,4 +1,3 @@
-#from PySide import QtGui, QtCore
 from PyQt5 import QtGui, QtCore, QtWidgets
 
 import idaapi
@@ -150,7 +149,7 @@ class ValueView(idaapi.PluginForm):
         @param item: module item
         """
         try:
-            item.setBackground(QtCore.Qt.GlobalColor.yellow)
+            item.setBackground(QtCore.Qt.yellow)
             cur_font = item.font()
             cur_font.setBold(True)
             item.setFont(cur_font)
@@ -201,7 +200,7 @@ class ValueView(idaapi.PluginForm):
             for persistent_index in self.highligthed_items:
                 if persistent_index.isValid():
                     item = self.valueModel.itemFromIndex(persistent_index)
-                    item.setBackground(QtCore.Qt.GlobalColor.white)
+                    item.setBackground(QtCore.Qt.white)
                     cur_font = item.font()
                     cur_font.setBold(False)
                     item.setFont(cur_font)
@@ -226,7 +225,7 @@ class ValueView(idaapi.PluginForm):
                 return
 
             matched_items = self.valueModel.match(root_index, DIE.UI.Value_Role, value.__hash__(), -1,
-                                                  QtCore.Qt.MatchFlag.MatchRecursive | QtCore.Qt.MatchFlag.MatchExactly)
+                                                  QtCore.Qt.MatchRecursive | QtCore.Qt.MatchExactly)
 
             for index in matched_items:
                 if not index.isValid():
@@ -234,7 +233,7 @@ class ValueView(idaapi.PluginForm):
 
                 item = self.valueModel.itemFromIndex(index)
                 self.valueTreeView.expand(index)
-                self.valueTreeView.scrollTo(index, QtGui.QAbstractItemView.ScrollHint.PositionAtTop)
+                self.valueTreeView.scrollTo(index, QtWidgets.QAbstractItemView.ScrollHint.PositionAtTop)
                 self.highlight_item_row(item)
 
         except Exception as ex:

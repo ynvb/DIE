@@ -1,5 +1,4 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
-
 from idaapi import PluginForm
 
 from DIE.Lib import BpHandler
@@ -25,22 +24,22 @@ class BreakpointView(PluginForm):
         """
         Called when the view is created
         """
-        self.bp_tree_widget = QtGui.QTreeWidget()
+        self.bp_tree_widget = QtWidgets.QTreeWidget()
         self.bp_handler = BpHandler.get_bp_handler()
         self.die_icons = DIE.UI.Die_Icons.get_die_icons()
 
         # Get parent widget
-        self.parent = self.FormToPySideWidget(form)
+        self.parent = self.FormToPyQtWidget(form)
 
         self._add_parser_data()
 
-        toolbar = QtGui.QToolBar()
-        action_refresh = QtGui.QAction(self.die_icons.icon_refresh, "Refresh", toolbar)
+        toolbar = QtWidgets.QToolBar()
+        action_refresh = QtWidgets.QAction(self.die_icons.icon_refresh, "Refresh", toolbar)
         action_refresh.triggered.connect(self.refresh)
         toolbar.addAction(action_refresh)
 
 
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(toolbar)
         layout.addWidget(self.bp_tree_widget)
 
@@ -59,46 +58,46 @@ class BreakpointView(PluginForm):
         if self.bp_tree_widget is not None:
             self.bp_tree_widget.clear()
         else:
-            self.bp_tree_widget = QtGui.QTreeWidget()
+            self.bp_tree_widget = QtWidgets.QTreeWidget()
 
         root_item = self.bp_tree_widget.invisibleRootItem()
 
         self.bp_tree_widget.setHeaderLabel("Breakpoints")
 
         # Excluded Modules
-        module_item = QtGui.QTreeWidgetItem()
+        module_item = QtWidgets.QTreeWidgetItem()
         module_item.setText(0, "Excluded Modules")
         module_item.setFlags(QtCore.Qt.ItemIsEnabled)
 
         row = 0
         for module in self.bp_handler.excluded_modules:
-            current_row_item = QtGui.QTreeWidgetItem()
+            current_row_item = QtWidgets.QTreeWidgetItem()
             current_row_item.setFlags(QtCore.Qt.ItemIsEnabled)
             current_row_item.setText(0, module)
             module_item.insertChild(row, current_row_item)
             row += 1
 
         # Excluded Functions
-        function_item = QtGui.QTreeWidgetItem()
+        function_item = QtWidgets.QTreeWidgetItem()
         function_item.setText(0, "Excluded Functions")
         function_item.setFlags(QtCore.Qt.ItemIsEnabled)
 
         row = 0
         for function in self.bp_handler.excluded_funcNames:
-            current_row_item = QtGui.QTreeWidgetItem()
+            current_row_item = QtWidgets.QTreeWidgetItem()
             current_row_item.setFlags(QtCore.Qt.ItemIsEnabled)
             current_row_item.setText(0, function)
             function_item.insertChild(row, current_row_item)
             row += 1
 
         # Excluded Addresses
-        ea_item = QtGui.QTreeWidgetItem()
+        ea_item = QtWidgets.QTreeWidgetItem()
         ea_item.setText(0, "Excluded Addresses")
         ea_item.setFlags(QtCore.Qt.ItemIsEnabled)
 
         row = 0
         for ea in self.bp_handler.excluded_bp_ea:
-            current_row_item = QtGui.QTreeWidgetItem()
+            current_row_item = QtWidgets.QTreeWidgetItem()
             current_row_item.setFlags(QtCore.Qt.ItemIsEnabled)
             current_row_item.setText(0, hex(ea))
             ea_item.insertChild(row, current_row_item)

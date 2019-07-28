@@ -6,19 +6,18 @@ import idaapi
 import idautils
 import idc
 from idaapi import PluginForm
-#from PySide import QtGui, QtCore
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 import DIE.UI.Die_Icons
 import DIE.UI.ValueViewEx
 import DIE.UI.ParserView
 import DIE.UI.BPView
-
 import DIE.Lib.IDAConnector
 import DIE.Lib.DIEDb
 import DIE.Lib.BpHandler
 
 import sark.ui
+
 
 class FunctionView(PluginForm):
     """
@@ -656,7 +655,7 @@ class FunctionView(PluginForm):
         @param item: module item
         """
         try:
-            item.setBackground(QtCore.Qt.GlobalColor.yellow)
+            item.setBackground(QtCore.Qt.yellow)
             cur_font = item.font()
             cur_font.setBold(True)
             item.setFont(cur_font)
@@ -708,7 +707,7 @@ class FunctionView(PluginForm):
             for persistent_index in self.highligthed_items:
                 if persistent_index.isValid():
                     item = self.functionModel.itemFromIndex(persistent_index)
-                    item.setBackground(QtCore.Qt.GlobalColor.white)
+                    item.setBackground(QtCore.Qt.white)
                     cur_font = item.font()
                     cur_font.setBold(False)
                     item.setFont(cur_font)
@@ -733,7 +732,7 @@ class FunctionView(PluginForm):
 
         for item in matched_items:
             self.functionTreeView.expand(item.index())
-            self.functionTreeView.scrollTo(item.index(), QtGui.QAbstractItemView.ScrollHint.PositionAtTop)
+            self.functionTreeView.scrollTo(item.index(), QtWidgets.QAbstractItemView.PositionAtTop)
             self.highlight_item_row(item)
 
     def find_context_list(self, context_list):
@@ -749,7 +748,7 @@ class FunctionView(PluginForm):
 
             for func_context in context_list:
                 context_id = id(func_context)
-                matched_items = self.functionModel.match(root_index, DIE.UI.ContextId_Role, context_id, -1, QtCore.Qt.MatchFlag.MatchRecursive|QtCore.Qt.MatchFlag.MatchExactly)
+                matched_items = self.functionModel.match(root_index, DIE.UI.ContextId_Role, context_id, -1, QtCore.Qt.MatchRecursive|QtCore.Qt.MatchExactly)
 
                 for index in matched_items:
                     if not index.isValid():
@@ -760,7 +759,7 @@ class FunctionView(PluginForm):
 
                     item = self.functionModel.itemFromIndex(index)
                     self.functionTreeView.expand(index)
-                    self.functionTreeView.scrollTo(index, QtGui.QAbstractItemView.ScrollHint.PositionAtTop)
+                    self.functionTreeView.scrollTo(index, QtWidgets.QAbstractItemView.PositionAtTop)
                     self.highlight_item_row(item)
 
             return True
@@ -772,7 +771,6 @@ class FunctionView(PluginForm):
 ###############################################################################################
 #  Slots.
 
-    #@QtCore.Slot(QtCore.QModelIndex)
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def itemDoubleClickSlot(self, index):
         """
@@ -798,7 +796,6 @@ class FunctionView(PluginForm):
                 idc.Jump(ea)
                 return True
 
-    #@QtCore.Slot(QtCore.QPoint)
     @QtCore.pyqtSlot(QtCore.QPoint)
     def onCustomContextMenu(self, point):
         index = self.functionTreeView.indexAt(point)
@@ -818,7 +815,6 @@ class FunctionView(PluginForm):
             self.context_menu_param = is_value_item
             self.value_context_menu.exec_(self.functionTreeView.mapToGlobal(point))
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_exclude_func(self, function):
 
@@ -831,7 +827,6 @@ class FunctionView(PluginForm):
         self.bp_handler.add_bp_funcname_exception(function.function_name)
         return
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_exclude_func_adrs(self, function):
 
@@ -847,7 +842,6 @@ class FunctionView(PluginForm):
 
         return
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_exclude_ea(self, function_context):
 
@@ -860,7 +854,6 @@ class FunctionView(PluginForm):
         self.bp_handler.add_bp_ea_exception(function_context.calling_ea)
         return
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_show_callgraph(self, function_context):
 
@@ -887,7 +880,6 @@ class FunctionView(PluginForm):
 
         return
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_exclude_library(self, function):
 
@@ -902,7 +894,6 @@ class FunctionView(PluginForm):
 
         return
 
-    #@QtCore.Slot(str)
     @QtCore.pyqtSlot(str)
     def on_value_detail(self, value):
         if not self.value_view.isVisible():
@@ -921,7 +912,7 @@ class FunctionView(PluginForm):
 
         hidden_threads = ".*" + self._make_thread_id_data(thread_id) + ".*"
 
-        threadProxyModel = QtGui.QSortFilterProxyModel()
+        threadProxyModel = QtCore.QSortFilterProxyModel()
         threadProxyModel.setFilterRole(DIE.UI.ThreadId_Role)
         threadProxyModel.setFilterRegExp(hidden_threads)
 
@@ -946,7 +937,6 @@ class FunctionView(PluginForm):
 ###############################################################################################
 #  View Delegates.
 
-#class TreeViewDelegate(QtGui.QStyledItemDelegate):
 class TreeViewDelegate(QtWidgets.QStyledItemDelegate):
     """
     Delegate for parsed value viewing in the tree view
@@ -967,7 +957,7 @@ class TreeViewDelegate(QtWidgets.QStyledItemDelegate):
                 line_txt = "%d, %s, %s" % (parsed_val.score, parsed_val.data, parsed_val.description)
                 lines.append(line_txt)
 
-            combo_box = QtGui.QComboBox(parent)
+            combo_box = QtWidgets.QComboBox(parent)
             combo_box.addItems(lines)
 
             return combo_box

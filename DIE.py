@@ -328,11 +328,11 @@ class DieManager:
 
         # Parser View
         self.add_menu_item_helper("DIE:parsersview", "Parsers View", 'DIE Parsers View',
-                                  self.DIE_show_parsersview_Handler(self), self.icon_list["plugins"], '')  # todo crash
+                                  self.DIE_show_parsersview_Handler(self), self.icon_list["plugins"], '')
 
         # Exceptions View
         self.add_menu_item_helper("DIE:exceptionsview", "Exceptions View", 'DIE Exceptions View',
-                                  self.DIE_show_exceptionsview_Handler(self), self.icon_list["exception_view"], '')  # todo crash
+                                  self.DIE_show_exceptionsview_Handler(self), self.icon_list["exception_view"], '')
 
         # Value View
         self.add_menu_item_helper("DIE:valueview", "Value View", 'DIE Value View',
@@ -360,7 +360,7 @@ class DieManager:
 
         # About
         self.add_menu_item_helper("DIE:about", "About", 'DIE About',
-                                  self.DIE_show_about_Handler(self), -1, '')  # todo crash
+                                  self.DIE_show_about_Handler(self), -1, '')
 
 
     def del_menu_items(self):
@@ -440,7 +440,7 @@ class DieManager:
         self.parser_view.Show()
 
     ###########################################################################
-    # Parser View
+    # Exceptions View
     def show_breakpoint_view(self):
         self.bp_view.Show()
 
