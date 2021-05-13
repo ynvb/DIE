@@ -56,7 +56,7 @@ Installation
 2. Python 2.7
 
 #### How to install
-1. Simply download DIE and run `pip install -r requirments.txt` from DIE's directory.
+1. Simply download DIE and run `pip install -r requirements.txt` from DIE's directory.
 2. Copy the file `die_proxy.py` into IDA plugin directory
 3. Create an enviorment variable named DIEDIR and set it's value to DIE directory.
 
@@ -67,6 +67,6 @@ If for some reason you want to install all the dependencies manually:
 
 3. Yapsy     - install using `pip install yapsy` or your favorite package manager
 4. Pywin32   - install via 
-5. Sark      - install using `pip install -e git+https://github.com/tmr232/Sark.git#egg=Sark`
+5. Sark      - If your IDA version < 7.4: `pip install "sark<7.4"`    otherwise: `pip install -e git+https://github.com/tmr232/Sark.git#egg=Sark`
 6. yaml      - install using `pip install pyyaml`
 7. attrdict  - install using `pip install attrdict`
