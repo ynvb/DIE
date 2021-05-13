@@ -23,11 +23,11 @@ class DIEConfig(object):
 
     @property
     def icons_path(self):
-        return self.install_path + "\\Icons"
+        return os.path.join(self.install_path, "icons")
 
     @property
     def parser_path(self):
-        return self.install_path + "\\Plugins\\DataParsers"
+        return os.path.join(self.install_path, "Plugins", "DataParsers")
 
     def load(self, path):
         with open(path, "rb") as f:
