@@ -3,7 +3,7 @@ from os import path, environ
 import sys
 
 
-DIE_DIR = environ["DieDir"]
+DIE_DIR = environ["DIEDIR"]
 DIE_NAME = "DIE.py"
 
 sys.path.append(DIE_DIR)

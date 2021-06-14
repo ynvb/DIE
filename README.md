@@ -58,7 +58,7 @@ Installation
 #### How to install
 1. Simply download DIE and run `pip install -r requirements.txt` from DIE's directory.
 2. Copy the file `die_proxy.py` into IDA plugin directory
-3. Create an enviorment variable named DIEDIR and set it's value to DIE directory.
+3. Create an enviorment variable named `DIEDIR` and set it's value to DIE directory.
 
 For the Windows Handle parser plugin, you will also need to install [PyWin32](http://sourceforge.net/projects/pywin32/files/pywin32/) (manually :( )
 
