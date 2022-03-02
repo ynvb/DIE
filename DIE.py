@@ -59,7 +59,7 @@ class DieManager:
                     level=logging.INFO,
                     format='[%(asctime)s] [%(levelname)s] [%(name)s][%(filename)s:%(lineno)s] : %(message)s')
 
-        idaapi.msg("Logfile created at %s\n" % log_filename)
+        idaapi.msg("Log file created at %s\n" % log_filename)
         self.logger = logging.getLogger(__name__)
 
         ### DIE Configuration ###
@@ -308,65 +308,66 @@ class DieManager:
 
     def add_menu_items(self):
         # Add root level menu
-        idaapi.create_menu("DIE", "DIE")
+        idaapi.create_menu('DIE', 'DIE')
 
         # Save DieDB
-        self.add_menu_item_helper("DIE:savedb", "Save DieDB", 'DIE Save DieDB',
-                                  self.DIE_save_db_Handler(self), self.icon_list["save"], '')
+        self.add_menu_item_helper( 'DIE:savedb',  '&Save DieDB', 'Saves DieDB',
+                                   self.DIE_save_db_Handler(self),  self.icon_list['save'], '')
 
         # Load DieDB
-        self.add_menu_item_helper("DIE:loaddb", "Load DieDB", 'DIE Load DieDB',
-                                  self.DIE_load_db_Handler(self), self.icon_list["load"], '')
+        self.add_menu_item_helper( 'DIE:loaddb',  '&Load DieDB', 'Loads DieDB',
+                                   self.DIE_load_db_Handler(self),  self.icon_list['load'], '')
 
         # Show complete execution CFG
-        self.add_menu_item_helper("DIE:showcfg", "Show CFG", 'DIE Show CFG',
-                                  self.DIE_show_cfg_Handler(self), -1, '')
+        self.add_menu_item_helper( 'DIE:showcfg', 'Show &CFG',  'Shows control flow graph',
+                                   self.DIE_show_cfg_Handler(self),  -1                   , '')
 
         # Mark\Unmark Execution Flow
-        self.add_menu_item_helper("DIE:markexecutionflow", "Mark\Unmark Execution Flow",
-                                  'DIE Mark\Unmark Execution Flow', self.DIE_mark_execflow_Handler(self), -1, '')
+        self.add_menu_item_helper( 'DIE:markexecutionflow', r'Mark\&Unmark Execution flow',
+                                   r'DIE Mark\Unmark Execution flow', 
+                                   self.DIE_mark_execflow_Handler(self), -1, '')
 
         # Parser View
-        self.add_menu_item_helper("DIE:parsersview", "Parsers View", 'DIE Parsers View',
-                                  self.DIE_show_parsersview_Handler(self), self.icon_list["plugins"], '')
+        self.add_menu_item_helper( 'DIE:parsersview', '&Parsers view',  'DIE Parsers view',
+                                   self.DIE_show_parsersview_Handler(self),   self.icon_list['plugins'], '')
 
         # Exceptions View
-        self.add_menu_item_helper("DIE:exceptionsview", "Exceptions View", 'DIE Exceptions View',
-                                  self.DIE_show_exceptionsview_Handler(self), self.icon_list["exception_view"], '')
+        self.add_menu_item_helper( 'DIE:exceptionsview', 'E&xceptions view',  'DIE Exceptions view',
+                                   self.DIE_show_exceptionsview_Handler(self), self.icon_list['exception_view'], '')
 
         # Value View
-        self.add_menu_item_helper("DIE:valueview", "Value View", 'DIE Value View',
-                                  self.DIE_show_valview_Handler(self), self.icon_list["value_view"], '')
+        self.add_menu_item_helper( 'DIE:valueview', '&Value view', 'DIE Value view',
+                                   self.DIE_show_valview_Handler(self), self.icon_list['value_view'], '')
 
         # Function View
-        self.add_menu_item_helper("DIE:functionview", "Function View", 'DIE Function View',
-                                  self.DIE_show_funcview_Handler(self), self.icon_list["function_view"], '')
+        self.add_menu_item_helper( 'DIE:functionview', '&Function view', 'DIE Function view',
+                                   self.DIE_show_funcview_Handler(self), self.icon_list['function_view'], '')
 
         # Debug a custom scope
-        self.add_menu_item_helper("DIE:debugcustomscope", "Debug a custom scope", 'DIE Debug a custom scope',
-                                  self.DIE_goscope_Handler(self), self.icon_list["debug_scope"], 'Ctrl+Alt+c')
+        self.add_menu_item_helper( 'DIE:debugcustomscope', 'Debug a c&ustom scope', 'DIE Debug a custom scope',
+                                   self.DIE_goscope_Handler(self), self.icon_list['debug_scope'], 'Ctrl+Alt+c')
 
         # Debug entire code
-        self.add_menu_item_helper("DIE:debugentirecode", "Debug entire code", 'DIE Debug entire code',
-                                  self.DIE_goall_Handler(self), self.icon_list["debug_scope"], 'Ctrl+Alt+g')
+        self.add_menu_item_helper( 'DIE:debugentirecode', 'Debug &entire code', 'DIE Debug entire code',
+                                   self.DIE_goall_Handler(self), self.icon_list['debug_scope'], 'Ctrl+Alt+g')
 
         # Debug from current location
-        self.add_menu_item_helper("DIE:gofromcurrentlocation", "Debug from current location", 'DIE from current location',
-                                  self.DIE_gohere_Handler(self), self.icon_list["debug"], 'Ctrl+Alt+f')
+        self.add_menu_item_helper( 'DIE:gofromcurrentlocation', '&Debug from current location', 'DIE from current location',
+                                   self.DIE_gohere_Handler(self), self.icon_list['debug'], 'Ctrl+Alt+f')
 
         # Settings
-        self.add_menu_item_helper("DIE:settings", "Settings", 'DIE Settings',
-                                  self.DIE_show_settings_Handler(self), self.icon_list["settings"], '')
+        self.add_menu_item_helper( 'DIE:settings', 'Se&ttings', 'DIE Settings',
+                                   self.DIE_show_settings_Handler(self), self.icon_list['settings'], '')
 
         # About
-        self.add_menu_item_helper("DIE:about", "About", 'DIE About',
-                                  self.DIE_show_about_Handler(self), -1, '')
+        self.add_menu_item_helper( 'DIE:about', 'About', 'DIE About',
+                                   self.DIE_show_about_Handler(self), -1, '')
 
 
     def del_menu_items(self):
         for menu_name in self._menus_names:
             idaapi.unregister_action(menu_name)
-        idaapi.delete_menu("DIE")
+        idaapi.delete_menu('DIE')
 
 
     ###########################################################################
@@ -512,7 +513,7 @@ class DieManager:
             (from_address, to_address) = ctxt_node
             graph.add_edge(from_address, to_address)
 
-        viewer = sark.ui.NXGraph(graph, "Callgraph for {}".format("Exection CFG"), handler=sark.ui.AddressNodeHandler())
+        viewer = sark.ui.NXGraph(graph, "Call graph for execution CFG", handler=sark.ui.AddressNodeHandler())
         viewer.Show()
 
     def show_logo(self):
